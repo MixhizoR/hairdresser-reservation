@@ -1,0 +1,8 @@
+{
+  "name": "hairdresser-reservation",
+  "version": "1.0.0",
+  "description": "Premium Hairdresser Reservation System",
+  "scripts": {
+    "install-all": "npm install && cd server && npm install && cd ../client && npm install"
+  }
+}
