@@ -48,4 +48,4 @@ Sistemi bilgisayarında çalıştırmak için şu adımları izle:
 Bu proje, bir "Minimum Viable Product" olmanın ötesinde, **lüks bir marka deneyimi** olarak kurgulanmıştır. Karanlık modun asaletini altın sarısı detaylarla birleştirir ve akıcı mikro-animasyonlarla kullanıcıyı etkilemeyi hedefler.
 
 ---
-*Geliştiren: Antigravity AI | 2026*
+*Geliştiren: Oğuz Selman Çetin | 2026*
