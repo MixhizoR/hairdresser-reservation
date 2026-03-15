@@ -24,6 +24,21 @@ app.get('/api/appointments', (req, res) => {
 });
 
 app.post('/api/appointments', (req, res) => {
+    // Server-side 30-minute slot validation
+    const date = new Date(req.body.time);
+    if (date.getMinutes() % 30 !== 0) {
+        return res.status(400).json({ error: 'Invalid time slot. Must be 00 or 30 minutes.' });
+    }
+
+    // Double-booking prevention
+    const isTaken = appointments.some(app => 
+        app.status !== 'rejected' && 
+        new Date(app.time).getTime() === date.getTime()
+    );
+    if (isTaken) {
+        return res.status(400).json({ error: 'This time slot is already reserved.' });
+    }
+
     const newAppointment = {
         id: Date.now(),
         ...req.body,

@@ -1,58 +1,43 @@
-# Noir Barber | Premium Reservation System
+# 🎩 Noir Barber | Premium Reservation System
 
-A high-end, real-time hairdresser reservation system built with React, Node.js, and Socket.io. This project features a luxury dark-themed UI, a secure admin dashboard, and instant audio-visual notifications for new bookings.
+![Midnight Gold Theme](https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&q=80&w=2000)
 
-![Salon Hero](client/src/salon_hero_premium_1773576741628.png)
+**Noir Barber**, üst düzey bir berber deneyimi için tasarlanmış, gerçek zamanlı bildirimlere sahip, ultra lüks bir rezervasyon yönetim sistemidir. "Midnight Gold" tasarım diliyle hazırlanan bu uygulama, hem müşteri hem de berber için birinci sınıf bir dijital deneyim sunar.
 
-## ✨ Features
+## ✨ Öne Çıkan Özellikler
 
-- 💎 **Premium UI/UX**: Noir-themed design with glassmorphism and smooth Framer Motion animations.
-- ⚡ **Real-time Notifications**: Instant updates via Socket.io when a new reservation is made.
-- 🔔 **Audio Alerts**: High-quality audio notifications for the admin dashboard.
-- 🛡️ **Manual Approval**: Appointments are held in a "Pending" state until handled by the barber.
-- 📱 **Responsive Design**: Fully optimized for mobile and desktop screens.
+- **💎 Luxury Visuals**: "Midnight Gold" teması, Cinzel tipografisi ve derinlikli glassmorphism efektleri.
+- **🔔 Gerçek Zamanlı Bildirimler**: Soket entegrasyonu sayesinde randevular anında admin paneline düşer.
+- **🔊 Akıllı Ses Sistemi**: Web Audio API (Dijital Sentezleyici) kullanılarak internete bağımlı olmayan, güvenilir bildirim sesleri.
+- **📱 Her Yerden Erişim**: Mobilden veya bilgisayardan yerel ağ üzerinden erişim desteği.
+- **🌍 Çoklu Dil Desteği**: Türkçe ve İngilizce dil seçeneği (Varsayılan: Türkçe).
+- **🛠️ Güvenli Onay Mekanizması**: Berbere özel manuel randevu onay/red süreçleri.
 
-## 🛠️ Tech Stack
+## 🚀 Hızlı Başlangıç
 
-- **Frontend**: React, Vite, Framer Motion, Lucide-React.
-- **Backend**: Node.js, Express, Socket.io.
-- **Styling**: Vanilla CSS (Custom Design System).
+Sistemi bilgisayarında çalıştırmak için şu adımları izle:
 
-## 🚀 Getting Started
+1.  **Bağımlılıkları Yükle**:
+    ```bash
+    npm run install-all
+    ```
+2.  **Sistemi Başlat**:
+    *   **Windows**: Dosya dizinindeki `start.bat` dosyasına çift tıkla veya terminale `./start.bat` yaz.
+    *   **Mac/Linux**: `./start.sh` komutunu çalıştır.
 
-### Prerequisites
+3.  **Tarayıcıda Aç**:
+    *   Müşteri Ekranı & Admin Paneli: `http://localhost:5173`
 
-- Node.js (v18+)
-- npm
+## 🛠️ Teknoloji Yığını
 
-### Installation
+- **Frontend**: React (Vite) + Framer Motion (Orkestral Animasyonlar)
+- **Backend**: Node.js + Express (Özel API Katmanı)
+- **İletişim**: Socket.io (Gerçek Zamanlı Veri Akışı)
+- **Stil**: Modern Vanilla CSS (Custom Design System)
 
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/yourusername/hairdresser-reservation.git
-   cd hairdresser-reservation
-   ```
+## 🎨 Tasarım Vizyonu
 
-2. Install all dependencies:
-   ```bash
-   npm run install-all
-   ```
+Bu proje, bir "Minimum Viable Product" olmanın ötesinde, **lüks bir marka deneyimi** olarak kurgulanmıştır. Karanlık modun asaletini altın sarısı detaylarla birleştirir ve akıcı mikro-animasyonlarla kullanıcıyı etkilemeyi hedefler.
 
-### Running the App
-
-Start both the frontend and backend with a single command:
-
-```bash
-npm run dev
-```
-
-The frontend will be available at `http://localhost:5173` and the backend at `http://localhost:5000`.
-
-## 📂 Project Structure
-
-- `/client`: React application (Vite).
-- `/server`: Node.js Express server with Socket.io.
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+---
+*Geliştiren: Antigravity AI | 2026*

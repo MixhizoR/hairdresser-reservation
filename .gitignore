@@ -35,3 +35,7 @@ build/
 server/node_modules
 client/node_modules
 client/dist
+
+brainstorming.md
+implementation_plan.md
+task.md
