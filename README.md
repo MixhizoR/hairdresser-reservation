@@ -11,6 +11,7 @@
 - **🔊 Akıllı Ses Sistemi**: Web Audio API (Dijital Sentezleyici) kullanılarak internete bağımlı olmayan, güvenilir bildirim sesleri.
 - **📱 Her Yerden Erişim**: Mobilden veya bilgisayardan yerel ağ üzerinden erişim desteği.
 - **🌍 Çoklu Dil Desteği**: Türkçe ve İngilizce dil seçeneği (Varsayılan: Türkçe).
+- **🎶 Özelleştirilebilir Sesler**: `/client/public/sounds/notification.mp3` yoluna kendi ses dosyanızı ekleyerek bildirim sesini değiştirebilirsiniz (Eğer dosya yoksa, sistem lüks bir "Dijital Çan" sesi çalar).
 - **🛠️ Güvenli Onay Mekanizması**: Berbere özel manuel randevu onay/red süreçleri.
 
 ## 🚀 Hızlı Başlangıç
@@ -22,11 +23,8 @@ Sistemi bilgisayarında çalıştırmak için şu adımları izle:
     npm run install-all
     ```
 2.  **Sistemi Başlat**:
-    *   **Windows**: Dosya dizinindeki `start.bat` dosyasına çift tıkla veya terminale `./start.bat` yaz.
-    *   **Mac/Linux**: `./start.sh` komutunu çalıştır.
-
-3.  **Tarayıcıda Aç**:
-    *   Müşteri Ekranı & Admin Paneli: `http://localhost:5173`
+    *   **Geliştirme Modu (Hot-Reload, Esnek Limitler):** Proje dizininde `start-dev.bat` dosyasını çalıştırın. Sisteme `http://localhost:5173` adresinden erişilir.
+    *   **Canlı Mod (Production Build, Sıkı Güvenlik):** Proje dizininde `start-prod.bat` dosyasını çalıştırın. Sisteme `http://localhost:4173` adresinden erişilir.
 
 ## 🛠️ Teknoloji Yığını
 
