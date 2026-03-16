@@ -7,13 +7,18 @@
 ## ✨ Öne Çıkan Özellikler
 
 - **💎 Luxury Visuals**: "Midnight Gold" teması, Cinzel tipografisi ve derinlikli glassmorphism efektleri.
-- **🛡️ Askeri Düzey Güvenlik**: JWT (JSON Web Token) kimlik doğrulama, Helmet xss/csrf korumaları, dinamik CORS kısıtlamaları ve Brute-force saldırılarına karşı Rate Limiting.
-- **💾 Sorunsuz Veritabanı**: Harici sunucu kurulumu gerektirmeyen, dosya tabanlı, ultra hızlı **SQLite** ve Prisma ORM altyapısı.
-- **🔔 Gerçek Zamanlı Bildirimler**: Soket entegrasyonu sayesinde randevular anında admin paneline düşer.
-- **🔊 Akıllı Ses Sistemi**: Web Audio API (Dijital Sentezleyici) kullanılarak internete bağımlı olmayan, güvenilir bildirim sesleri.
-- **📱 Her Yerden Erişim**: Mobilden veya bilgisayardan yerel ağ üzerinden erişim desteği.
-- **🎶 Özelleştirilebilir Sesler**: `/client/public/sounds/` klasörüne kendi ses dosyanızı ekleyerek bildirim sesini değiştirebilirsiniz (Eğer dosya yoksa, sistem lüks bir "Dijital Çan" sesi çalar).
-- **🛠️ Güvenli Onay Mekanizması**: Berbere özel manuel randevu onay/red süreçleri.
+- **🛡️ Askeri Düzey Güvenlik**: JWT (JSON Web Token) kimlik doğrulama, Helmet xss/csrf korumaları, dinamik CORS kısıtlamaları.
+- **⚡ Akıllı Hız Sınırları**: Geliştirme (Dev) ortamında esnek, Canlı (Prod) ortamda ise Brute-force saldırılarına karşı sıkı Rate Limiting kuralları.
+- **🤖 Bot Koruması**: "Honeypot" mekanizması ile spam randevuların sessizce engellenmesi.
+- **💾 SQLite & Prisma ORM**: Harici veritabanı kurulumu gerektirmeyen, dosya tabanlı, ultra hızlı ve güvenilir altyapı.
+- **🔔 Gerçek Zamanlı Dashboard**: Socket.io entegrasyonu sayesinde yeni randevular ve durum güncellemeleri anında senkronize olur.
+- **🔊 Çok Kanallı Ses Sistemi**: Web Audio API (Dijital Sentezleyici) veya özel yüklenebilir `.mp3` sesleri ile premium bildirimler.
+- **📱 %100 Mobil Uyumluluk**: Tüm ekran boyutlarında kusursuz çalışan, modern grid yapıları ve responsive tasarım.
+- **🛠️ 3-Aşamalı Randevu Akışı**:
+  - 🟢 **Müsait**: Rezerve edilebilir boş saatler.
+  - 🟠 **Bekliyor (Pending)**: Müşteri talebi alınmış, berber onayı bekleyen turuncu renkli slotlar.
+  - 🔴 **Dolu (Approved)**: Berber tarafından onaylanmış, kesinleşmiş randevular.
+- **📝 Gelişmiş Loglama**: Hata ayıklama ve sistem takibi için yapılandırılmış JSON loglama sistemi.
 
 ## 🚀 Hızlı Başlangıç
 
@@ -31,17 +36,16 @@ Sistemi bilgisayarında çalıştırmak için şu adımları izle:
     cd ..
     ```
 3.  **Sistemi Başlat**:
-    *   **Geliştirme Modu (Hot-Reload, Esnek Limitler):** Proje dizininde `start-dev.bat` dosyasını çalıştırın. Sisteme `http://localhost:5173` adresinden erişilir.
-    *   **Canlı Mod (Production Build, Sıkı Güvenlik):** Proje dizininde `start-prod.bat` dosyasını çalıştırın. Sisteme `http://localhost:4173` adresinden erişilir.
+    *   **Geliştirme Modu (Hot-Reload, API Proxy):** Proje dizininde `start-dev.bat` dosyasını çalıştırın. Vite proxy sayesinde `/api` istekleri otomatik olarak arka uca yönlendirilir.
+    *   **Canlı Mod (Production Build, Sıkı Güvenlik):** Proje dizininde `start-prod.bat` dosyasını çalıştırın.
 
 ## 🛠️ Teknoloji Yığını
 
-- **Frontend**: React (Vite) + Framer Motion (Orkestral Animasyonlar)
-- **Backend**: Node.js + Express (Özel API Katmanı) + JWT (Bcrypt Auth)
+- **Frontend**: React (Vite) + Framer Motion (Orkestral Animasyonlar) + Lucide Icons
+- **Backend**: Node.js + Express + JWT (Bcrypt Auth) + Socket.io
 - **Veritabanı**: SQLite3 + Prisma ORM
-- **Güvenlik**: Helmet.js, Express-Rate-Limit, CORS Protection
-- **İletişim**: Socket.io (Gerçek Zamanlı Veri Akışı)
-- **Stil**: Modern Vanilla CSS (Custom Design System)
+- **Güvenlik**: Helmet.js, Express-Rate-Limit, CORS Protection, Input Validation (Validator.js)
+- **Stil**: Modern Vanilla CSS (Custom Design System + Fluid Layouts)
 
 ## 🎨 Tasarım Vizyonu
 
@@ -49,3 +53,4 @@ Bu proje, bir "Minimum Viable Product" olmanın ötesinde, **lüks bir marka den
 
 ---
 *Geliştiren: Oğuz Selman Çetin | 2026*
+
