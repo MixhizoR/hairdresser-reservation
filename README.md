@@ -1,56 +1,57 @@
-# 🎩 Noir Barber | Premium Reservation System
+# Noir Barber | Premium Reservation System
 
 ![Midnight Gold Theme](https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&q=80&w=2000)
 
-**Noir Barber**, üst düzey bir berber deneyimi için tasarlanmış, gerçek zamanlı bildirimlere sahip, ultra lüks bir rezervasyon yönetim sistemidir. "Midnight Gold" tasarım diliyle hazırlanan bu uygulama, hem müşteri hem de berber için birinci sınıf bir dijital deneyim sunar.
+Noir Barber is an ultra-luxury reservation management system with real-time notifications, designed for a high-end barber experience. Developed with a "Midnight Gold" design language, this application provides a first-class digital experience for both customers and staff.
 
-## ✨ Öne Çıkan Özellikler
+---
 
-- **💎 Luxury Visuals**: "Midnight Gold" teması, Cinzel tipografisi ve derinlikli glassmorphism efektleri.
-- **🛡️ Askeri Düzey Güvenlik**: JWT (JSON Web Token) kimlik doğrulama, Helmet xss/csrf korumaları, dinamik CORS kısıtlamaları.
-- **⚡ Akıllı Hız Sınırları**: Geliştirme (Dev) ortamında esnek, Canlı (Prod) ortamda ise Brute-force saldırılarına karşı sıkı Rate Limiting kuralları.
-- **🤖 Bot Koruması**: "Honeypot" mekanizması ile spam randevuların sessizce engellenmesi.
-- **💾 SQLite & Prisma ORM**: Harici veritabanı kurulumu gerektirmeyen, dosya tabanlı, ultra hızlı ve güvenilir altyapı.
-- **🔔 Gerçek Zamanlı Dashboard**: Socket.io entegrasyonu sayesinde yeni randevular ve durum güncellemeleri anında senkronize olur.
-- **🔊 Çok Kanallı Ses Sistemi**: Web Audio API (Dijital Sentezleyici) veya özel yüklenebilir `.mp3` sesleri ile premium bildirimler.
-- **📱 %100 Mobil Uyumluluk**: Tüm ekran boyutlarında kusursuz çalışan, modern grid yapıları ve responsive tasarım.
-- **🛠️ 3-Aşamalı Randevu Akışı**:
-  - 🟢 **Müsait**: Rezerve edilebilir boş saatler.
-  - 🟠 **Bekliyor (Pending)**: Müşteri talebi alınmış, berber onayı bekleyen turuncu renkli slotlar.
-  - 🔴 **Dolu (Approved)**: Berber tarafından onaylanmış, kesinleşmiş randevular.
-- **📝 Gelişmiş Loglama**: Hata ayıklama ve sistem takibi için yapılandırılmış JSON loglama sistemi.
+**Available Languages:**
+- [English (Current)](README.md)
+- [Turkish / Türkçe](README.tr.md)
 
-## 🚀 Hızlı Başlangıç
+---
 
-Sistemi bilgisayarında çalıştırmak için şu adımları izle:
+## Features
 
-1.  **Bağımlılıkları Yükle**:
+- **Luxury Visuals**: "Midnight Gold" theme, Cinzel typography, and deep glassmorphism effects.
+- **Military-Grade Security**: JWT (JSON Web Token) authentication, Helmet xss/csrf protection, and dynamic CORS restrictions.
+- **Intelligent Rate Limiting**: Flexible limits in Development (Dev) mode and strict Brute-force protection in Production (Prod) mode.
+- **Bot Protection**: "Honeypot" mechanism silently blocks spam reservations.
+- **SQLite & Prisma ORM**: File-based, ultra-fast, and reliable database architecture without external server requirements.
+- **Real-Time Dashboard**: Socket.io integration ensures new appointments and status updates are synchronized instantly.
+- **Multi-Channel Audio**: Premium notifications using Web Audio API (Digital Synthesizer) or custom `.mp3` files.
+- **100% Mobile Responsive**: Seamless design across all screen sizes with modern grid structures.
+- **3-Stage Appointment Flow**:
+  - 🟢 **Available**: Open slots ready for booking.
+  - 🟠 **Pending**: Customer request received, awaiting barber approval.
+  - 🔴 **Booked/Approved**: Confirmed appointments.
+- **Advanced Logging**: Structured JSON logging system for debugging and system monitoring.
+
+## Quick Start
+
+1.  **Install Dependencies**:
     ```bash
     npm run install-all
     ```
-2.  **Veritabanını Hazırla (İlk Kurulum)**:
+2.  **Initialize Database**:
     ```bash
     cd server
     npm run db:migrate
     npm run db:seed
     cd ..
     ```
-3.  **Sistemi Başlat**:
-    *   **Geliştirme Modu (Hot-Reload, API Proxy):** Proje dizininde `start-dev.bat` dosyasını çalıştırın. Vite proxy sayesinde `/api` istekleri otomatik olarak arka uca yönlendirilir.
-    *   **Canlı Mod (Production Build, Sıkı Güvenlik):** Proje dizininde `start-prod.bat` dosyasını çalıştırın.
+3.  **Run Application**:
+    *   **Development Mode (Hot-Reload, API Proxy):** Run `start-dev.bat`. API requests are automatically proxied to the backend.
+    *   **Production Mode (Production Build, Strict Security):** Run `start-prod.bat`.
 
-## 🛠️ Teknoloji Yığını
+## Tech Stack
 
-- **Frontend**: React (Vite) + Framer Motion (Orkestral Animasyonlar) + Lucide Icons
+- **Frontend**: React (Vite) + Framer Motion + Lucide Icons
 - **Backend**: Node.js + Express + JWT (Bcrypt Auth) + Socket.io
-- **Veritabanı**: SQLite3 + Prisma ORM
-- **Güvenlik**: Helmet.js, Express-Rate-Limit, CORS Protection, Input Validation (Validator.js)
-- **Stil**: Modern Vanilla CSS (Custom Design System + Fluid Layouts)
-
-## 🎨 Tasarım Vizyonu
-
-Bu proje, bir "Minimum Viable Product" olmanın ötesinde, **lüks bir marka deneyimi** olarak kurgulanmıştır. Karanlık modun asaletini altın sarısı detaylarla birleştirir ve akıcı mikro-animasyonlarla kullanıcıyı etkilemeyi hedefler.
+- **Database**: SQLite3 + Prisma ORM
+- **Security**: Helmet.js, Express-Rate-Limit, CORS Protection, Validator.js
+- **Styling**: Modern Vanilla CSS (Custom Design System)
 
 ---
-*Geliştiren: Oğuz Selman Çetin | 2026*
-
+*Developed by: Oğuz Selman Çetin | 2026*
