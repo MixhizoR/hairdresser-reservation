@@ -122,8 +122,8 @@ io.use((socket, next) => {
 //          API ROUTES
 // ═══════════════════════════════
 
-// ─── GET Appointments (admin only) ───
-app.get('/api/appointments', authMiddleware, async (req, res) => {
+// ─── GET Appointments (public) ───
+app.get('/api/appointments', async (req, res) => {
     try {
         res.json(await db.getAppointments());
     } catch (err) {

@@ -14,6 +14,19 @@ export default function HomePage({ t, appointments, selectedDate, setSelectedDat
 
   const [phoneError, setPhoneError] = useState('');
   const [honeypot, setHoneypot] = useState(''); // honeypot field
+  const [showSlots, setShowSlots] = useState(false);
+
+  const isPastHour = (slot) => {
+    const now = new Date();
+    const todayStr = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().split('T')[0];
+    if (selectedDate === todayStr) {
+      const [slotHour, slotMin] = slot.split(':').map(Number);
+      const nowHour = now.getHours();
+      const nowMin = now.getMinutes();
+      return slotHour < nowHour || (slotHour === nowHour && slotMin <= nowMin);
+    }
+    return false;
+  };
 
   const serviceIcons = [<Scissors size={22} />, <Crown size={22} />, <Flame size={22} />, <Star size={22} />];
   const servicePrices = ['₺150', '₺120', '₺200', '₺350'];
@@ -114,23 +127,38 @@ export default function HomePage({ t, appointments, selectedDate, setSelectedDat
                   {t.services.map(s => <option key={s}>{s}</option>)}
                 </select>
               </div>
-              <div style={{ gridColumn: 'span 2' }}>
-                <label className="form-label">{t.preferredSchedule}</label>
-                <input required type="date" min={new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0]} value={selectedDate} onChange={e => { setSelectedDate(e.target.value); setBookingError(''); setSelectedSlot(''); }} className="form-input" />
-              </div>
-              <div style={{ gridColumn: 'span 2' }}>
-                <label className="form-label" style={{ marginBottom: '0.75rem' }}>{t.selectTimeSlot}</label>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '0.5rem' }}>
-                  {generateSlots().map(slot => {
-                    const taken = isSlotTaken(slot);
-                    return (
-                      <button key={slot} type="button" disabled={taken} onClick={() => { setSelectedSlot(slot); setBookingError(''); }} className={`slot-btn ${selectedSlot === slot ? 'selected' : ''}`}>
-                        {slot}
-                      </button>
-                    );
-                  })}
+              <div style={{ gridColumn: 'span 2', display: 'flex', alignItems: 'flex-end', gap: '1rem' }}>
+                <div style={{ flex: 1 }}>
+                  <label className="form-label">{t.preferredSchedule}</label>
+                  <input required type="date" min={new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0]} value={selectedDate} onChange={e => { setSelectedDate(e.target.value); setBookingError(''); setSelectedSlot(''); setShowSlots(false); }} className="form-input" />
                 </div>
+                <button type="button" className="btn-premium" style={{ padding: '0.9rem 1.5rem', flexShrink: 0 }} onClick={() => setShowSlots(true)}>
+                  Saatleri Listele
+                </button>
               </div>
+              
+              {showSlots && (
+                <div style={{ gridColumn: 'span 2' }}>
+                  <label className="form-label" style={{ marginBottom: '0.75rem' }}>{t.selectTimeSlot}</label>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '0.5rem' }}>
+                    {generateSlots().map(slot => {
+                      const taken = isSlotTaken(slot);
+                      const past = isPastHour(slot);
+                      const disabled = taken || past;
+                      return (
+                        <button key={slot} type="button" disabled={disabled} onClick={() => { setSelectedSlot(slot); setBookingError(''); }} className={`slot-btn ${selectedSlot === slot ? 'selected' : ''}`}>
+                          {slot}
+                          {(taken || past) && (
+                            <span style={{ display: 'block', fontSize: '0.65rem', marginTop: '2px', opacity: 0.8 }}>
+                              {taken ? 'Dolu' : 'Geçti'}
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
 
               {bookingError && (
                 <div style={{ gridColumn: 'span 2', color: 'var(--accent-red)', fontSize: '0.85rem', textAlign: 'center', background: 'rgba(255, 68, 68, 0.1)', padding: '0.75rem', borderRadius: '8px', border: '1px solid rgba(255, 68, 68, 0.2)' }}>

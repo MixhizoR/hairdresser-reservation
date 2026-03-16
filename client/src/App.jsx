@@ -133,9 +133,9 @@ function App() {
     return () => { sock.off('new_appointment'); sock.off('appointment_updated'); };
   }, [token]);
 
-  // ─── Fetch appointments (admin only, needs token) ───
+  // ─── Fetch appointments ───
   useEffect(() => {
-    if (!token) return;
+    // Only pass token if we have it, otherwise standard users can still see public appointments
     fetch(`${SERVER_URL}/api/appointments`, { headers: authHeaders() })
       .then(res => res.ok ? res.json() : [])
       .then(data => setAppointments(Array.isArray(data) ? data : []))
