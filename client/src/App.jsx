@@ -11,7 +11,7 @@ const SERVER_URL = import.meta.env.VITE_API_URL || '';
 
 function App() {
   const [appointments, setAppointments] = useState([]);
-  const [newAppointment, setNewAppointment] = useState({ name: '', phone: '', service: 'Saç Kesim & Stil', time: '' });
+  const [newAppointment, setNewAppointment] = useState({ name: '', phone: '', service: 'Saç Kesimi', time: '' });
   const [isBooked, setIsBooked] = useState(false);
   const [bookingError, setBookingError] = useState('');
   const [audioEnabled, setAudioEnabled] = useState(false);
