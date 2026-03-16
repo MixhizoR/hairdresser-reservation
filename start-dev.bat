@@ -1,6 +1,6 @@
 @echo off
 echo ========================================================
-echo         NOIR BARBER - GELISTIRME (DEV) MODU
+echo         HairMan Studio - GELISTIRME (DEV) MODU
 echo ========================================================
 echo.
 echo Dev ortaminda rate limitler esnektir ve hatalar gosterilir.

@@ -158,6 +158,13 @@ app.post('/api/appointments', appointmentLimiter, async (req, res) => {
     // Honeypot
     if (website) return res.status(201).json({ id: uuidv4(), status: 'pending' });
 
+    const allowedServices = [
+        'Saç Kesimi', 'Sakal Kesimi', 'Saç & Sakal Kesimi', 'Çocuk Tıraşı', 
+        'Cilt Bakımı', 'Kaş Alımı', 'Fön', 'Ağda', 'Damat Tıraşı', 'Ev Tıraşı'
+    ];
+    if (!allowedServices.includes(service))
+        return res.status(400).json({ error: 'Geçersiz hizmet seçimi.' });
+
     if (!isValidName(name))
         return res.status(400).json({ error: 'Geçersiz isim. Sadece harf kullanın (2-50 karakter).' });
 

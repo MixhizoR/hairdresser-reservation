@@ -1,6 +1,6 @@
 @echo off
 echo ========================================================
-echo         NOIR BARBER - CANLI (PROD) MODU
+echo         HairMan Studio - CANLI (PROD) MODU
 echo ========================================================
 echo.
 echo Prod ortaminda security (rate limit, CORS) sıkıdır.

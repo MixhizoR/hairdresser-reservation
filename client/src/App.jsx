@@ -24,10 +24,10 @@ function App() {
   const socketRef = useRef(null);
 
   const t = {
-    brand: 'Noir Barber',
+    brand: 'HairMan Studio',
     bookStylist: 'Randevu Al',
     secureSlot: 'Randevu Oluştur',
-    experienceArt: 'Gece yarısı mabedimizde bakım sanatını deneyimleyin.',
+    experienceArt: 'Şehrin kalbinde bakım sanatını deneyimleyin.',
     clientName: 'Müşteri Adı',
     clientNamePlaceholder: 'Örn: Alexander Noir',
     contactPhone: 'İletişim Telefonu',
@@ -42,7 +42,10 @@ function App() {
     activateVoice: 'SESİ ETKİNLEŞTİR',
     liveOpsActive: 'CANLI TAKİP AKTİF',
     timeNotSet: 'Zaman ayarlanmadı',
-    services: ['Saç Kesim & Stil', 'İmza Sakal Düzeltme', 'Kraliyet Sıcak Havlu Tıraşı', 'Noir Deneyimi'],
+    services: [
+      'Saç Kesimi', 'Sakal Kesimi', 'Saç & Sakal Kesimi', 'Çocuk Tıraşı',
+      'Cilt Bakımı', 'Kaş Alımı', 'Fön', 'Ağda', 'Damat Tıraşı', 'Ev Tıraşı'
+    ],
     approved: 'ONAYLANDI',
     pending: 'BEKLEMEDE',
     rejected: 'REDDEDİLDİ',
@@ -241,7 +244,7 @@ function App() {
             <div style={{ padding: '0.4rem', background: 'linear-gradient(135deg, #ae8625, #f7ef8a)', borderRadius: '8px' }}>
               <Scissors style={{ color: '#000' }} size={20} />
             </div>
-            <h1 className="brand-title gold-text" style={{ fontSize: '1.3rem' }}>Noir Barber</h1>
+            <h1 className="brand-title gold-text" style={{ fontSize: '1.3rem' }}>HairMan Studio</h1>
           </motion.div>
 
           <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>

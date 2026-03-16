@@ -1,8 +1,8 @@
-# Noir Barber | Premium Rezervasyon Sistemi
+# HairMan Studio | Premium Rezervasyon Sistemi
 
 ![Midnight Gold Theme](https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&q=80&w=2000)
 
-Noir Barber, üst düzey bir berber deneyimi için tasarlanmış, gerçek zamanlı bildirimlere sahip, ultra lüks bir rezervasyon yönetim sistemidir. "Midnight Gold" tasarım diliyle hazırlanan bu uygulama, hem müşteri hem de berber için birinci sınıf bir dijital deneyim sunar.
+HairMan Studio, üst düzey bir berber deneyimi için tasarlanmış, gerçek zamanlı bildirimlere sahip, ultra lüks bir rezervasyon yönetim sistemidir. "Midnight Gold" tasarım diliyle hazırlanan bu uygulama, hem müşteri hem de berber için birinci sınıf bir dijital deneyim sunar.
 
 ---
 
