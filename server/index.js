@@ -58,6 +58,13 @@ const appointmentLimiter = rateLimit({
 });
 app.use(generalLimiter);
 
+// ─── Structured Logger ───
+const log = (level, message, meta = {}) => {
+    const entry = { ts: new Date().toISOString(), level, message, ...meta };
+    if (level === 'error') console.error(JSON.stringify(entry));
+    else console.log(JSON.stringify(entry));
+};
+
 // ─── JWT Auth Middleware ───
 const authMiddleware = (req, res, next) => {
     const authHeader = req.headers.authorization;
@@ -71,6 +78,7 @@ const authMiddleware = (req, res, next) => {
         return res.status(401).json({ error: 'Geçersiz veya süresi dolmuş token.' });
     }
 };
+
 
 // ─── Validation Helpers ───
 const isValidPhone = (phone) => /^05\d{9}$/.test(phone);
@@ -122,12 +130,23 @@ io.use((socket, next) => {
 //          API ROUTES
 // ═══════════════════════════════
 
-// ─── GET Appointments (public) ───
-app.get('/api/appointments', async (req, res) => {
+// ─── GET Availability (public) — only time + status, no PII ───
+app.get('/api/appointments/availability', async (req, res) => {
+    try {
+        const all = await db.getAppointments();
+        res.json(all.map(a => ({ time: a.time, status: a.status })));
+    } catch (err) {
+        log('error', 'GET /api/appointments/availability failed', { err: err.message });
+        res.status(500).json({ error: 'Sunucu hatası.' });
+    }
+});
+
+// ─── GET Appointments (admin only) ───
+app.get('/api/appointments', authMiddleware, async (req, res) => {
     try {
         res.json(await db.getAppointments());
     } catch (err) {
-        console.error('[GET /api/appointments]', err);
+        log('error', 'GET /api/appointments failed', { err: err.message });
         res.status(500).json({ error: 'Sunucu hatası.' });
     }
 });
@@ -169,7 +188,7 @@ app.post('/api/appointments', appointmentLimiter, async (req, res) => {
         io.emit('new_appointment', appt);
         res.status(201).json(appt);
     } catch (err) {
-        console.error('[POST /api/appointments]', err);
+        log('error', 'POST /api/appointments failed', { err: err.message });
         res.status(500).json({ error: 'Sunucu hatası.' });
     }
 });
@@ -187,7 +206,7 @@ app.patch('/api/appointments/:id', authMiddleware, async (req, res) => {
         io.emit('appointment_updated', { id: updated.id, status: updated.status });
         res.json({ success: true });
     } catch (err) {
-        console.error('[PATCH /api/appointments]', err);
+        log('error', 'PATCH /api/appointments failed', { id: req.params.id, err: err.message });
         res.status(404).json({ error: 'Randevu bulunamadı.' });
     }
 });
@@ -209,7 +228,7 @@ app.post('/api/admin/login', loginLimiter, async (req, res) => {
         const token = jwt.sign({ id: admin.id, username: admin.username }, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
         res.json({ success: true, token, username: admin.username });
     } catch (err) {
-        console.error('[POST /api/admin/login]', err);
+        log('error', 'POST /api/admin/login failed', { err: err.message });
         res.status(500).json({ error: 'Sunucu hatası.' });
     }
 });
@@ -232,7 +251,7 @@ app.post('/api/admin/register', authMiddleware, async (req, res) => {
         const admin = await db.createAdmin(username, hash);
         res.status(201).json({ success: true, username: admin.username });
     } catch (err) {
-        console.error('[POST /api/admin/register]', err);
+        log('error', 'POST /api/admin/register failed', { err: err.message });
         res.status(500).json({ error: 'Sunucu hatası.' });
     }
 });
@@ -262,9 +281,9 @@ const PORT = process.env.PORT || 5000;
 async function main() {
     try {
         await prisma.$connect();
-        console.log('✅ SQLite bağlantısı kuruldu.');
+        log('info', 'SQLite connected');
     } catch (err) {
-        console.error('❌ SQLite bağlanamadı:', err.message);
+        log('error', 'SQLite connection failed', { err: err.message });
         process.exit(1);
     }
     

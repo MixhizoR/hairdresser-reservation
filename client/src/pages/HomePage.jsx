@@ -105,7 +105,7 @@ export default function HomePage({ t, appointments, selectedDate, setSelectedDat
 
         <div className="booking-section">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5 }} className="glass-panel" style={{ padding: '2.5rem' }}>
-            <form onSubmit={onSubmit} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
+            <form onSubmit={onSubmit} className="booking-form-grid">
 
               {/* ── Honeypot (hidden from real users) ── */}
               <div style={{ position: 'absolute', left: '-9999px', top: '-9999px' }} aria-hidden="true">
@@ -140,7 +140,7 @@ export default function HomePage({ t, appointments, selectedDate, setSelectedDat
               {showSlots && (
                 <div style={{ gridColumn: 'span 2' }}>
                   <label className="form-label" style={{ marginBottom: '0.75rem' }}>{t.selectTimeSlot}</label>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '0.5rem' }}>
+                  <div className="slot-grid">
                     {generateSlots().map(slot => {
                       const taken = isSlotTaken(slot);
                       const past = isPastHour(slot);
@@ -167,13 +167,42 @@ export default function HomePage({ t, appointments, selectedDate, setSelectedDat
               )}
 
               <motion.button whileHover={{ scale: 1.02, y: -2 }} whileTap={{ scale: 0.98 }} type="submit" className="btn-premium" style={{ gridColumn: 'span 2', marginTop: '0.5rem' }}>
-                {isBooked ? <Check size={20} /> : <Calendar size={20} />}
-                {isBooked ? t.reservationSent : t.requestAppointment}
+                <Calendar size={20} />
+                {t.requestAppointment}
               </motion.button>
             </form>
+
+            {isBooked && (
+              <motion.div
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                style={{
+                  marginTop: '1.5rem',
+                  padding: '1.25rem 1.5rem',
+                  borderRadius: 'var(--radius-md)',
+                  border: '1px solid rgba(0,242,96,0.25)',
+                  background: 'rgba(0,242,96,0.06)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.75rem',
+                }}
+              >
+                <Check size={20} style={{ color: 'var(--accent-green)', flexShrink: 0 }} />
+                <div>
+                  <p style={{ fontWeight: 700, fontSize: '0.85rem', color: 'var(--accent-green)' }}>
+                    {t.reservationSent}
+                  </p>
+                  <p style={{ fontSize: '0.75rem', color: 'var(--text-dim)', marginTop: '0.2rem' }}>
+                    Talebiniz alındı, berberden onay bekleniyor.
+                  </p>
+                </div>
+              </motion.div>
+            )}
           </motion.div>
         </div>
       </section>
+
 
       <footer style={{ textAlign: 'center', padding: '3rem 2rem', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
         <p style={{ color: 'var(--text-dim)', fontSize: '0.75rem', letterSpacing: '0.1em' }}>

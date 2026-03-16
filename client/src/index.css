@@ -595,7 +595,35 @@ body {
 ::-webkit-scrollbar-thumb { background: var(--primary-dark); border-radius: 10px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--primary); }
 
+/* ─── Booking Form Grid ─── */
+.booking-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+}
+
+/* ─── Slot Picker Grid ─── */
+.slot-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 0.5rem;
+}
+
+/* ─── Admin Side-by-Side Grid ─── */
+.admin-grid {
+  display: grid;
+  grid-template-columns: 340px 1fr;
+  gap: 1.25rem;
+  align-items: start;
+}
+
 /* ─── Responsive ─── */
+@media (max-width: 1024px) {
+  .admin-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 768px) {
   .navbar {
     padding: 0.75rem 1rem;
@@ -605,7 +633,11 @@ body {
   }
 
   .hero-section {
-    padding: 4rem 1.5rem 3rem;
+    padding: 3.5rem 1rem 2.5rem;
+  }
+
+  .hero-title {
+    font-size: clamp(2rem, 8vw, 3rem);
   }
 
   .services-grid {
@@ -618,31 +650,90 @@ body {
     padding: 0 1rem 4rem;
   }
 
+  /* Booking form: collapse to single column */
+  .booking-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* All span-2 children become span-1 */
+  .booking-form-grid > [style*="span 2"] {
+    grid-column: span 1 !important;
+  }
+
+  /* Date + button row wraps on mobile */
+  .booking-form-grid > [style*="span 2"][style*="flex"] {
+    flex-wrap: wrap;
+  }
+
+  /* Slot picker: 4 columns on tablet */
+  .slot-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  /* Booking panel padding */
+  .booking-section .glass-panel {
+    padding: 1.5rem !important;
+  }
+
+  /* Dashboard */
   .dashboard-header {
     flex-direction: column;
     align-items: flex-start;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
   }
 
   .dashboard-controls {
     width: 100%;
     justify-content: flex-start;
+    flex-wrap: wrap;
+    gap: 0.5rem;
   }
 
   .appointment-card {
     flex-direction: column;
     align-items: flex-start;
+    gap: 0.75rem;
   }
-}
 
-@media (max-width: 1024px) {
-  /* Admin side-by-side collapses to single column */
-  [style*="grid-template-columns: 340px 1fr"] {
-    display: block !important;
+  .appointment-card > div:last-child {
+    align-self: flex-end;
+  }
+
+  .filter-tabs {
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+
+  .filter-tab {
+    font-size: 0.65rem;
+    padding: 0.35rem 0.75rem;
   }
 }
 
 @media (max-width: 480px) {
   .services-grid {
     grid-template-columns: 1fr;
+  }
+
+  /* Slot picker: 3 columns on phone */
+  .slot-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .slot-btn {
+    font-size: 0.65rem;
+    padding: 0.4rem 0.2rem;
+  }
+
+  /* Admin grid slot: narrower cells */
+  .admin-grid .slot-grid-2col {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+}
+
+@media (max-width: 360px) {
+  .slot-grid {
+    grid-template-columns: repeat(3, 1fr);
   }
 }

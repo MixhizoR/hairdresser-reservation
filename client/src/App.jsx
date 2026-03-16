@@ -135,12 +135,21 @@ function App() {
 
   // ─── Fetch appointments ───
   useEffect(() => {
-    // Only pass token if we have it, otherwise standard users can still see public appointments
-    fetch(`${SERVER_URL}/api/appointments`, { headers: authHeaders() })
-      .then(res => res.ok ? res.json() : [])
-      .then(data => setAppointments(Array.isArray(data) ? data : []))
-      .catch(() => { });
+    if (token) {
+      // Admin: fetch full list with auth
+      fetch(`${SERVER_URL}/api/appointments`, { headers: authHeaders() })
+        .then(res => res.ok ? res.json() : [])
+        .then(data => setAppointments(Array.isArray(data) ? data : []))
+        .catch(() => { });
+    } else {
+      // Public: fetch slim availability only (no PII)
+      fetch(`${SERVER_URL}/api/appointments/availability`)
+        .then(res => res.ok ? res.json() : [])
+        .then(data => setAppointments(Array.isArray(data) ? data : []))
+        .catch(() => { });
+    }
   }, [token]);
+
 
   // ─── Slots ───
   const generateSlots = () => {

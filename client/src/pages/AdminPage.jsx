@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Bell, Check, X, User, Phone, Scissors, Clock, Lock, ShieldCheck, Calendar, LogOut, UserPlus } from 'lucide-react';
 
-const SERVER_URL = `http://${window.location.hostname}:5000`;
+const SERVER_URL = import.meta.env.VITE_API_URL || '';
+
 
 export default function AdminPage({ t, appointments, updateStatus, audioEnabled, toggleAudio, soundType, setSoundType, playSynthBell, playExternalFile, generateSlots, isSlotTaken, getSlotAppointment, selectedDate, setSelectedDate, token, onLogin, onLogout, authHeaders }) {
   const [username, setUsername] = useState('');
@@ -117,7 +118,7 @@ export default function AdminPage({ t, appointments, updateStatus, audioEnabled,
   const slots = generateSlots();
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ maxWidth: 1400, margin: '0 auto', padding: '1.5rem' }}>
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ maxWidth: 1400, margin: '0 auto', padding: '0 1.5rem 1.5rem' }}>
 
       {/* ─── Header ─── */}
       <div className="dashboard-header" style={{ marginBottom: '1.5rem' }}>
@@ -169,7 +170,7 @@ export default function AdminPage({ t, appointments, updateStatus, audioEnabled,
       </div>
 
       {/* ─── Side-by-Side: Slot Grid + Appointments ─── */}
-      <div style={{ display: 'grid', gridTemplateColumns: '340px 1fr', gap: '1.25rem', alignItems: 'start' }}>
+      <div className="admin-grid">
 
         {/* LEFT: Slot Grid */}
         <div>
@@ -180,23 +181,34 @@ export default function AdminPage({ t, appointments, updateStatus, audioEnabled,
               </h3>
               <input type="date" value={adminDate} onChange={e => setAdminDate(e.target.value)} className="form-input" style={{ padding: '0.3rem 0.5rem', fontSize: '0.7rem', width: 'auto' }} />
             </div>
-            <div style={{ display: 'flex', gap: '0.75rem', fontSize: '0.6rem', color: 'var(--text-dim)', marginBottom: '0.75rem' }}>
+            {/* ─── Legend ─── */}
+            <div style={{ display: 'flex', gap: '0.75rem', fontSize: '0.6rem', color: 'var(--text-dim)', marginBottom: '0.75rem', flexWrap: 'wrap' }}>
               <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}><span style={{ width: 8, height: 8, borderRadius: 2, background: 'rgba(0,242,96,0.3)', border: '1px solid rgba(0,242,96,0.4)' }} />{t.available}</span>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}><span style={{ width: 8, height: 8, borderRadius: 2, background: 'rgba(255,165,0,0.35)', border: '1px solid rgba(255,165,0,0.5)' }} />Bekliyor</span>
               <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}><span style={{ width: 8, height: 8, borderRadius: 2, background: 'rgba(255,75,43,0.3)', border: '1px solid rgba(255,75,43,0.4)' }} />{t.booked}</span>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.4rem' }}>
               {slots.map(slot => {
-                const taken = isSlotTaken(slot, adminDate);
-                const slotApp = taken ? getSlotAppointment(slot, adminDate) : null;
+                const slotApp = getSlotAppointment(slot, adminDate);
+                const status = slotApp ? slotApp.status : 'available';
+
+                const colors = {
+                  available: { border: 'rgba(0,242,96,0.2)',   bg: 'rgba(0,242,96,0.03)',   text: 'var(--accent-green)' },
+                  pending:   { border: 'rgba(255,165,0,0.4)', bg: 'rgba(255,165,0,0.07)',  text: '#ffa500' },
+                  approved:  { border: 'rgba(255,75,43,0.35)', bg: 'rgba(255,75,43,0.07)', text: 'var(--accent-red)' },
+                  rejected:  { border: 'rgba(255,75,43,0.35)', bg: 'rgba(255,75,43,0.07)', text: 'var(--accent-red)' },
+                };
+                const c = colors[status] || colors.available;
+
                 return (
                   <div key={slot} title={slotApp ? `${slotApp.name} — ${slotApp.service}` : 'Müsait'}
-                    style={{ padding: '0.5rem', borderRadius: 'var(--radius-sm)', border: `1px solid ${taken ? 'rgba(255,75,43,0.35)' : 'rgba(0,242,96,0.2)'}`, background: taken ? 'rgba(255,75,43,0.07)' : 'rgba(0,242,96,0.03)', textAlign: 'center' }}>
-                    <div style={{ fontSize: '0.8rem', fontWeight: 700, color: taken ? 'var(--accent-red)' : 'var(--accent-green)', fontFamily: 'var(--sans)' }}>{slot}</div>
-                    {slotApp ? (
+                    style={{ padding: '0.5rem', borderRadius: 'var(--radius-sm)', border: `1px solid ${c.border}`, background: c.bg, textAlign: 'center' }}>
+                    <div style={{ fontSize: '0.8rem', fontWeight: 700, color: c.text, fontFamily: 'var(--sans)' }}>{slot}</div>
+                    {status === 'available' && <div style={{ fontSize: '0.5rem', color: 'rgba(0,242,96,0.45)', marginTop: '0.15rem' }}>✓ {t.available}</div>}
+                    {status === 'pending'   && <div style={{ fontSize: '0.5rem', color: '#ffa500', marginTop: '0.15rem', opacity: 0.9 }}>⏳ Bekliyor</div>}
+                    {(status === 'approved' || status === 'rejected') && slotApp &&
                       <div style={{ fontSize: '0.5rem', color: 'rgba(255,255,255,0.35)', marginTop: '0.15rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{slotApp.name}</div>
-                    ) : (
-                      <div style={{ fontSize: '0.5rem', color: 'rgba(0,242,96,0.45)', marginTop: '0.15rem' }}>✓ {t.available}</div>
-                    )}
+                    }
                   </div>
                 );
               })}
