@@ -7,7 +7,11 @@ module.exports = {
         const { ALLOWED_ORIGIN, JWT_SECRET } = require('./config/env');
 
         io = new Server(httpServer, {
-            cors: { origin: ALLOWED_ORIGIN, methods: ['GET', 'POST'], credentials: true }
+            cors: { 
+                origin: [ALLOWED_ORIGIN, 'http://localhost:5173', 'http://127.0.0.1:5173'],
+                methods: ['GET', 'POST'], 
+                credentials: true 
+            }
         });
 
         io.use((socket, next) => {

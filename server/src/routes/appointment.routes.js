@@ -1,13 +1,31 @@
 const express = require('express');
-const router = express.Router();
+const router = express.Router({ mergeParams: true });
 
-const { getAvailability, getAppointments, createAppointment, updateAppointment } = require('../controllers/appointment.controller');
-const authMiddleware = require('../middlewares/auth.middleware');
-const { appointmentLimiter } = require('../middlewares/rateLimit.middleware');
+const appointmentController = require('../controllers/appointment.controller');
+const { authMiddleware, requireRole } = require('../middlewares/auth.middleware');
 
-router.get('/availability', getAvailability);
-router.get('/', authMiddleware, getAppointments);
-router.post('/', appointmentLimiter, createAppointment);
-router.patch('/:id', authMiddleware, updateAppointment);
+router.get('/availability', function (req, res, next) {
+    appointmentController.getAvailability(req, res, next);
+});
+
+router.get('/', authMiddleware, function (req, res, next) {
+    appointmentController.getAppointments(req, res, next);
+});
+
+router.get('/:id', authMiddleware, function (req, res, next) {
+    appointmentController.getAppointment(req, res, next);
+});
+
+router.post('/', function (req, res, next) {
+    appointmentController.createAppointment(req, res, next);
+});
+
+router.patch('/:id', authMiddleware, function (req, res, next) {
+    appointmentController.updateAppointment(req, res, next);
+});
+
+router.delete('/:id', authMiddleware, requireRole('ADMIN'), function (req, res, next) {
+    appointmentController.deleteAppointment(req, res, next);
+});
 
 module.exports = router;

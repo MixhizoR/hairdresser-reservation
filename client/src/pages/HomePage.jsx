@@ -10,7 +10,7 @@ const fadeUp = {
 // Phone validation: 05xxxxxxxxx format (Turkish mobile)
 const isValidPhone = (phone) => /^05\d{9}$/.test(phone);
 
-export default function HomePage({ t, appointments, selectedDate, setSelectedDate, selectedSlot, setSelectedSlot, newAppointment, setNewAppointment, handleBooking, isBooked, generateSlots, isSlotTaken, bookingError, setBookingError }) {
+export default function HomePage({ t, barbers, selectedBarber, setSelectedBarber, appointments, selectedDate, setSelectedDate, selectedSlot, setSelectedSlot, newAppointment, setNewAppointment, handleBooking, isBooked, generateSlots, isSlotTaken, bookingError, setBookingError }) {
 
   const [phoneError, setPhoneError] = useState('');
   const [honeypot, setHoneypot] = useState(''); // honeypot field
@@ -29,8 +29,8 @@ export default function HomePage({ t, appointments, selectedDate, setSelectedDat
   };
 
   const serviceIcons = [
-    <Scissors size={22} />, <Scissors size={22} />, <Scissors size={22} />, 
-    <Star size={22} />, <Flame size={22} />, <Scissors size={22} />, 
+    <Scissors size={22} />, <Scissors size={22} />, <Scissors size={22} />,
+    <Star size={22} />, <Flame size={22} />, <Scissors size={22} />,
     <Flame size={22} />, <Flame size={22} />, <Crown size={22} />, <Star size={22} />
   ];
   const servicePrices = ['₺400', '₺200', '₺500', '₺300', '₺400', '₺200', '₺250', '₺150', '₺2000', '₺1000'];
@@ -131,6 +131,23 @@ export default function HomePage({ t, appointments, selectedDate, setSelectedDat
                 <input required type="tel" value={newAppointment.phone} onChange={onPhoneChange} className="form-input" placeholder="05xxxxxxxxx" maxLength={11} />
                 {phoneError && <p style={{ color: 'var(--accent-red)', fontSize: '0.65rem', marginTop: '0.3rem' }}>{phoneError}</p>}
               </div>
+              {/* Barber Selection */}
+              <div>
+                <label className="form-label">{t.selectBarber || 'Berber Seçin'}</label>
+                <select
+                  value={selectedBarber}
+                  onChange={e => { setSelectedBarber(e.target.value); setSelectedSlot(''); setShowSlots(false); }}
+                  className="form-input"
+                  style={{ appearance: 'none', background: 'var(--bg-card)' }}
+                  required
+                >
+                  {barbers.map(barber => (
+                    <option key={barber.id} value={barber.id}>
+                      {barber.name || barber.username}
+                    </option>
+                  ))}
+                </select>
+              </div>
               <div>
                 <label className="form-label">{t.selectArt}</label>
                 <select value={newAppointment.service} onChange={e => setNewAppointment({ ...newAppointment, service: e.target.value })} className="form-input" style={{ appearance: 'none', background: 'var(--bg-card)' }}>
@@ -146,7 +163,7 @@ export default function HomePage({ t, appointments, selectedDate, setSelectedDat
                   Saatleri Listele
                 </button>
               </div>
-              
+
               {showSlots && (
                 <div style={{ gridColumn: 'span 2' }}>
                   <label className="form-label" style={{ marginBottom: '0.75rem' }}>{t.selectTimeSlot}</label>
@@ -216,7 +233,7 @@ export default function HomePage({ t, appointments, selectedDate, setSelectedDat
 
       <footer style={{ textAlign: 'center', padding: '3rem 2rem', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
         <p style={{ color: 'var(--text-dim)', fontSize: '0.85rem', marginBottom: '1rem', lineHeight: '1.5' }}>
-          <strong>Lise Caddesi Vali Konağı Karşısı M. Pazar Apartmanı, Kat: 1 No: 2</strong><br/>
+          <strong>Lise Caddesi Vali Konağı Karşısı M. Pazar Apartmanı, Kat: 1 No: 2</strong><br />
           66100 Yozgat Merkez / Yozgat
         </p>
         <p style={{ color: 'var(--text-dim)', fontSize: '0.75rem', letterSpacing: '0.1em' }}>

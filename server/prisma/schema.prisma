@@ -8,19 +8,41 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Admin {
+// User Roles Enum
+enum Role {
+  ADMIN
+  BARBER
+}
+
+// User Model - Tüm kullanıcılar (Admin ve Berberler)
+model User {
   id        String   @id @default(uuid())
   username  String   @unique
   password  String   // bcrypt hash
+  role      Role     @default(BARBER)
+  name      String?  // Berberin görünen adı (opsiyonel)
+  phone     String?  // Berberin telefonu (opsiyonel)
+  isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // İlişkiler
+  appointments Appointment[]
 }
 
+// Appointment Model - Randevular
 model Appointment {
   id        String   @id @default(uuid())
   name      String
   phone     String
   service   String
   time      DateTime
-  status    String   @default("pending")
+  status    String   @default("pending") // pending, approved, rejected, completed
+  notes     String?  // Ek notlar
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Hangi berberden alındığı
+  barberId  String
+  barber    User     @relation(fields: [barberId], references: [id], onDelete: Cascade)
 }
