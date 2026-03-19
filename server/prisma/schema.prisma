@@ -32,17 +32,19 @@ model User {
 
 // Appointment Model - Randevular
 model Appointment {
-  id        String   @id @default(uuid())
-  name      String
-  phone     String
-  service   String
-  time      DateTime
-  status    String   @default("pending") // pending, approved, rejected, completed
-  notes     String?  // Ek notlar
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id           String   @id @default(uuid())
+  name         String
+  phone        String
+  service      String
+  time         DateTime
+  status       String   @default("pending") // pending, approved, rejected, completed
+  notes        String?  // Ek notlar
+  trackingCode String?  @unique
+  deviceToken  String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   // Hangi berberden alındığı
-  barberId  String
-  barber    User     @relation(fields: [barberId], references: [id], onDelete: Cascade)
+  barberId     String
+  barber       User     @relation(fields: [barberId], references: [id], onDelete: Cascade)
 }
