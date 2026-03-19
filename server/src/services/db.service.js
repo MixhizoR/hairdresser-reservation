@@ -78,9 +78,39 @@ const findAppointmentByTimeForBarber = async (date, barberId) => {
     });
 };
 
+const crypto = require('crypto');
+
+const generateTrackingCode = () => {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let result = '';
+    for (let i = 0; i < 6; i++) {
+        result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
+};
+
 const createAppointment = async (data) => {
+    const appointmentData = {
+        ...data,
+        deviceToken: data.deviceToken || crypto.randomUUID(),
+        trackingCode: data.trackingCode || generateTrackingCode()
+    };
+    
+    // Basit bir çarpışma önleme mekanizması (gerçek dünyada daha sağlam bir kontrol gerekir)
+    let isUnique = false;
+    let attempts = 0;
+    while (!isUnique && attempts < 5) {
+        const existing = await prisma.appointment.findUnique({ where: { trackingCode: appointmentData.trackingCode } });
+        if (!existing) {
+            isUnique = true;
+        } else {
+            appointmentData.trackingCode = generateTrackingCode();
+            attempts++;
+        }
+    }
+
     return await prisma.appointment.create({
-        data,
+        data: appointmentData,
         include: { barber: true }
     });
 };
