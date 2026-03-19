@@ -65,4 +65,33 @@ describe('Database Service - Appointment Tracking', () => {
         const trackingCodeRegex = /^[A-Z0-9]{6}$/;
         expect(createCallArgs.data.trackingCode).toMatch(trackingCodeRegex);
     });
+
+    it('getAppointmentByTrackingCode should call prisma.appointment.findUnique with the correct trackingCode', async () => {
+        const mockCode = 'MOCKCD';
+        const mockAppt = { id: 'appt-123', trackingCode: mockCode };
+        prismaMock.appointment.findUnique.mockResolvedValue(mockAppt);
+
+        const result = await dbService.getAppointmentByTrackingCode(mockCode);
+
+        expect(prismaMock.appointment.findUnique).toHaveBeenCalledWith({
+            where: { trackingCode: mockCode },
+            include: { barber: true }
+        });
+        expect(result).toEqual(mockAppt);
+    });
+
+    it('getAppointmentsByDeviceToken should call prisma.appointment.findMany with the correct deviceToken', async () => {
+        const mockToken = 'mock-uuid-token';
+        const mockAppts = [{ id: 'appt-123', deviceToken: mockToken }];
+        prismaMock.appointment.findMany = jest.fn().mockResolvedValue(mockAppts);
+
+        const result = await dbService.getAppointmentsByDeviceToken(mockToken);
+
+        expect(prismaMock.appointment.findMany).toHaveBeenCalledWith({
+            where: { deviceToken: mockToken },
+            include: { barber: true },
+            orderBy: { time: 'desc' }
+        });
+        expect(result).toEqual(mockAppts);
+    });
 });

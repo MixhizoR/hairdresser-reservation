@@ -78,6 +78,21 @@ const findAppointmentByTimeForBarber = async (date, barberId) => {
     });
 };
 
+const getAppointmentByTrackingCode = async (trackingCode) => {
+    return await prisma.appointment.findUnique({
+        where: { trackingCode },
+        include: { barber: true }
+    });
+};
+
+const getAppointmentsByDeviceToken = async (deviceToken) => {
+    return await prisma.appointment.findMany({
+        where: { deviceToken },
+        include: { barber: true },
+        orderBy: { time: 'desc' }
+    });
+};
+
 const crypto = require('crypto');
 
 const generateTrackingCode = () => {
@@ -186,6 +201,8 @@ module.exports = {
     // Appointment
     getAppointments,
     getAppointmentById,
+    getAppointmentByTrackingCode,
+    getAppointmentsByDeviceToken,
     findAppointmentByTime,
     findAppointmentByTimeForBarber,
     createAppointment,
