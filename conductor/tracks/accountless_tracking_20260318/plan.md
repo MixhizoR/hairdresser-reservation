@@ -2,9 +2,9 @@
 
 ## Phase 1: Database & Service Layer Updates
 - [x] Task 1.1: Update `server/prisma/schema.prisma` to add `deviceToken` (String, nullable) and `trackingCode` (String, unique, nullable) to the `Appointment` model. Generate a migration (`npx prisma migrate dev --name add_tracking_fields`). f855f9e
-- [ ] Task 1.2: Write failing unit tests for `db.service.js` to ensure appointment creation generates and returns a UUIDv4 `deviceToken` and a 6-character alphanumeric `trackingCode`.
-- [ ] Task 1.3: Implement the `deviceToken` and `trackingCode` generation logic in `db.service.js` during appointment creation to make the tests pass.
-- [ ] Task 1.4: Write failing unit tests for new methods in `db.service.js` that fetch appointments by `trackingCode` and `deviceToken`.
+- [x] Task 1.2: Write failing unit tests for `db.service.js` to ensure appointment creation generates and returns a UUIDv4 `deviceToken` and a 6-character alphanumeric `trackingCode`. eacedd3
+- [x] Task 1.3: Implement the `deviceToken` and `trackingCode` generation logic in `db.service.js` during appointment creation to make the tests pass. eacedd3
+- [~] Task 1.4: Write failing unit tests for new methods in `db.service.js` that fetch appointments by `trackingCode` and `deviceToken`.
 - [ ] Task 1.5: Implement the fetch methods in `db.service.js` to pass the tests.
 
 ## Phase 2: Backend API Endpoints (TDD)
