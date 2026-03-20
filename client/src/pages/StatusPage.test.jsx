@@ -31,4 +31,35 @@ describe('StatusPage Component', () => {
             );
         });
     });
+
+    it('renders appointment details when data is fetched', async () => {
+        const mockAppt = {
+            id: 'appt-123',
+            service: 'Saç Kesimi',
+            name: 'J*** D***',
+            status: 'approved',
+            time: new Date().toISOString(),
+            barberName: 'Barber Bob'
+        };
+
+        global.fetch = vi.fn().mockImplementation(() => Promise.resolve({
+            ok: true,
+            json: () => Promise.resolve([mockAppt])
+        }));
+
+        localStorage.setItem('deviceToken', 'test-device-token-123');
+
+        render(
+            <BrowserRouter>
+                <StatusPage />
+            </BrowserRouter>
+        );
+
+        await waitFor(() => {
+            expect(screen.getByText('Saç Kesimi')).toBeInTheDocument();
+            expect(screen.getByText('J*** D***')).toBeInTheDocument();
+            expect(screen.getByText('ONAYLANDI')).toBeInTheDocument();
+            expect(screen.getByText('Barber Bob')).toBeInTheDocument();
+        });
+    });
 });
