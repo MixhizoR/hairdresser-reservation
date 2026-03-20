@@ -17,6 +17,7 @@ HairMan Studio is a professional, clean reservation management system designed f
 
 ## Key Features
 - **Socket.io Dashboards**: Real-time synchronization of appointments and status updates for instant feedback.
+- **Accountless Appointment Tracking**: Customers can track their reservation status via unique tracking codes and QR codes without creating an account.
 - **Advanced Security & Honeypot**: Integrated bot protection and robust authentication to ensure a safe environment.
 - **Premium Audio Feedback**: High-quality notification tones to enhance the user experience and professionalism.
 
