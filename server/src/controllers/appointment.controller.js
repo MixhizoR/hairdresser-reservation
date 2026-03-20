@@ -1,4 +1,4 @@
-const { v4: uuidv4 } = require('uuid');
+const crypto = require('crypto');
 const validator = require('validator');
 const db = require('../services/db.service');
 const { log } = require('../config/logger');
@@ -77,7 +77,7 @@ const createAppointment = async (req, res) => {
     const { name, phone, service, time, barberId, notes, website } = req.body;
 
     // Honeypot
-    if (website) return res.status(201).json({ id: uuidv4(), status: 'pending' });
+    if (website) return res.status(201).json({ id: crypto.randomUUID(), status: 'pending' });
 
     const allowedServices = [
         'Saç Kesimi', 'Sakal Kesimi', 'Saç & Sakal Kesimi', 'Çocuk Tıraşı',
