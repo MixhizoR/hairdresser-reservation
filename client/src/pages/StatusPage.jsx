@@ -116,7 +116,7 @@ export default function StatusPage() {
                         className="form-input"
                         style={{ flex: 1, textTransform: 'uppercase', letterSpacing: '2px', textAlign: 'center' }}
                     />
-                    <button type="submit" className="btn-primary" disabled={loading} style={{ padding: '0.8rem 1.5rem' }}>
+                    <button type="submit" className="btn-premium" disabled={loading} style={{ padding: '0.8rem 1.5rem' }}>
                         SORGULA
                     </button>
                 </form>

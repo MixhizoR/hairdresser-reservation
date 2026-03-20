@@ -242,9 +242,18 @@ export default function HomePage({ t, barbers, selectedBarber, setSelectedBarber
                         size={120} 
                       />
                     </div>
-                    <p style={{ fontSize: '0.7rem', color: 'var(--text-dim)' }}>
-                      Durumu öğrenmek için kodu taratın.
-                    </p>
+                    <div style={{ textAlign: 'center' }}>
+                      <p style={{ fontSize: '0.7rem', color: 'var(--text-dim)', marginBottom: '0.2rem' }}>
+                        Durumu öğrenmek için kodu taratın.
+                      </p>
+                      <a 
+                        href={`/track?code=${bookingResult.trackingCode}`} 
+                        className="gold-text" 
+                        style={{ fontSize: '0.8rem', fontWeight: 600, textDecoration: 'none', borderBottom: '1px solid var(--primary)' }}
+                      >
+                        veya buraya tıklayın
+                      </a>
+                    </div>
                   </div>
                 )}
               </motion.div>
