@@ -10,12 +10,12 @@
 ## Phase 2: Backend API Endpoints (TDD)
 - [x] Task 2.1: Write failing integration tests for `POST /api/appointments` to verify it returns `deviceToken` and `trackingCode` in the response payload. e90e70d
 - [x] Task 2.2: Update `appointment.controller.js` `createAppointment` to include the generated tokens in the JSON response. Ensure tests pass. e90e70d
-- [~] Task 2.3: Write failing tests for a new public endpoint `GET /api/appointments/track`. Tests must verify: 
+- [x] Task 2.3: Write failing tests for a new public endpoint `GET /api/appointments/track`. Tests must verify: 
     - Fetching by `trackingCode` query parameter.
     - Fetching by `deviceToken` header/query.
     - Rate limiting is applied.
-    - Data masking is strictly enforced (name masked, phone/notes hidden).
-- [ ] Task 2.4: Implement the `GET /api/appointments/track` endpoint in `appointment.controller.js` and register it in `appointment.routes.js` with the existing `rateLimit.middleware.js`. Make all tests pass.
+    - Data masking is strictly enforced (name masked, phone/notes hidden). 7dde273
+- [x] Task 2.4: Implement the `GET /api/appointments/track` endpoint in `appointment.controller.js` and register it in `appointment.routes.js` with the existing `rateLimit.middleware.js`. Make all tests pass. 7dde273
 
 ## Phase 3: Frontend Booking Flow Updates
 - [ ] Task 3.1: Write failing tests for the frontend booking submission flow, verifying that a received `deviceToken` is securely stored in `localStorage` (`bookedAppointments` or similar key).
