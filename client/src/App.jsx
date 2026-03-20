@@ -454,6 +454,9 @@ function App() {
               />
             </ProtectedRoute>
           } />
+
+          {/* Catch-all route for unknown URLs */}
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
     </div>
