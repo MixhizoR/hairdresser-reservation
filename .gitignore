@@ -32,6 +32,7 @@ dist-ssr
 
 # Build outputs
 build/
+coverage/
 server/node_modules
 client/node_modules
 client/dist
