@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Scissors, Calendar, Check, Crown, Flame, Star } from 'lucide-react';
 
+import { QRCodeSVG } from 'qrcode.react';
+
 const fadeUp = {
   hidden: { opacity: 0, y: 30 },
   visible: (i) => ({ opacity: 1, y: 0, transition: { delay: i * 0.1, duration: 0.6, ease: 'easeOut' } })
@@ -10,7 +12,7 @@ const fadeUp = {
 // Phone validation: 05xxxxxxxxx format (Turkish mobile)
 const isValidPhone = (phone) => /^05\d{9}$/.test(phone);
 
-export default function HomePage({ t, barbers, selectedBarber, setSelectedBarber, appointments, selectedDate, setSelectedDate, selectedSlot, setSelectedSlot, newAppointment, setNewAppointment, handleBooking, isBooked, generateSlots, isSlotTaken, bookingError, setBookingError }) {
+export default function HomePage({ t, barbers, selectedBarber, setSelectedBarber, appointments, selectedDate, setSelectedDate, selectedSlot, setSelectedSlot, newAppointment, setNewAppointment, handleBooking, isBooked, bookingResult, generateSlots, isSlotTaken, bookingError, setBookingError }) {
 
   const [phoneError, setPhoneError] = useState('');
   const [honeypot, setHoneypot] = useState(''); // honeypot field
@@ -206,24 +208,45 @@ export default function HomePage({ t, barbers, selectedBarber, setSelectedBarber
                 exit={{ opacity: 0 }}
                 style={{
                   marginTop: '1.5rem',
-                  padding: '1.25rem 1.5rem',
+                  padding: '1.5rem',
                   borderRadius: 'var(--radius-md)',
                   border: '1px solid rgba(0,242,96,0.25)',
                   background: 'rgba(0,242,96,0.06)',
                   display: 'flex',
+                  flexDirection: 'column',
                   alignItems: 'center',
-                  gap: '0.75rem',
+                  gap: '1rem',
+                  textAlign: 'center'
                 }}
               >
-                <Check size={20} style={{ color: 'var(--accent-green)', flexShrink: 0 }} />
-                <div>
-                  <p style={{ fontWeight: 700, fontSize: '0.85rem', color: 'var(--accent-green)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <Check size={24} style={{ color: 'var(--accent-green)' }} />
+                  <p style={{ fontWeight: 700, fontSize: '1rem', color: 'var(--accent-green)' }}>
                     {t.reservationSent}
                   </p>
-                  <p style={{ fontSize: '0.75rem', color: 'var(--text-dim)', marginTop: '0.2rem' }}>
-                    Talebiniz alındı, berberden onay bekleniyor.
-                  </p>
                 </div>
+                <p style={{ fontSize: '0.85rem', color: 'var(--text-dim)' }}>
+                  Talebiniz alındı. Randevu durumunuzu aşağıdaki takip koduyla veya cihazınızdan otomatik olarak öğrenebilirsiniz.
+                </p>
+                {bookingResult && bookingResult.trackingCode && (
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem', background: 'rgba(0,0,0,0.3)', padding: '1rem', borderRadius: '8px', width: '100%' }}>
+                    <div>
+                      <span style={{ fontSize: '0.7rem', color: 'var(--text-dim)', textTransform: 'uppercase' }}>Takip Kodu</span>
+                      <h3 style={{ fontSize: '2rem', letterSpacing: '4px', margin: '0.5rem 0', color: 'var(--primary)' }}>
+                        {bookingResult.trackingCode}
+                      </h3>
+                    </div>
+                    <div style={{ background: '#fff', padding: '0.5rem', borderRadius: '4px' }}>
+                      <QRCodeSVG 
+                        value={`${window.location.origin}/track?code=${bookingResult.trackingCode}`} 
+                        size={120} 
+                      />
+                    </div>
+                    <p style={{ fontSize: '0.7rem', color: 'var(--text-dim)' }}>
+                      Durumu öğrenmek için kodu taratın.
+                    </p>
+                  </div>
+                )}
               </motion.div>
             )}
           </motion.div>

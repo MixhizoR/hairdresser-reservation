@@ -35,6 +35,7 @@ function App() {
   const [selectedBarber, setSelectedBarber] = useState('');
   const [newAppointment, setNewAppointment] = useState({ name: '', phone: '', service: 'Saç Kesimi', time: '' });
   const [isBooked, setIsBooked] = useState(false);
+  const [bookingResult, setBookingResult] = useState(null);
   const [bookingError, setBookingError] = useState('');
   const [audioEnabled, setAudioEnabled] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0]);
@@ -281,7 +282,7 @@ function App() {
       setIsBooked(true);
       setNewAppointment(prev => ({ ...prev, name: '', phone: '' }));
       setSelectedSlot('');
-      setTimeout(() => setIsBooked(false), 3000);
+      setTimeout(() => setIsBooked(false), 30000);
     } else {
       const data = await res.json();
       setBookingError(data.error || 'Randevu oluşturulamadı.');
@@ -385,6 +386,7 @@ function App() {
               setNewAppointment={setNewAppointment}
               handleBooking={handleBooking}
               isBooked={isBooked}
+              bookingResult={bookingResult}
               generateSlots={generateSlots}
               isSlotTaken={isSlotTaken}
               bookingError={bookingError}

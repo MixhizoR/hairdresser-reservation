@@ -5,6 +5,7 @@
 - **Framer Motion**: For elegant animations and transitions, supporting the luxury feel.
 - **Lucide Icons**: High-quality, clean iconography for professional navigation.
 - **Socket.io-client**: Real-time communication for instant appointment updates and status notifications.
+- **qrcode.react**: For generating dynamic tracking QR codes on the frontend.
 
 ## Backend
 - **Node.js (Express)**: A fast and lightweight backend framework for building scalable REST APIs and handling real-time socket connections.
