@@ -7,7 +7,7 @@
 - [x] Task 1.4: Write failing unit tests for new methods in `db.service.js` that fetch appointments by `trackingCode` and `deviceToken`. 514ce4f
 - [x] Task 1.5: Implement the fetch methods in `db.service.js` to pass the tests. 514ce4f
 
-## Phase 2: Backend API Endpoints (TDD)
+## Phase 2: Backend API Endpoints (TDD) [checkpoint: c230c1a]
 - [x] Task 2.1: Write failing integration tests for `POST /api/appointments` to verify it returns `deviceToken` and `trackingCode` in the response payload. e90e70d
 - [x] Task 2.2: Update `appointment.controller.js` `createAppointment` to include the generated tokens in the JSON response. Ensure tests pass. e90e70d
 - [x] Task 2.3: Write failing tests for a new public endpoint `GET /api/appointments/track`. Tests must verify: 
