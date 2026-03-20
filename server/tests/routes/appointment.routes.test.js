@@ -59,4 +59,61 @@ describe('Appointment Routes (Integration)', () => {
             expect(res.body.trackingCode).toBe('TESTCD');
         });
     });
+
+    describe('GET /api/appointments/track', () => {
+        const mockApptData = {
+            id: 'appt-123',
+            name: 'John Doe',
+            phone: '05321234567',
+            service: 'Saç Kesimi',
+            time: new Date().toISOString(),
+            status: 'pending',
+            notes: 'Some secret note',
+            barberId: 'barber-123',
+            deviceToken: 'test-uuid-123',
+            trackingCode: 'TESTCD',
+            barber: { name: 'Barber Bob' }
+        };
+
+        it('should return masked data when trackingCode is provided', async () => {
+            // Setup mock for getAppointmentByTrackingCode
+            dbService.getAppointmentByTrackingCode = jest.fn().mockResolvedValue(mockApptData);
+
+            const res = await request(app).get('/api/appointments/track?code=TESTCD');
+
+            expect(res.status).toBe(200);
+            expect(dbService.getAppointmentByTrackingCode).toHaveBeenCalledWith('TESTCD');
+            
+            // Verify masking
+            const appt = res.body[0];
+            expect(appt.name).toBe('J*** D***');
+            expect(appt.phone).toBeUndefined();
+            expect(appt.notes).toBeUndefined();
+            expect(appt.barberName).toBe('Barber Bob');
+            expect(appt.status).toBe('pending');
+            expect(appt.service).toBe('Saç Kesimi');
+        });
+
+        it('should return masked data when deviceToken is provided', async () => {
+            // Setup mock for getAppointmentsByDeviceToken
+            dbService.getAppointmentsByDeviceToken = jest.fn().mockResolvedValue([mockApptData]);
+
+            const res = await request(app).get('/api/appointments/track?deviceToken=test-uuid-123');
+
+            expect(res.status).toBe(200);
+            expect(dbService.getAppointmentsByDeviceToken).toHaveBeenCalledWith('test-uuid-123');
+            
+            // Verify masking
+            const appt = res.body[0];
+            expect(appt.name).toBe('J*** D***');
+            expect(appt.phone).toBeUndefined();
+            expect(appt.notes).toBeUndefined();
+        });
+
+        it('should return 400 if neither code nor deviceToken is provided', async () => {
+            const res = await request(app).get('/api/appointments/track');
+            expect(res.status).toBe(400);
+            expect(res.body.error).toBeDefined();
+        });
+    });
 });

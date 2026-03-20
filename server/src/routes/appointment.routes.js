@@ -4,8 +4,14 @@ const router = express.Router({ mergeParams: true });
 const appointmentController = require('../controllers/appointment.controller');
 const { authMiddleware, requireRole } = require('../middlewares/auth.middleware');
 
+const { appointmentLimiter } = require('../middlewares/rateLimit.middleware');
+
 router.get('/availability', function (req, res, next) {
     appointmentController.getAvailability(req, res, next);
+});
+
+router.get('/track', appointmentLimiter, function (req, res, next) {
+    appointmentController.trackAppointments(req, res, next);
 });
 
 router.get('/', authMiddleware, function (req, res, next) {

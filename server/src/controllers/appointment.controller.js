@@ -202,11 +202,54 @@ const getAppointment = async (req, res) => {
     }
 };
 
+// Track appointments (Public with strict limiting)
+const trackAppointments = async (req, res) => {
+    const { code, deviceToken } = req.query;
+
+    if (!code && !deviceToken) {
+        return res.status(400).json({ error: 'Lütfen bir takip kodu veya cihaz tokeni sağlayın.' });
+    }
+
+    try {
+        let appointments = [];
+
+        if (deviceToken) {
+            const results = await db.getAppointmentsByDeviceToken(deviceToken);
+            appointments = results || [];
+        } else if (code) {
+            const result = await db.getAppointmentByTrackingCode(code);
+            if (result) appointments = [result];
+        }
+
+        // Apply strict data masking before sending to client
+        const maskedAppointments = appointments.map(appt => {
+            const parts = appt.name.split(' ');
+            const maskedName = parts.map(p => p.charAt(0) + '***').join(' ');
+            
+            return {
+                id: appt.id,
+                name: maskedName,
+                service: appt.service,
+                time: appt.time,
+                status: appt.status,
+                barberName: appt.barber?.name || 'Berber',
+                createdAt: appt.createdAt
+            };
+        });
+
+        res.json(maskedAppointments);
+    } catch (err) {
+        log('error', 'GET /api/appointments/track failed', { err: err.message });
+        res.status(500).json({ error: 'Sunucu hatası.' });
+    }
+};
+
 module.exports = {
     getAvailability,
     getAppointments,
     createAppointment,
     updateAppointment,
     deleteAppointment,
-    getAppointment
+    getAppointment,
+    trackAppointments
 };
