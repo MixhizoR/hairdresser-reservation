@@ -17,7 +17,7 @@
     - Data masking is strictly enforced (name masked, phone/notes hidden). 7dde273
 - [x] Task 2.4: Implement the `GET /api/appointments/track` endpoint in `appointment.controller.js` and register it in `appointment.routes.js` with the existing `rateLimit.middleware.js`. Make all tests pass. 7dde273
 
-## Phase 3: Frontend Booking Flow Updates
+## Phase 3: Frontend Booking Flow Updates [checkpoint: ac288ed]
 - [x] Task 3.1: Write failing tests for the frontend booking submission flow, verifying that a received `deviceToken` is securely stored in `localStorage` (`bookedAppointments` or similar key). 916df0f
 - [x] Task 3.2: Update the booking submission logic in `HomePage.jsx` (or the booking component) to store the `deviceToken` after a successful booking. 916df0f
 - [x] Task 3.3: Update the booking success UI to prominently display the `trackingCode`. 786d2f4
