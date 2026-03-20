@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { Scissors, Calendar, Shield, User } from 'lucide-react';
 import HomePage from './pages/HomePage';
 import AdminPage from './pages/AdminPage';
+import StatusPage from './pages/StatusPage';
 
 // In development, this uses the Vite proxy ('' means relative path).
 // In production, this can also be '' if the backend serves the frontend, or a specific URL.
@@ -454,6 +455,8 @@ function App() {
               />
             </ProtectedRoute>
           } />
+
+          <Route path="/track" element={<StatusPage />} />
 
           {/* Catch-all route for unknown URLs */}
           <Route path="*" element={<Navigate to="/" replace />} />
