@@ -23,7 +23,7 @@
 - [x] Task 3.3: Update the booking success UI to prominently display the `trackingCode`. 786d2f4
 - [x] Task 3.4: Integrate a QR Code generator (e.g., `qrcode.react`) to display a scannable QR code on the success screen pointing to `/track/:trackingCode` (Note: Update `tech-stack.md` if adding a new dependency per workflow rules). 786d2f4
 
-## Phase 4: Frontend Status Dashboard
+## Phase 4: Frontend Status Dashboard [checkpoint: 7e57c3b]
 - [x] Task 4.1: Write failing tests for a new `StatusPage` component, verifying it automatically reads `deviceToken` from `localStorage` on mount and displays a loading state. 73b2e70
 - [x] Task 4.2: Implement `StatusPage.jsx` and its route (`/track` or `/appointment-status`). Implement the `useEffect` hook to automatically fetch and display appointments using the stored `deviceToken`. 73b2e70
 - [x] Task 4.3: Implement a manual tracking input form within `StatusPage` that accepts a 6-character `trackingCode` and fetches the specific appointment. 73b2e70
