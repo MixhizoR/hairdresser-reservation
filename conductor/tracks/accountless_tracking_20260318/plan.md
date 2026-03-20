@@ -20,8 +20,8 @@
 ## Phase 3: Frontend Booking Flow Updates
 - [x] Task 3.1: Write failing tests for the frontend booking submission flow, verifying that a received `deviceToken` is securely stored in `localStorage` (`bookedAppointments` or similar key). 916df0f
 - [x] Task 3.2: Update the booking submission logic in `HomePage.jsx` (or the booking component) to store the `deviceToken` after a successful booking. 916df0f
-- [~] Task 3.3: Update the booking success UI to prominently display the `trackingCode`.
-- [ ] Task 3.4: Integrate a QR Code generator (e.g., `qrcode.react`) to display a scannable QR code on the success screen pointing to `/track/:trackingCode` (Note: Update `tech-stack.md` if adding a new dependency per workflow rules).
+- [x] Task 3.3: Update the booking success UI to prominently display the `trackingCode`. 786d2f4
+- [x] Task 3.4: Integrate a QR Code generator (e.g., `qrcode.react`) to display a scannable QR code on the success screen pointing to `/track/:trackingCode` (Note: Update `tech-stack.md` if adding a new dependency per workflow rules). 786d2f4
 
 ## Phase 4: Frontend Status Dashboard
 - [ ] Task 4.1: Write failing tests for a new `StatusPage` component, verifying it automatically reads `deviceToken` from `localStorage` on mount and displays a loading state.
