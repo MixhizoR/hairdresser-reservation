@@ -274,6 +274,10 @@ function App() {
       })
     });
     if (res.ok) {
+      const data = await res.json();
+      if (data.deviceToken) {
+        localStorage.setItem('deviceToken', data.deviceToken);
+      }
       setIsBooked(true);
       setNewAppointment(prev => ({ ...prev, name: '', phone: '' }));
       setSelectedSlot('');
