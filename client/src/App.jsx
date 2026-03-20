@@ -279,10 +279,11 @@ function App() {
       if (data.deviceToken) {
         localStorage.setItem('deviceToken', data.deviceToken);
       }
+      setBookingResult(data);
       setIsBooked(true);
       setNewAppointment(prev => ({ ...prev, name: '', phone: '' }));
       setSelectedSlot('');
-      setTimeout(() => setIsBooked(false), 30000);
+      setTimeout(() => { setIsBooked(false); setBookingResult(null); }, 30000);
     } else {
       const data = await res.json();
       setBookingError(data.error || 'Randevu oluşturulamadı.');
