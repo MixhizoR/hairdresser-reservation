@@ -1,6 +1,6 @@
 # Implementation Plan: Accountless Appointment Tracking
 
-## Phase 1: Database & Service Layer Updates
+## Phase 1: Database & Service Layer Updates [checkpoint: 31277c5]
 - [x] Task 1.1: Update `server/prisma/schema.prisma` to add `deviceToken` (String, nullable) and `trackingCode` (String, unique, nullable) to the `Appointment` model. Generate a migration (`npx prisma migrate dev --name add_tracking_fields`). f855f9e
 - [x] Task 1.2: Write failing unit tests for `db.service.js` to ensure appointment creation generates and returns a UUIDv4 `deviceToken` and a 6-character alphanumeric `trackingCode`. eacedd3
 - [x] Task 1.3: Implement the `deviceToken` and `trackingCode` generation logic in `db.service.js` during appointment creation to make the tests pass. eacedd3
