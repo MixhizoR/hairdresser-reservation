@@ -18,9 +18,9 @@
 - [x] Task 2.4: Implement the `GET /api/appointments/track` endpoint in `appointment.controller.js` and register it in `appointment.routes.js` with the existing `rateLimit.middleware.js`. Make all tests pass. 7dde273
 
 ## Phase 3: Frontend Booking Flow Updates
-- [ ] Task 3.1: Write failing tests for the frontend booking submission flow, verifying that a received `deviceToken` is securely stored in `localStorage` (`bookedAppointments` or similar key).
-- [ ] Task 3.2: Update the booking submission logic in `HomePage.jsx` (or the booking component) to store the `deviceToken` after a successful booking.
-- [ ] Task 3.3: Update the booking success UI to prominently display the `trackingCode`.
+- [x] Task 3.1: Write failing tests for the frontend booking submission flow, verifying that a received `deviceToken` is securely stored in `localStorage` (`bookedAppointments` or similar key). 916df0f
+- [x] Task 3.2: Update the booking submission logic in `HomePage.jsx` (or the booking component) to store the `deviceToken` after a successful booking. 916df0f
+- [~] Task 3.3: Update the booking success UI to prominently display the `trackingCode`.
 - [ ] Task 3.4: Integrate a QR Code generator (e.g., `qrcode.react`) to display a scannable QR code on the success screen pointing to `/track/:trackingCode` (Note: Update `tech-stack.md` if adding a new dependency per workflow rules).
 
 ## Phase 4: Frontend Status Dashboard
