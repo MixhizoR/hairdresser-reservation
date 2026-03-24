@@ -1,5 +1,4 @@
 const crypto = require('crypto');
-const validator = require('validator');
 const db = require('../services/db.service');
 const { log } = require('../config/logger');
 const { isValidPhone, isValidName } = require('../utils/validators');
@@ -111,12 +110,12 @@ const createAppointment = async (req, res) => {
             return res.status(400).json({ error: 'Bu saat dilimi seçtiğiniz berber için zaten rezerve edilmiş.' });
 
         const appt = await db.createAppointment({
-            name: validator.escape(name.trim()),
+            name: name.trim(),
             phone: phone.trim(),
-            service: validator.escape((service || '').trim()),
+            service: (service || '').trim(),
             time: date,
             barberId: barberId,
-            notes: notes ? validator.escape(notes.trim()) : null,
+            notes: notes ? notes.trim() : null,
             status: 'pending'
         });
 
