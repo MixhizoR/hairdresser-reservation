@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "surface-container-high": "#e3e9ed",
+              "inverse-on-surface": "#9a9d9f",
+              "on-surface-variant": "#596064",
+              "on-error": "#fff7f6",
+              "tertiary": "#5f5a84",
+              "outline": "#747c80",
+              "surface-tint": "#0060ad",
+              "primary-container": "#68abff",
+              "on-primary-fixed-variant": "#003461",
+              "on-background": "#2c3437",
+              "surface-container-low": "#f0f4f7",
+              "error-container": "#fa746f",
+              "on-tertiary": "#fcf7ff",
+              "on-surface": "#2c3437",
+              "on-secondary": "#f2faff",
+              "tertiary-fixed": "#d3ccfd",
+              "on-tertiary-fixed": "#342f56",
+              "on-primary-fixed": "#000c1e",
+              "inverse-primary": "#68abff",
+              "secondary-container": "#cde6f4",
+              "tertiary-dim": "#534e77",
+              "secondary-fixed-dim": "#bfd8e5",
+              "tertiary-container": "#d3ccfd",
+              "surface-bright": "#f7f9fb",
+              "surface-variant": "#dce4e8",
+              "primary": "#0060ad",
+              "inverse-surface": "#0b0f10",
+              "on-secondary-fixed": "#2b424d",
+              "on-tertiary-fixed-variant": "#514c75",
+              "surface-container": "#eaeff2",
+              "on-secondary-container": "#3e5560",
+              "primary-dim": "#005498",
+              "surface-container-highest": "#dce4e8",
+              "secondary-fixed": "#cde6f4",
+              "on-secondary-fixed-variant": "#475f6a",
+              "on-primary": "#f8f8ff",
+              "error-dim": "#67040d",
+              "tertiary-fixed-dim": "#c5beee",
+              "surface-container-lowest": "#ffffff",
+              "surface-dim": "#d4dbdf",
+              "background": "#f7f9fb",
+              "on-error-container": "#6e0a12",
+              "outline-variant": "#acb3b7",
+              "surface": "#f7f9fb",
+              "on-tertiary-container": "#47426b",
+              "on-primary-container": "#002b52",
+              "primary-fixed": "#68abff",
+              "error": "#a83836",
+              "secondary-dim": "#3f5661",
+              "primary-fixed-dim": "#599ef1",
+              "secondary": "#4b626e"
+            },
+            fontFamily: {
+              "headline": ["Manrope"],
+              "body": ["Manrope"],
+              "label": ["Manrope"]
+            },
+            borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+          },
+        },
+      }
+    </script>
+<style>
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      }
+      .glass-effect {
+        background: rgba(104, 171, 255, 0.15);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+      }
+      .ambient-shadow {
+        box-shadow: 0 20px 40px rgba(0, 96, 173, 0.06);
+      }
+    </style>
+</head>
+<body class="bg-background font-body text-on-surface">
+<!-- TopNavBar -->
+<header class="w-full top-0 sticky z-50 bg-[#f7f9fb] dark:bg-slate-900">
+<nav class="flex justify-between items-center px-8 py-4 max-w-7xl mx-auto">
+<div class="text-xl font-bold text-[#2c3437] dark:text-slate-100 font-headline tracking-tight">
+            Serene Salon
+        </div>
+<div class="hidden md:flex items-center gap-8">
+<a class="font-manrope font-semibold tracking-tight text-[#596064] dark:text-slate-400 hover:text-[#005498] transition-colors duration-200" href="#">Book Now</a>
+<a class="font-manrope font-semibold tracking-tight text-[#0060ad] border-b-2 border-[#0060ad] pb-1 transition-colors duration-200" href="#">Track Appointment</a>
+<a class="font-manrope font-semibold tracking-tight text-[#596064] dark:text-slate-400 hover:text-[#005498] transition-colors duration-200" href="#">Services</a>
+<a class="font-manrope font-semibold tracking-tight text-[#596064] dark:text-slate-400 hover:text-[#005498] transition-colors duration-200" href="#">Stylists</a>
+</div>
+<button class="bg-primary text-on-primary px-6 py-2.5 rounded-full font-semibold transition-all scale-95 active:opacity-80 hover:bg-primary-dim">
+            Check Status
+        </button>
+</nav>
+</header>
+<main class="max-w-7xl mx-auto px-8 py-20">
+<!-- Main Content Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+<!-- Left Column: Status & Visual Identity -->
+<div class="lg:col-span-5 space-y-8">
+<div class="space-y-4">
+<span class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-tertiary-container text-on-tertiary-container font-semibold text-sm">
+<span class="material-symbols-outlined text-sm" data-weight="fill" style="font-variation-settings: 'FILL' 1;">verified</span>
+                    Confirmed Appointment
+                </span>
+<h1 class="text-5xl font-extrabold font-headline tracking-tight text-on-surface leading-tight">
+                    Your session is all set.
+                </h1>
+<p class="text-lg text-on-surface-variant max-w-md">
+                    We're preparing for your visit. Everything you need to know about your upcoming appointment at Serene Salon is listed here.
+                </p>
+</div>
+<!-- Bento Card: ID & Stylist -->
+<div class="grid grid-cols-2 gap-4">
+<div class="bg-surface-container-low p-6 rounded-full ambient-shadow">
+<p class="text-xs uppercase tracking-widest text-on-surface-variant font-bold mb-1">Appointment ID</p>
+<p class="text-2xl font-bold text-primary">#SAN-8821</p>
+</div>
+<div class="bg-surface-container p-1 rounded-full flex items-center gap-3 pr-6">
+<img alt="portrait of a professional male hair stylist" class="w-14 h-14 rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBFykPfed2eeTsSI-2TV7m_Jfam490wizRiTYbm4WWOQ1J6QpPcNHkgpsXtoa-o7GRm3YQM6sJwQBsIb38wdy7wd8jQiHQ9k-zK8uy2lkWIl39qr0VCc3k7NffWTRrjO3xwto-J17qyZ85IZ5TIFGn9oVoksJYGHgMVmdYpsrUAM-XcDOpX9HQrAZn8vICpYQgatuwuTzjQwGyjN3BopF5fCIRL-EMGhiEa3wsmiOhmpy2-Tu_SaMIX2nICJbZoMTl5woOxMUfwS6I"/>
+<div>
+<p class="text-[10px] uppercase tracking-wider text-on-surface-variant font-bold">Stylist</p>
+<p class="font-bold text-on-surface leading-none">Marcus Chen</p>
+</div>
+</div>
+</div>
+<!-- Contact & Support -->
+<div class="bg-surface-container-highest p-8 rounded-full flex items-center justify-between">
+<div>
+<p class="font-bold text-on-surface">Need to reschedule?</p>
+<p class="text-sm text-on-surface-variant">Our concierge is here to help.</p>
+</div>
+<button class="bg-surface-container-lowest text-primary px-6 py-2 rounded-full font-bold text-sm border border-outline-variant/15 hover:bg-white transition-all">
+                    Contact Us
+                </button>
+</div>
+</div>
+<!-- Right Column: The Appointment Card -->
+<div class="lg:col-span-7">
+<div class="bg-surface-container-lowest rounded-full p-10 ambient-shadow relative overflow-hidden">
+<!-- Glassy Background Accent -->
+<div class="absolute -top-24 -right-24 w-64 h-64 glass-effect rounded-full blur-3xl opacity-40"></div>
+<div class="relative z-10">
+<div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-12 gap-6">
+<div class="flex items-center gap-4">
+<div class="w-16 h-16 rounded-full bg-secondary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-3xl">content_cut</span>
+</div>
+<div>
+<h2 class="text-2xl font-bold text-on-surface">Signature Cut</h2>
+<p class="text-on-surface-variant">60 Minute Session</p>
+</div>
+</div>
+<div class="text-right">
+<p class="text-3xl font-extrabold text-on-surface">02:30 PM</p>
+<p class="text-on-surface-variant font-medium">Friday, Oct 24, 2024</p>
+</div>
+</div>
+<!-- Divider-less breakdown using tonal shifts -->
+<div class="space-y-4">
+<div class="bg-surface-container-low p-6 rounded-full flex justify-between items-center group hover:bg-surface-container-high transition-colors">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-on-surface-variant">location_on</span>
+<span class="font-semibold">Main Studio, Level 2</span>
+</div>
+<span class="material-symbols-outlined text-outline-variant opacity-0 group-hover:opacity-100 transition-opacity">map</span>
+</div>
+<div class="bg-surface-container-low p-6 rounded-full flex justify-between items-center group hover:bg-surface-container-high transition-colors">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-on-surface-variant">payments</span>
+<span class="font-semibold">Estimated Total</span>
+</div>
+<span class="font-bold text-primary">$120.00</span>
+</div>
+</div>
+<!-- Primary Action -->
+<div class="mt-12 flex flex-col sm:flex-row gap-4">
+<button class="flex-1 bg-gradient-to-br from-primary to-primary-dim text-on-primary px-8 py-5 rounded-full font-bold flex items-center justify-center gap-3 transition-transform active:scale-95">
+<span class="material-symbols-outlined">calendar_add_on</span>
+                            Add to Calendar
+                        </button>
+<button class="px-8 py-5 rounded-full font-bold text-on-surface-variant border border-outline-variant/15 hover:bg-surface-container transition-all flex items-center justify-center gap-3">
+<span class="material-symbols-outlined">share</span>
+                            Share Details
+                        </button>
+</div>
+</div>
+</div>
+<!-- Preparation Tip (Asymmetric Layout Element) -->
+<div class="mt-8 ml-auto max-w-sm">
+<div class="p-6 bg-tertiary/5 border-l-4 border-tertiary rounded-r-full">
+<p class="text-xs font-bold text-tertiary uppercase tracking-widest mb-1">Pro Tip</p>
+<p class="text-sm text-on-tertiary-container italic">"Arriving 10 minutes early allows you to enjoy our complimentary sensory ritual and a glass of infused water."</p>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Footer -->
+<footer class="w-full py-12 border-t border-[#acb3b7]/15 bg-[#eaeff2] dark:bg-slate-950 mt-20">
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 px-8 max-w-7xl mx-auto">
+<div class="space-y-4">
+<div class="text-lg font-bold text-[#2c3437] font-headline">Serene Salon</div>
+<p class="font-manrope text-sm text-[#596064]">A sanctuary of beauty and precision, dedicated to the art of professional grooming.</p>
+</div>
+<div class="space-y-4">
+<h4 class="font-bold text-on-surface text-sm uppercase tracking-wider">Quick Links</h4>
+<div class="flex flex-col gap-2">
+<a class="font-manrope text-sm text-[#596064] hover:underline decoration-[#0060ad]" href="#">Privacy Policy</a>
+<a class="font-manrope text-sm text-[#596064] hover:underline decoration-[#0060ad]" href="#">Terms of Service</a>
+<a class="font-manrope text-sm text-[#596064] hover:underline decoration-[#0060ad]" href="#">Contact Us</a>
+</div>
+</div>
+<div class="space-y-4">
+<h4 class="font-bold text-on-surface text-sm uppercase tracking-wider">Connect</h4>
+<div class="flex gap-4">
+<span class="material-symbols-outlined text-primary cursor-pointer hover:opacity-70 transition-opacity">photo_camera</span>
+<span class="material-symbols-outlined text-primary cursor-pointer hover:opacity-70 transition-opacity">mail</span>
+<span class="material-symbols-outlined text-primary cursor-pointer hover:opacity-70 transition-opacity">call</span>
+</div>
+</div>
+<div class="space-y-4">
+<h4 class="font-bold text-on-surface text-sm uppercase tracking-wider">Address</h4>
+<p class="font-manrope text-sm text-[#596064]">1221 Serenity Path, Suite 200<br/>San Francisco, CA 94105</p>
+<a class="font-manrope text-sm text-[#0060ad] font-medium hover:underline decoration-[#0060ad]" href="#">Location</a>
+</div>
+</div>
+<div class="max-w-7xl mx-auto px-8 mt-12 pt-8 border-t border-[#acb3b7]/10 flex flex-col md:flex-row justify-between items-center gap-4">
+<p class="font-manrope text-sm text-[#596064]">© 2024 Serene Salon. All rights reserved.</p>
+<div class="flex gap-6">
+<span class="font-manrope text-sm text-[#0060ad] font-medium">English (US)</span>
+<span class="font-manrope text-sm text-[#596064]">Currency: USD</span>
+</div>
+</div>
+</footer>
+</body></html>

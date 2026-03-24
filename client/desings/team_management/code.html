@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Lume Salon Admin - Stylist Management</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-primary-fixed-variant": "#003461",
+              "on-surface": "#2c3437",
+              "primary-fixed-dim": "#599ef1",
+              "on-error-container": "#6e0a12",
+              "surface-container-lowest": "#ffffff",
+              "secondary-fixed": "#cde6f4",
+              "tertiary-fixed-dim": "#c5beee",
+              "on-secondary-fixed-variant": "#475f6a",
+              "error-dim": "#67040d",
+              "on-primary": "#f8f8ff",
+              "on-tertiary-fixed": "#342f56",
+              "on-tertiary": "#fcf7ff",
+              "on-primary-container": "#002b52",
+              "error-container": "#fa746f",
+              "on-secondary-container": "#3e5560",
+              "primary-dim": "#005498",
+              "inverse-surface": "#0b0f10",
+              "secondary-fixed-dim": "#bfd8e5",
+              "secondary-container": "#cde6f4",
+              "on-primary-fixed": "#000c1e",
+              "surface-bright": "#f7f9fb",
+              "outline-variant": "#acb3b7",
+              "inverse-on-surface": "#9a9d9f",
+              "tertiary-fixed": "#d3ccfd",
+              "surface-variant": "#dce4e8",
+              "surface-tint": "#0060ad",
+              "secondary": "#4b626e",
+              "error": "#a83836",
+              "primary-fixed": "#68abff",
+              "on-tertiary-fixed-variant": "#514c75",
+              "secondary-dim": "#3f5661",
+              "surface-container-low": "#f0f4f7",
+              "on-tertiary-container": "#47426b",
+              "on-error": "#fff7f6",
+              "tertiary-dim": "#534e77",
+              "surface-container-highest": "#dce4e8",
+              "on-background": "#2c3437",
+              "primary-container": "#68abff",
+              "outline": "#747c80",
+              "surface": "#f7f9fb",
+              "on-surface-variant": "#596064",
+              "surface-dim": "#d4dbdf",
+              "surface-container": "#eaeff2",
+              "background": "#f7f9fb",
+              "surface-container-high": "#e3e9ed",
+              "tertiary-container": "#d3ccfd",
+              "on-secondary-fixed": "#2b424d",
+              "inverse-primary": "#68abff",
+              "on-secondary": "#f2faff",
+              "primary": "#0060ad",
+              "tertiary": "#5f5a84"
+            },
+            fontFamily: {
+              "headline": ["Manrope"],
+              "body": ["Manrope"],
+              "label": ["Manrope"]
+            },
+            borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body { font-family: 'Manrope', sans-serif; }
+    </style>
+</head>
+<body class="bg-surface text-on-surface antialiased">
+<!-- SideNavBar (Authority: JSON) -->
+<aside class="h-screen w-64 fixed left-0 top-0 border-r border-slate-200/20 bg-slate-50 dark:bg-slate-950 flex flex-col py-6 z-50">
+<div class="px-6 mb-10">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-on-primary-container">spa</span>
+</div>
+<div>
+<h2 class="text-lg font-extrabold text-blue-800 dark:text-blue-300">Lume Admin</h2>
+<p class="text-[10px] uppercase tracking-widest text-slate-400 font-bold">The Digital Sanctuary</p>
+</div>
+</div>
+</div>
+<nav class="flex-1 space-y-1 px-4">
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-200 hover:bg-slate-100 dark:hover:bg-slate-900 rounded-xl transition-all font-manrope text-sm font-medium" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span>Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-200 hover:bg-slate-100 dark:hover:bg-slate-900 rounded-xl transition-all font-manrope text-sm font-medium" href="#">
+<span class="material-symbols-outlined">calendar_month</span>
+<span>Appointments</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-200 hover:bg-slate-100 dark:hover:bg-slate-900 rounded-xl transition-all font-manrope text-sm font-medium" href="#">
+<span class="material-symbols-outlined">content_cut</span>
+<span>Services</span>
+</a>
+<!-- Active Navigation State: Stylists -->
+<a class="flex items-center gap-3 px-4 py-3 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 rounded-xl font-semibold font-manrope text-sm translate-x-1 transition-transform" href="#">
+<span class="material-symbols-outlined">face</span>
+<span>Stylists</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-200 hover:bg-slate-100 dark:hover:bg-slate-900 rounded-xl transition-all font-manrope text-sm font-medium" href="#">
+<span class="material-symbols-outlined">payments</span>
+<span>Financials</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-200 hover:bg-slate-100 dark:hover:bg-slate-900 rounded-xl transition-all font-manrope text-sm font-medium" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span>Settings</span>
+</a>
+</nav>
+<div class="px-4 mt-auto">
+<button class="w-full bg-primary text-on-primary py-3 rounded-xl font-semibold text-sm shadow-sm active:scale-95 transition-all hover:bg-primary-dim">
+                Book New Session
+            </button>
+<div class="mt-6 pt-6 border-t border-slate-200/20">
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 dark:text-slate-400 hover:text-error transition-colors font-manrope text-sm font-medium" href="#">
+<span class="material-symbols-outlined">logout</span>
+<span>Logout</span>
+</a>
+</div>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="ml-64 min-h-screen">
+<!-- TopNavBar (Authority: JSON) -->
+<header class="w-full sticky top-0 z-40 bg-slate-50/80 dark:bg-slate-900/80 backdrop-blur-xl shadow-sm shadow-blue-900/5 dark:shadow-none border-b border-slate-200/10 flex justify-between items-center px-8 py-3">
+<div class="flex items-center gap-6">
+<h1 class="text-xl font-bold tracking-tighter text-blue-900 dark:text-blue-100">Lume Salon</h1>
+<div class="relative">
+<span class="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-slate-400 text-lg">search</span>
+<input class="pl-10 pr-4 py-1.5 bg-surface-container-low border-none rounded-full text-sm w-64 focus:ring-2 focus:ring-primary/20 placeholder:text-slate-400" placeholder="Search team..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors active:scale-95">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="flex items-center gap-2 px-3 py-1.5 text-blue-700 dark:text-blue-400 font-manrope text-sm font-medium hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
+<span class="material-symbols-outlined text-lg">help</span>
+                    Support
+                </button>
+<div class="h-8 w-px bg-slate-200 mx-2"></div>
+<div class="flex items-center gap-3">
+<img alt="Administrator Profile" class="w-9 h-9 rounded-full object-cover ring-2 ring-primary/10" data-alt="Close up portrait of a professional male salon manager in a clean white environment, sharp focus, high-end photography" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDpGTFo3Wv-dY3XXA9sVPSm8cIeqUzO7LHgRXx_9I3DHZE9xq84gemtEr37w1M86_2KfPr6AGOwC5ExEj-ISbA0wXlO2-OIE9XZ_6KLkdvIJJf8iiSmtx1W0z9lPf6mzOITYCOYq0ls0zCCpVrhi4xFUxFviRNS8VNZIBuuRV8rIBKd_61vvSSiceJCV23LHmEALKM32qRpMDOPIy8OpzpglmUCma0yBlTGxe7vLnmaDnK27-1Uqnc9Njfx03T5FthrvO7XNqwS2iQ"/>
+</div>
+</div>
+</header>
+<!-- Content Area -->
+<div class="p-12">
+<div class="flex justify-between items-end mb-12">
+<div>
+<h2 class="text-4xl font-headline font-extrabold tracking-tight text-on-surface mb-2">Stylist Management</h2>
+<p class="text-on-surface-variant font-medium">Oversee your creative team and daily operations.</p>
+</div>
+<div class="flex gap-3">
+<button class="px-6 py-2.5 bg-tertiary-container text-on-tertiary-container rounded-xl font-semibold text-sm hover:opacity-90 transition-opacity">
+                        View Rotations
+                    </button>
+<button class="px-6 py-2.5 bg-primary text-on-primary rounded-xl font-semibold text-sm shadow-sm hover:bg-primary-dim transition-all active:scale-95">
+                        Add Team Member
+                    </button>
+</div>
+</div>
+<!-- Stylist Grid: Asymmetric Layout -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-8">
+<!-- Julian Rossi (Master Barber) -->
+<div class="lg:col-span-4 bg-surface-container-lowest rounded-xl p-6 shadow-sm shadow-blue-900/5 group hover:shadow-md transition-shadow relative overflow-hidden">
+<div class="flex justify-between items-start mb-6">
+<div class="relative">
+<img alt="Julian Rossi" class="w-20 h-20 rounded-xl object-cover grayscale group-hover:grayscale-0 transition-all duration-500" data-alt="Professional male barber with groomed beard and modern haircut, wearing a black apron in a high-end salon setting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDg0mv_o87EDUc9JuFurE_CiT628cteplA1KbPBhs-TghLNqRm8oITOV6pX8o2qP21WwtWdNGpq7_HqBmNBJRrykiFHG2PAJVomF4taSLEaHXZIUeIBKlKBJ3PaGbyHgdI9apyh2Ws96x0AggQms1hFSa18AsT9b-iyxpSNaOfPOcDL-lCx5gB78OSzZcgTbt-TCAr911YjLfp7UyHYHX03jVkJ8yCDQbCTpR9gSOUuwn1HrJ55wKHqc2ifPqHl2P-gk9J8hehR56E"/>
+<span class="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 border-4 border-surface-container-lowest rounded-full"></span>
+</div>
+<span class="px-3 py-1 bg-green-50 text-green-700 text-[10px] font-bold uppercase tracking-wider rounded-full">Active</span>
+</div>
+<div class="mb-6">
+<h3 class="text-xl font-headline font-bold text-on-surface">Julian Rossi</h3>
+<p class="text-sm text-tertiary font-medium">Master Barber</p>
+</div>
+<div class="grid grid-cols-2 gap-4 mb-6">
+<div class="bg-surface-container-low p-3 rounded-xl">
+<p class="text-[10px] uppercase text-on-surface-variant font-bold tracking-widest mb-1">Today's Load</p>
+<p class="text-lg font-bold text-primary">85%</p>
+</div>
+<div class="bg-surface-container-low p-3 rounded-xl">
+<p class="text-[10px] uppercase text-on-surface-variant font-bold tracking-widest mb-1">Monthly Rev</p>
+<p class="text-lg font-bold text-on-surface">$12,450</p>
+</div>
+</div>
+<div class="flex gap-2">
+<button class="flex-1 py-2 bg-slate-100 hover:bg-slate-200 text-on-surface-variant text-xs font-bold rounded-lg transition-colors">Edit Profile</button>
+<button class="flex-1 py-2 bg-blue-50 hover:bg-blue-100 text-primary text-xs font-bold rounded-lg transition-colors">Schedule</button>
+</div>
+</div>
+<!-- Elena Vance (Color Specialist) -->
+<div class="lg:col-span-4 bg-surface-container-lowest rounded-xl p-6 shadow-sm shadow-blue-900/5 group hover:shadow-md transition-shadow relative overflow-hidden">
+<div class="flex justify-between items-start mb-6">
+<div class="relative">
+<img alt="Elena Vance" class="w-20 h-20 rounded-xl object-cover grayscale group-hover:grayscale-0 transition-all duration-500" data-alt="Professional female hair colorist with vibrant styled hair, smiling in a brightly lit modern salon environment" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDszzZO1HzykUHc2y64N5s_92LAVIOft2ChbNGHkmtqX0aw2mhfA9pEyyIVVOmUsdWuV8qBgYjzRG8Oiwy4OBv_29VeOBDbwjLtjcCXfdAaDo9NSDBNc_g2Dz9iJYupdeb2U0DmN6epnCmrROz_iVlDu-GnLeyGKHRoT2j9AFHk0Barf6PIox0JXjQbB2Y5J0wPyvaKbJe7c_JSFdJ70WWovB8h4boWTJc3P6D88eOVeRWmibg-91OMPTEbY1vf4N4pWEDKp78PVeA"/>
+<span class="absolute -bottom-1 -right-1 w-5 h-5 bg-amber-500 border-4 border-surface-container-lowest rounded-full"></span>
+</div>
+<span class="px-3 py-1 bg-amber-50 text-amber-700 text-[10px] font-bold uppercase tracking-wider rounded-full">On Break</span>
+</div>
+<div class="mb-6">
+<h3 class="text-xl font-headline font-bold text-on-surface">Elena Vance</h3>
+<p class="text-sm text-tertiary font-medium">Color Specialist</p>
+</div>
+<div class="grid grid-cols-2 gap-4 mb-6">
+<div class="bg-surface-container-low p-3 rounded-xl">
+<p class="text-[10px] uppercase text-on-surface-variant font-bold tracking-widest mb-1">Today's Load</p>
+<p class="text-lg font-bold text-primary">92%</p>
+</div>
+<div class="bg-surface-container-low p-3 rounded-xl">
+<p class="text-[10px] uppercase text-on-surface-variant font-bold tracking-widest mb-1">Monthly Rev</p>
+<p class="text-lg font-bold text-on-surface">$14,100</p>
+</div>
+</div>
+<div class="flex gap-2">
+<button class="flex-1 py-2 bg-slate-100 hover:bg-slate-200 text-on-surface-variant text-xs font-bold rounded-lg transition-colors">Edit Profile</button>
+<button class="flex-1 py-2 bg-blue-50 hover:bg-blue-100 text-primary text-xs font-bold rounded-lg transition-colors">Schedule</button>
+</div>
+</div>
+<!-- Featured Card - Marcus Thorne (Senior Stylist) -->
+<div class="lg:col-span-4 bg-primary text-on-primary rounded-xl p-6 shadow-xl shadow-primary/20 relative overflow-hidden">
+<div class="absolute top-0 right-0 p-4 opacity-10">
+<span class="material-symbols-outlined text-9xl">star</span>
+</div>
+<div class="flex justify-between items-start mb-6 relative z-10">
+<div class="relative">
+<img alt="Marcus Thorne" class="w-20 h-20 rounded-xl object-cover ring-2 ring-white/20" data-alt="Experienced male senior stylist with sophisticated style, posing in an editorial salon photoshoot" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAcGBnF_1v0T7mm-drZxEHGpBVGFjcnyG1wA2ctHaNxRz6c9DJGgUmHRfKye-moDeF77DSMgJb52BQU2apZwTiywDMfMJmIyemYa0BPEcijn2WsXakU2GJS_3JGChjHB2vNn7k3E8ppSbFGEgiqio6NrQRKbtqlgmb-GPyMOUHIEQMqk6bNw3smw8IYz49dTZwtiukD95_iTtIUDDxRAea4TNj9d6dczJvq9Em31dmoLoJ6zyBy-75F6ZhcVoBHGmavr5h3kq-XjPI"/>
+<span class="absolute -bottom-1 -right-1 w-5 h-5 bg-green-400 border-4 border-primary rounded-full"></span>
+</div>
+<span class="px-3 py-1 bg-white/20 text-white text-[10px] font-bold uppercase tracking-wider rounded-full backdrop-blur-md">Active</span>
+</div>
+<div class="mb-6 relative z-10">
+<h3 class="text-xl font-headline font-bold">Marcus Thorne</h3>
+<p class="text-sm text-primary-fixed-dim font-medium">Senior Stylist</p>
+</div>
+<div class="grid grid-cols-2 gap-4 mb-6 relative z-10">
+<div class="bg-white/10 backdrop-blur-sm p-3 rounded-xl">
+<p class="text-[10px] uppercase text-white/60 font-bold tracking-widest mb-1">Today's Load</p>
+<p class="text-lg font-bold">40%</p>
+</div>
+<div class="bg-white/10 backdrop-blur-sm p-3 rounded-xl">
+<p class="text-[10px] uppercase text-white/60 font-bold tracking-widest mb-1">Monthly Rev</p>
+<p class="text-lg font-bold">$9,800</p>
+</div>
+</div>
+<div class="flex gap-2 relative z-10">
+<button class="flex-1 py-2 bg-white/10 hover:bg-white/20 text-white text-xs font-bold rounded-lg transition-colors">Edit Profile</button>
+<button class="flex-1 py-2 bg-white text-primary text-xs font-bold rounded-lg transition-colors">Schedule</button>
+</div>
+</div>
+<!-- David Chen (Precision Haircut Lead) -->
+<div class="lg:col-span-4 bg-surface-container-lowest rounded-xl p-6 shadow-sm shadow-blue-900/5 group hover:shadow-md transition-shadow relative overflow-hidden">
+<div class="flex justify-between items-start mb-6">
+<div class="relative">
+<img alt="David Chen" class="w-20 h-20 rounded-xl object-cover grayscale group-hover:grayscale-0 transition-all duration-500" data-alt="Young professional Asian stylist with sharp haircut and focused expression, leaning against a minimalist salon wall" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB3igsV8CTdGeeYOkiYHhGBr6UcxPFHu5xzh0vLNlZOdhMWEPSTlqpZMmM1Db-tTjm4O6rot-3MFNE5i_8HviwKxQ_R2fGnwvH7nGhc2ENdXgCMc1yDzUt13Vc--OQruLOb-bdUOdgbSmc82qmfMD5rbVc2rO8z_-_p-MWphyeYsGJbVgzZbJfc-Vuj7SZkTs8ARRrSqeMQ_g-6kySkxyBe0T7Av4EFd3Aah65ge7GW1x7VSoJ-7CXb6dtwH9PXIAup96iaVJmgQ2o"/>
+<span class="absolute -bottom-1 -right-1 w-5 h-5 bg-slate-300 border-4 border-surface-container-lowest rounded-full"></span>
+</div>
+<span class="px-3 py-1 bg-slate-100 text-slate-500 text-[10px] font-bold uppercase tracking-wider rounded-full">Off Duty</span>
+</div>
+<div class="mb-6">
+<h3 class="text-xl font-headline font-bold text-on-surface">David Chen</h3>
+<p class="text-sm text-tertiary font-medium">Precision Haircut Lead</p>
+</div>
+<div class="grid grid-cols-2 gap-4 mb-6">
+<div class="bg-surface-container-low p-3 rounded-xl">
+<p class="text-[10px] uppercase text-on-surface-variant font-bold tracking-widest mb-1">Today's Load</p>
+<p class="text-lg font-bold text-primary">0%</p>
+</div>
+<div class="bg-surface-container-low p-3 rounded-xl">
+<p class="text-[10px] uppercase text-on-surface-variant font-bold tracking-widest mb-1">Monthly Rev</p>
+<p class="text-lg font-bold text-on-surface">$11,200</p>
+</div>
+</div>
+<div class="flex gap-2">
+<button class="flex-1 py-2 bg-slate-100 hover:bg-slate-200 text-on-surface-variant text-xs font-bold rounded-lg transition-colors">Edit Profile</button>
+<button class="flex-1 py-2 bg-blue-50 hover:bg-blue-100 text-primary text-xs font-bold rounded-lg transition-colors">Schedule</button>
+</div>
+</div>
+<!-- Team Insights Card (Bento Style) -->
+<div class="lg:col-span-8 bg-surface-container rounded-xl p-8 flex flex-col justify-between">
+<div>
+<div class="flex items-center gap-2 mb-6">
+<span class="material-symbols-outlined text-primary">insights</span>
+<h4 class="font-bold text-on-surface-variant tracking-tight">Team Performance Insights</h4>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+<div>
+<h5 class="text-3xl font-extrabold text-on-surface">94%</h5>
+<p class="text-xs font-bold text-on-surface-variant uppercase tracking-widest mt-1">Client Retention</p>
+<div class="w-full h-1 bg-primary/10 rounded-full mt-4">
+<div class="w-[94%] h-full bg-primary rounded-full"></div>
+</div>
+</div>
+<div>
+<h5 class="text-3xl font-extrabold text-on-surface">12</h5>
+<p class="text-xs font-bold text-on-surface-variant uppercase tracking-widest mt-1">New Referrals Today</p>
+<div class="w-full h-1 bg-tertiary/10 rounded-full mt-4">
+<div class="w-[60%] h-full bg-tertiary rounded-full"></div>
+</div>
+</div>
+<div>
+<h5 class="text-3xl font-extrabold text-on-surface">$47k</h5>
+<p class="text-xs font-bold text-on-surface-variant uppercase tracking-widest mt-1">Projected Revenue</p>
+<div class="w-full h-1 bg-secondary/10 rounded-full mt-4">
+<div class="w-[85%] h-full bg-secondary rounded-full"></div>
+</div>
+</div>
+</div>
+</div>
+<div class="mt-8 pt-8 border-t border-slate-200 flex justify-between items-center">
+<p class="text-sm text-on-surface-variant">All stylists are maintaining a 4.8+ star rating this month.</p>
+<button class="text-primary font-bold text-sm hover:underline">Download Report</button>
+</div>
+</div>
+</div>
+</div>
+</main>
+</body></html>
