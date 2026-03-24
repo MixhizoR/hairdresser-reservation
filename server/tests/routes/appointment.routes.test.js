@@ -8,13 +8,6 @@ jest.mock('../../src/services/db.service', () => ({
 }));
 const dbService = require('../../src/services/db.service');
 
-// Disable socket.io initialization during tests
-jest.mock('../../src/socket', () => ({
-    getIO: jest.fn(() => ({
-        emit: jest.fn()
-    }))
-}));
-
 describe('Appointment Routes (Integration)', () => {
     beforeEach(() => {
         jest.clearAllMocks();
