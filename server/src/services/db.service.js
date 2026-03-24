@@ -147,8 +147,11 @@ const deleteAppointment = async (id) => {
 const getDashboardStats = async () => {
     const totalAppointments = await prisma.appointment.count();
     const pendingAppointments = await prisma.appointment.count({ where: { status: 'pending' } });
-    const approvedAppointments = await prisma.appointment.count({ where: { status: 'approved' } });
-    const completedAppointments = await prisma.appointment.count({ where: { status: 'completed' } });
+    const approvedAppointments = await prisma.appointment.count({ 
+        where: { 
+            status: { in: ['approved', 'completed'] } 
+        } 
+    });
     const activeBarbers = await prisma.user.count({ where: { role: 'BARBER', isActive: true } });
 
     // Today's appointments
@@ -170,7 +173,6 @@ const getDashboardStats = async () => {
         totalAppointments,
         pendingAppointments,
         approvedAppointments,
-        completedAppointments,
         activeBarbers,
         todayAppointments
     };

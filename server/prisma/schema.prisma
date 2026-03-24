@@ -37,7 +37,7 @@ model Appointment {
   phone        String
   service      String
   time         DateTime
-  status       String   @default("pending") // pending, approved, rejected, completed
+  status       String   @default("pending") // pending, approved, rejected
   notes        String?  // Ek notlar
   trackingCode String?  @unique
   deviceToken  String?
