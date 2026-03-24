@@ -2,7 +2,7 @@
 
 ## Phase 1: Backend Cleanup & Encoding Fix
 - [x] Task: Remove `completed` status from backend validation logic in `appointment.controller.js`. e07b6ac
-- [ ] Task: Remove `validator.escape()` from `createAppointment` in `appointment.controller.js` to fix the `&` encoding issue.
+- [x] Task: Remove `validator.escape()` from `createAppointment` in `appointment.controller.js` to fix the `&` encoding issue. 56bfef7
 - [ ] Task: Update `db.service.js` to remove `completed` status from dashboard statistics and any relevant query logic.
 - [ ] Task: Update backend unit and integration tests to reflect the removal of the `completed` status.
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: Backend Cleanup & Encoding Fix' (Protocol in workflow.md)
