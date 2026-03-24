@@ -1,12 +1,12 @@
 # Implementation Plan: Backend Infrastructure Overhaul (MPv3)
 
-## Phase 1: Security & Middleware Foundations
-- [ ] Task: Update CORS configuration in `server/src/app.js` to allow DELETE/OPTIONS and preflight requests (MPv3 FIX 1).
-- [ ] Task: Add `requestLogger` middleware for structured Winston logging (MPv3 FIX 13).
-- [ ] Task: Implement Centralized Error Handler in `server/src/app.js` (MPv3 FIX 12).
-- [ ] Task: Move `appointmentLimiter` and add `trackLimiter` in `rateLimit.middleware.js` and `appointment.routes.js` (MPv3 FIX 3).
-- [ ] Task: Add Environment Variable Validation on startup in `server/src/config/env.js` (MPv3 FIX 14).
-- [ ] Task: Conductor - User Manual Verification 'Phase 1: Security & Middleware' (Protocol in workflow.md)
+## Phase 1: Security & Middleware Foundations [checkpoint: 047dd61]
+- [x] Task: Update CORS configuration in `server/src/app.js` to allow DELETE/OPTIONS and preflight requests (MPv3 FIX 1).
+- [x] Task: Add `requestLogger` middleware for structured Winston logging (MPv3 FIX 13).
+- [x] Task: Implement Centralized Error Handler in `server/src/app.js` (MPv3 FIX 12).
+- [x] Task: Move `appointmentLimiter` and add `trackLimiter` in `rateLimit.middleware.js` and `appointment.routes.js` (MPv3 FIX 3).
+- [x] Task: Add Environment Variable Validation on startup in `server/src/config/env.js` (MPv3 FIX 14).
+- [x] Task: Conductor - User Manual Verification 'Phase 1: Security & Middleware' (Protocol in workflow.md)
 
 ## Phase 2: Socket.io Removal & Cleanup
 - [ ] Task: Delete `server/src/socket.js` (MPv3 FIX 2).
