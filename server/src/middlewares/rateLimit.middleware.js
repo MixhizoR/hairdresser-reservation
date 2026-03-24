@@ -22,8 +22,16 @@ const appointmentLimiter = rateLimit({
     standardHeaders: true, legacyHeaders: false,
 });
 
+const trackLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: isDev ? 500 : 20,
+  message: { error: 'Çok fazla sorgulama. 15 dakika bekleyin.' },
+  standardHeaders: true, legacyHeaders: false,
+});
+
 module.exports = {
     generalLimiter,
     loginLimiter,
     appointmentLimiter,
+    trackLimiter,
 };
