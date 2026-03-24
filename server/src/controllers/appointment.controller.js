@@ -3,7 +3,6 @@ const validator = require('validator');
 const db = require('../services/db.service');
 const { log } = require('../config/logger');
 const { isValidPhone, isValidName } = require('../utils/validators');
-const socketModule = require('../socket');
 
 // Get availability - supports optional barberId parameter
 const getAvailability = async (req, res) => {
@@ -121,8 +120,6 @@ const createAppointment = async (req, res) => {
             status: 'pending'
         });
 
-        const io = socketModule.getIO();
-        io.emit('new_appointment', appt);
         res.status(201).json(appt);
     } catch (err) {
         log('error', 'POST /api/appointments failed', { err: err.message });
@@ -135,7 +132,7 @@ const updateAppointment = async (req, res) => {
     const { id } = req.params;
     const { status, notes } = req.body;
 
-    if (!['approved', 'rejected', 'pending', 'completed'].includes(status))
+    if (!['approved', 'rejected', 'pending'].includes(status))
         return res.status(400).json({ error: 'Geçersiz durum.' });
 
     try {
@@ -150,9 +147,6 @@ const updateAppointment = async (req, res) => {
             return res.status(403).json({ error: 'Bu randevuyu güncelleme yetkiniz yok.' });
 
         const updated = await db.updateAppointment(id, { status, notes });
-
-        const io = socketModule.getIO();
-        io.emit('appointment_updated', updated);
 
         res.json(updated);
     } catch (err) {
@@ -171,9 +165,6 @@ const deleteAppointment = async (req, res) => {
             return res.status(404).json({ error: 'Randevu bulunamadı.' });
 
         await db.deleteAppointment(id);
-
-        const io = socketModule.getIO();
-        io.emit('appointment_deleted', { id });
 
         res.json({ success: true, message: 'Randevu silindi.' });
     } catch (err) {
