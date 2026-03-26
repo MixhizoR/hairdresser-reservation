@@ -1,5 +1,61 @@
 @import "tailwindcss";
-@config "../tailwind.config.js";
+
+@theme {
+  --color-primary: #0060ad;
+  --color-primary-dim: #005498;
+  --color-primary-fixed: #68abff;
+  --color-primary-fixed-dim: #599ef1;
+  --color-primary-container: #68abff;
+  --color-on-primary: #f8f8ff;
+  --color-on-primary-container: #002b52;
+  
+  --color-surface: #f7f9fb;
+  --color-surface-bright: #f7f9fb;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #f0f4f7;
+  --color-surface-container: #eaeff2;
+  --color-surface-container-high: #e3e9ed;
+  --color-surface-container-highest: #dce4e8;
+  --color-surface-variant: #dce4e8;
+  --color-surface-tint: #0060ad;
+  
+  --color-on-surface: #2c3437;
+  --color-on-surface-variant: #596064;
+  --color-on-background: #2c3437;
+  
+  --color-secondary: #4b626e;
+  --color-secondary-dim: #3f5661;
+  --color-secondary-container: #cde6f4;
+  --color-secondary-fixed-dim: #bfd8e5;
+  --color-on-secondary: #f2faff;
+  --color-on-secondary-container: #3e5560;
+  --color-on-secondary-fixed-variant: #475f6a;
+  
+  --color-tertiary: #5f5a84;
+  --color-tertiary-dim: #534e77;
+  --color-tertiary-container: #d3ccfd;
+  --color-tertiary-fixed-dim: #c5beee;
+  --color-on-tertiary: #fcf7ff;
+  --color-on-tertiary-container: #47426b;
+  
+  --color-error: #a83836;
+  --color-error-dim: #67040d;
+  --color-error-container: #fa746f;
+  --color-on-error: #fff7f6;
+  --color-on-error-container: #6e0a12;
+  
+  --color-outline: #747c80;
+  --color-outline-variant: #acb3b7;
+
+  --font-headline: "Manrope", sans-serif;
+  --font-body: "Manrope", sans-serif;
+  --font-label: "Manrope", sans-serif;
+
+  --radius-lg: 0.25rem;
+  --radius-xl: 0.75rem;
+  --radius-2xl: 1rem;
+  --radius-3xl: 1.5rem;
+}
 
 /* ── Global Resets ── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -65,8 +121,7 @@ body {
 
 /* ── Status chips ── */
 .status-pending   { @apply bg-amber-100 text-amber-700 rounded-full px-3 py-0.5 text-xs font-bold uppercase tracking-wide; }
-.status-confirmed { @apply bg-green-100 text-green-700 rounded-full px-3 py-0.5 text-xs font-bold uppercase tracking-wide; }
-.status-completed { @apply bg-surface-container text-on-surface-variant rounded-full px-3 py-0.5 text-xs font-bold uppercase tracking-wide; }
+.status-approved  { @apply bg-green-100 text-green-700 rounded-full px-3 py-0.5 text-xs font-bold uppercase tracking-wide; }
 .status-rejected  { @apply bg-red-100 text-red-700 rounded-full px-3 py-0.5 text-xs font-bold uppercase tracking-wide; }
 
 /* ── Calendar Day ── */

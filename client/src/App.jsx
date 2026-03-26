@@ -1,123 +1,106 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Routes, Route, useLocation, Navigate } from 'react-router-dom';
-import { io } from 'socket.io-client';
+import { useState, useEffect, useRef } from 'react';
+import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 
 import LandingPage from './pages/LandingPage';
 import BookingPage from './pages/BookingPage';
 import TrackPage from './pages/TrackPage';
-import AdminPage from './pages/AdminPage';
+import LoginPage from './pages/LoginPage';
+import AdminLayout from './layouts/AdminLayout';
+import DashboardPage from './pages/admin/DashboardPage';
+import AppointmentsPage from './pages/admin/AppointmentsPage';
+import ServicesPage from './pages/admin/ServicesPage';
+import StylistsPage from './pages/admin/StylistsPage';
+import SettingsPage from './pages/admin/SettingsPage';
+import BarberPanel from './pages/barber/BarberPanel';
 
 const SERVER_URL = import.meta.env.VITE_API_URL || '';
 
+/* ── Audio helpers (passed down to barber/admin panels) ── */
+function useAudio() {
+  const ctxRef = useRef(null);
+  const [enabled, setEnabled] = useState(false);
+
+  const getCtx = () => {
+    if (!ctxRef.current)
+      ctxRef.current = new (window.AudioContext || window.webkitAudioContext)();
+    return ctxRef.current;
+  };
+
+  const playSynth = () => {
+    try {
+      const ctx = getCtx();
+      if (ctx.state === 'suspended') ctx.resume();
+      const now = ctx.currentTime;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(880, now);
+      osc.frequency.exponentialRampToValueAtTime(440, now + 1.2);
+      gain.gain.setValueAtTime(0.18, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 1.2);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now);
+      osc.stop(now + 1.2);
+    } catch { /* ignore */ }
+  };
+
+  const toggle = () => {
+    const next = !enabled;
+    setEnabled(next);
+    if (next) playSynth();
+  };
+
+  return { audioEnabled: enabled, toggleAudio: toggle, playSynth };
+}
+
 /* ── Protected Route ── */
-const ProtectedRoute = ({ children, token, userRole, allowedRoles, isRestoringSession }) => {
-  if (isRestoringSession)
-    return <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--primary)' }}>Yükleniyor...</div>;
-
-  if (token && !userRole)
-    return <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--primary)' }}>Yükleniyor...</div>;
-
-  if (token && allowedRoles && !allowedRoles.includes(userRole)) {
+function ProtectedRoute({ children, allowedRoles, token, userRole, isRestoring }) {
+  if (isRestoring)
+    return (
+      <div className="min-h-screen bg-surface flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  if (!token) return <Navigate to="/login" replace />;
+  if (allowedRoles && !allowedRoles.includes(userRole)) {
     if (userRole === 'ADMIN') return <Navigate to="/admin" replace />;
     if (userRole === 'BARBER') return <Navigate to="/berber" replace />;
     return <Navigate to="/" replace />;
   }
-
   return children;
-};
+}
 
-function App() {
-  /* ── Auth state ── */
-  const [token, setToken] = useState(localStorage.getItem('noir_token') || null);
-  const [userRole, setUserRole] = useState(localStorage.getItem('noir_user_role') || null);
+export default function App() {
+  const [token, setToken] = useState(() => localStorage.getItem('noir_token'));
+  const [userRole, setUserRole] = useState(() => localStorage.getItem('noir_user_role'));
   const [currentUser, setCurrentUser] = useState(null);
-  const [isRestoringSession, setIsRestoringSession] = useState(!!localStorage.getItem('noir_token'));
-
-  /* ── Shared appointment state (used by AdminPage) ── */
-  const [appointments, setAppointments] = useState([]);
-  const [barbers, setBarbers] = useState([]);
-  const [selectedDate, setSelectedDate] = useState(
-    new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0]
-  );
-  const [soundType, setSoundType] = useState(localStorage.getItem('noir_sound_type') || 'synth');
-  const [audioEnabled, setAudioEnabled] = useState(false);
-
-  const socketRef = useRef(null);
-  const audioCtxRef = useRef(null);
-  const location = useLocation();
+  const [isRestoring, setIsRestoring] = useState(!!localStorage.getItem('noir_token'));
+  const { audioEnabled, toggleAudio, playSynth } = useAudio();
 
   /* ── Restore session ── */
   useEffect(() => {
-    const savedToken = localStorage.getItem('noir_token');
-    if (!savedToken) { setIsRestoringSession(false); return; }
-
+    const saved = localStorage.getItem('noir_token');
+    if (!saved) { setIsRestoring(false); return; }
     fetch(`${SERVER_URL}/api/auth/me`, {
-      headers: { Authorization: `Bearer ${savedToken}` },
+      headers: { Authorization: `Bearer ${saved}` },
     })
-      .then((r) => r.json())
-      .then((data) => {
-        if (data?.user) {
-          setToken(savedToken);
-          setUserRole(data.user.role);
-          setCurrentUser(data.user);
-          localStorage.setItem('noir_user_role', data.user.role);
-        } else {
-          handleLogout();
-        }
+      .then(r => r.ok ? r.json() : Promise.reject())
+      .then(data => {
+        setToken(saved);
+        setUserRole(data.role);
+        setCurrentUser(data);
+        localStorage.setItem('noir_user_role', data.role);
       })
-      .catch(handleLogout)
-      .finally(() => setIsRestoringSession(false));
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+      .catch(() => {
+        localStorage.removeItem('noir_token');
+        localStorage.removeItem('noir_user_role');
+        setToken(null);
+        setUserRole(null);
+      })
+      .finally(() => setIsRestoring(false));
   }, []);
 
-  /* ── Socket.io ── */
-  useEffect(() => {
-    if (!token) return;
-    socketRef.current = io(SERVER_URL, { auth: { token } });
-
-    socketRef.current.on('appointmentUpdate', (updated) => {
-      setAppointments((prev) =>
-        prev.map((a) => (a.id === updated.id ? { ...a, ...updated } : a))
-      );
-    });
-
-    socketRef.current.on('newAppointment', (apt) => {
-      setAppointments((prev) => {
-        if (prev.find((a) => a.id === apt.id)) return prev;
-        return [apt, ...prev];
-      });
-      if (audioEnabled) playSynthBell();
-    });
-
-    return () => { socketRef.current?.disconnect(); };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token]);
-
-  /* ── Fetch appointments when admin/barber is active ── */
-  useEffect(() => {
-    if (!token || !userRole) return;
-    const role = userRole;
-
-    const fetchData = async () => {
-      try {
-        const headers = { Authorization: `Bearer ${token}` };
-        const [apptRes, barberRes] = await Promise.all([
-          fetch(`${SERVER_URL}/api/appointments`, { headers }),
-          fetch(`${SERVER_URL}/api/barbers`, { headers }),
-        ]);
-        const appts = await apptRes.json();
-        const brbrs = await barberRes.json();
-        if (Array.isArray(appts)) setAppointments(appts);
-        if (Array.isArray(brbrs)) setBarbers(brbrs);
-      } catch (e) {
-        console.error('fetchData error', e);
-      }
-    };
-
-    fetchData();
-  }, [token, userRole]);
-
-  /* ── Auth helpers ── */
   const handleLogin = async (username, password) => {
     const res = await fetch(`${SERVER_URL}/api/auth/login`, {
       method: 'POST',
@@ -127,7 +110,6 @@ function App() {
     const data = await res.json();
     if (data.success && data.token) {
       localStorage.setItem('noir_token', data.token);
-      localStorage.setItem('noir_admin_user', data.username);
       localStorage.setItem('noir_user_role', data.user.role);
       setToken(data.token);
       setUserRole(data.user.role);
@@ -139,109 +121,19 @@ function App() {
 
   const handleLogout = () => {
     localStorage.removeItem('noir_token');
-    localStorage.removeItem('noir_admin_user');
     localStorage.removeItem('noir_user_role');
     setToken(null);
     setUserRole(null);
     setCurrentUser(null);
-    setAppointments([]);
   };
 
-  /* ── Status update ── */
-  const updateStatus = async (id, status) => {
-    try {
-      const res = await fetch(`${SERVER_URL}/api/appointments/${id}/status`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ status }),
-      });
-      if (res.ok) {
-        setAppointments((prev) =>
-          prev.map((a) => (a.id === id ? { ...a, status } : a))
-        );
-      }
-    } catch (e) {
-      console.error('updateStatus error', e);
-    }
-  };
+  const authHeaders = () => ({
+    'Content-Type': 'application/json',
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  });
 
-  /* ── Slot helpers ── */
-  const generateSlots = () => {
-    const slots = [];
-    for (let h = 9; h <= 17; h++) {
-      slots.push(`${String(h).padStart(2, '0')}:00`);
-      if (h < 17) slots.push(`${String(h).padStart(2, '0')}:30`);
-    }
-    return slots;
-  };
-
-  const isSlotTaken = (barberId, slot) =>
-    appointments.some(
-      (a) =>
-        a.barberId === barberId &&
-        a.status !== 'cancelled' &&
-        a.appointmentTime &&
-        new Date(a.appointmentTime).toTimeString().startsWith(slot) &&
-        new Date(a.appointmentTime).toISOString().split('T')[0] === selectedDate
-    );
-
-  const getSlotAppointment = (barberId, slot) =>
-    appointments.find(
-      (a) =>
-        a.barberId === barberId &&
-        a.status !== 'cancelled' &&
-        a.appointmentTime &&
-        new Date(a.appointmentTime).toTimeString().startsWith(slot) &&
-        new Date(a.appointmentTime).toISOString().split('T')[0] === selectedDate
-    );
-
-  /* ── Audio ── */
-  const toggleAudio = () => setAudioEnabled((v) => !v);
-
-  const playSynthBell = () => {
-    try {
-      if (!audioCtxRef.current) audioCtxRef.current = new (window.AudioContext || window.webkitAudioContext)();
-      const ctx = audioCtxRef.current;
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.frequency.value = 880;
-      gain.gain.setValueAtTime(0.3, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.8);
-      osc.start(ctx.currentTime);
-      osc.stop(ctx.currentTime + 0.8);
-    } catch {}
-  };
-
-  const playExternalFile = () => {};
-
-  const authHeaders = () => ({ Authorization: `Bearer ${token}` });
-
-  /* ── Shared props for AdminPage ── */
-  const adminProps = {
-    appointments,
-    updateStatus,
-    audioEnabled,
-    toggleAudio,
-    soundType,
-    setSoundType,
-    playSynthBell,
-    playExternalFile,
-    generateSlots,
-    isSlotTaken,
-    getSlotAppointment,
-    selectedDate,
-    setSelectedDate,
-    token,
-    onLogin: handleLogin,
-    onLogout: handleLogout,
-    authHeaders,
-    currentUser,
-    userRole,
-    barbers,
-    t: {},
-  };
+  /* Shared props for admin/barber panels */
+  const panelProps = { token, currentUser, userRole, authHeaders, onLogout: handleLogout, audioEnabled, toggleAudio, playSynth };
 
   return (
     <Routes>
@@ -249,34 +141,33 @@ function App() {
       <Route path="/" element={<LandingPage />} />
       <Route path="/book" element={<BookingPage />} />
       <Route path="/track" element={<TrackPage />} />
+      <Route path="/login" element={
+        token
+          ? <Navigate to={userRole === 'ADMIN' ? '/admin' : '/berber'} replace />
+          : <LoginPage onLogin={handleLogin} />
+      } />
 
-      {/* Staff — Barber */}
-      <Route
-        path="/berber"
-        element={
-          <ProtectedRoute token={token} userRole={userRole} allowedRoles={['BARBER']} isRestoringSession={isRestoringSession}>
-            <AdminPage {...adminProps} isBarberPanel={true} />
-          </ProtectedRoute>
-        }
-      />
+      {/* Admin — nested routes */}
+      <Route path="/admin" element={
+        <ProtectedRoute token={token} userRole={userRole} allowedRoles={['ADMIN']} isRestoring={isRestoring}>
+          <AdminLayout {...panelProps} />
+        </ProtectedRoute>
+      }>
+        <Route index element={<DashboardPage {...panelProps} />} />
+        <Route path="appointments" element={<AppointmentsPage {...panelProps} />} />
+        <Route path="services" element={<ServicesPage {...panelProps} />} />
+        <Route path="stylists" element={<StylistsPage {...panelProps} />} />
+        <Route path="settings" element={<SettingsPage {...panelProps} />} />
+      </Route>
 
-      {/* Staff — Admin */}
-      <Route
-        path="/admin"
-        element={
-          <ProtectedRoute token={token} userRole={userRole} allowedRoles={['ADMIN']} isRestoringSession={isRestoringSession}>
-            <AdminPage {...adminProps} isAdminPanel={true} />
-          </ProtectedRoute>
-        }
-      />
+      {/* Barber */}
+      <Route path="/berber" element={
+        <ProtectedRoute token={token} userRole={userRole} allowedRoles={['BARBER']} isRestoring={isRestoring}>
+          <BarberPanel {...panelProps} />
+        </ProtectedRoute>
+      } />
 
-      {/* Legacy /login → admin panel (AdminPage has its own login form) */}
-      <Route path="/login" element={<Navigate to="/admin" replace />} />
-
-      {/* Catch-all */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 }
-
-export default App;
