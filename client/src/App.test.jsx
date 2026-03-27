@@ -5,14 +5,13 @@ import App from './App';
 
 describe('App Component - Booking Flow', () => {
   beforeEach(() => {
-    // Clear localStorage and mock fetch with a default resolved value
     localStorage.clear();
     global.fetch = vi.fn().mockImplementation((url) => {
         if (url.includes('/api/services')) {
             return Promise.resolve({
                 ok: true,
                 json: () => Promise.resolve([
-                    { id: 1, name: 'Classic Cut', price: 250, duration: 45, category: 'BARBERING' }
+                    { id: 1, name: 'Saç Kesimi', price: 250, duration: 45, category: 'BARBERING' }
                 ])
             });
         }
@@ -20,14 +19,14 @@ describe('App Component - Booking Flow', () => {
             return Promise.resolve({
                 ok: true,
                 json: () => Promise.resolve([
-                    { id: 1, name: 'Test Barber', level: 'MASTER' }
+                    { id: 1, name: 'Test Berber', level: 'MASTER' }
                 ])
             });
         }
         if (url.includes('/api/appointments/availability')) {
             return Promise.resolve({
                 ok: true,
-                json: () => Promise.resolve(['10:30']) // 10:30 is taken
+                json: () => Promise.resolve(['10:30'])
             });
         }
         if (url.includes('/api/appointments') && !url.includes('availability')) {
@@ -42,8 +41,7 @@ describe('App Component - Booking Flow', () => {
         }
         return Promise.resolve({ ok: true, json: () => Promise.resolve([]) });
     });
-    
-    // Mock intersection observer for framer-motion
+
     window.IntersectionObserver = vi.fn().mockImplementation(function() {
         this.observe = () => null;
         this.unobserve = () => null;
@@ -51,7 +49,7 @@ describe('App Component - Booking Flow', () => {
     });
   });
 
-  it('stores deviceToken in localStorage on successful booking', async () => {
+  it('shows success screen with tracking code after booking', async () => {
     render(
       <MemoryRouter initialEntries={['/book']}>
         <App />
@@ -60,62 +58,51 @@ describe('App Component - Booking Flow', () => {
 
     // Step 1: Choose Service
     await waitFor(() => {
-        expect(screen.getByText('Choose a Service')).toBeInTheDocument();
+        expect(screen.getByText('Hizmet Seçin')).toBeInTheDocument();
     });
-    fireEvent.click(screen.getByText('Classic Cut'));
+    fireEvent.click(screen.getByText('Saç Kesimi'));
 
     // Step 2: Choose Stylist
     await waitFor(() => {
-        expect(screen.getByText('Choose Your Stylist')).toBeInTheDocument();
+        expect(screen.getByText('Stilistinizi Seçin')).toBeInTheDocument();
     });
-    fireEvent.click(screen.getByText('Test Barber'));
+    fireEvent.click(screen.getByText('Test Berber'));
 
     // Step 3: Pick a Date
     await waitFor(() => {
-        expect(screen.getByText('Pick a Date')).toBeInTheDocument();
+        expect(screen.getByText('Tarih ve Saat Seçin')).toBeInTheDocument();
     });
-    
-    // Find a day in the calendar (e.g., today's date)
+
     const today = new Date().getDate();
     const dayElements = screen.getAllByText(today.toString());
     const dayButton = dayElements.find(el => el.classList.contains('cal-day'));
     fireEvent.click(dayButton);
 
-    // Select a time (10:00 is available, 10:30 is mocked as taken)
     await waitFor(() => {
         expect(screen.getByText('10:00')).toBeInTheDocument();
     });
     fireEvent.click(screen.getByText('10:00'));
 
-    // Click Continue
-    fireEvent.click(screen.getByText('Continue →'));
+    fireEvent.click(screen.getByText('Devam →'));
 
     // Step 4: Details
     await waitFor(() => {
-        expect(screen.getByText('Your Details')).toBeInTheDocument();
-    });
-    
-    fireEvent.change(screen.getByPlaceholderText('John Doe'), { target: { value: 'Test User' } });
-    fireEvent.change(screen.getByPlaceholderText('+90 555 123 4567'), { target: { value: '05321234567' } });
-
-    // Submit form
-    fireEvent.click(screen.getByText('Confirm Booking ✓'));
-
-    // Wait for API call to finish
-    await waitFor(() => {
-        expect(global.fetch).toHaveBeenCalledWith(
-            expect.stringContaining('/api/appointments'),
-            expect.objectContaining({ 
-                method: 'POST',
-                body: expect.stringContaining('"name":"Test User"') 
-            })
-        );
+        expect(screen.getByText('Bilgileriniz')).toBeInTheDocument();
     });
 
-    // Check localStorage in a waitFor to ensure state updates have settled
+    fireEvent.change(screen.getByPlaceholderText('Ahmet Yılmaz'), { target: { value: 'Test Kullanıcı' } });
+    fireEvent.change(screen.getByPlaceholderText('05xxxxxxxxx'), { target: { value: '05321234567' } });
+
+    fireEvent.click(screen.getByText('Randevuyu Onayla'));
+
+    // Verify success screen appears
     await waitFor(() => {
-        const storedToken = localStorage.getItem('deviceToken');
-        expect(storedToken).toBe('test-device-token-123');
-    }, { timeout: 2000 });
+        expect(screen.getByText('Randevu Talebi Gönderildi!')).toBeInTheDocument();
+    });
+
+    // Verify tracking code is displayed
+    await waitFor(() => {
+        expect(screen.getByText('TRACK1')).toBeInTheDocument();
+    });
   });
 });

@@ -5,6 +5,7 @@ import LandingPage from './pages/LandingPage';
 import BookingPage from './pages/BookingPage';
 import TrackPage from './pages/TrackPage';
 import LoginPage from './pages/LoginPage';
+import ContactPage from './pages/ContactPage';
 import AdminLayout from './layouts/AdminLayout';
 import DashboardPage from './pages/admin/DashboardPage';
 import AppointmentsPage from './pages/admin/AppointmentsPage';
@@ -141,6 +142,8 @@ export default function App() {
       <Route path="/" element={<LandingPage />} />
       <Route path="/book" element={<BookingPage />} />
       <Route path="/track" element={<TrackPage />} />
+      <Route path="/contact" element={<ContactPage />} />
+      <Route path="/iletisim" element={<Navigate to="/contact" replace />} />
       <Route path="/login" element={
         token
           ? <Navigate to={userRole === 'ADMIN' ? '/admin' : '/berber'} replace />

@@ -4,7 +4,8 @@ const app = require('../../src/app');
 // Mock db.service
 jest.mock('../../src/services/db.service', () => ({
     createAppointment: jest.fn(),
-    findAppointmentByTimeForBarber: jest.fn()
+    findAppointmentByTimeForBarber: jest.fn(),
+    findServiceByName: jest.fn().mockResolvedValue({ id: 'svc-1', name: 'Saç Kesimi', isActive: true })
 }));
 const dbService = require('../../src/services/db.service');
 

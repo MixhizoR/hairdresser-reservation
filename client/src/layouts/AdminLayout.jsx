@@ -2,11 +2,11 @@ import { useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 
 const NAV = [
-  { to: '/admin', label: 'Dashboard', icon: 'dashboard', end: true },
-  { to: '/admin/appointments', label: 'Appointments', icon: 'calendar_month' },
-  { to: '/admin/services', label: 'Services', icon: 'content_cut' },
-  { to: '/admin/stylists', label: 'Stylists', icon: 'face' },
-  { to: '/admin/settings', label: 'Settings', icon: 'settings' },
+  { to: '/admin', label: 'Kontrol Paneli', icon: 'dashboard', end: true },
+  { to: '/admin/appointments', label: 'Randevular', icon: 'calendar_month' },
+  { to: '/admin/services', label: 'Hizmetler', icon: 'content_cut' },
+  { to: '/admin/stylists', label: 'Stilistler', icon: 'face' },
+  { to: '/admin/settings', label: 'Ayarlar', icon: 'settings' },
 ];
 
 export default function AdminLayout({ currentUser, onLogout, token }) {
@@ -24,7 +24,7 @@ export default function AdminLayout({ currentUser, onLogout, token }) {
           </div>
           <div>
             <h1 className="text-base font-extrabold text-blue-800 leading-tight">HairMan Admin</h1>
-            <p className="text-[10px] text-on-surface-variant uppercase tracking-widest font-semibold">Management</p>
+            <p className="text-[10px] text-on-surface-variant uppercase tracking-widest font-semibold">Yönetim</p>
           </div>
         </div>
 
@@ -56,7 +56,7 @@ export default function AdminLayout({ currentUser, onLogout, token }) {
             className="w-full py-3 bg-primary text-on-primary rounded-xl font-bold shadow-lg shadow-primary/20 flex items-center justify-center gap-2 text-sm active:scale-95 transition-transform"
           >
             <span className="material-symbols-outlined text-base">add_circle</span>
-            Book New Session
+            Yeni Randevu
           </button>
           <div className="h-px bg-slate-200/60" />
           <button
@@ -64,7 +64,7 @@ export default function AdminLayout({ currentUser, onLogout, token }) {
             className="flex items-center gap-3 px-4 py-3 text-slate-500 hover:text-error transition-colors text-sm font-medium w-full rounded-xl"
           >
             <span className="material-symbols-outlined">logout</span>
-            Logout
+            Çıkış
           </button>
         </div>
       </aside>
@@ -80,7 +80,7 @@ export default function AdminLayout({ currentUser, onLogout, token }) {
               value={search}
               onChange={e => setSearch(e.target.value)}
               className="w-full bg-surface-container-low border-none rounded-full py-2 pl-10 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 placeholder:text-slate-400"
-              placeholder="Search sessions, stylists..."
+              placeholder="Seans, stilist ara..."
             />
           </div>
 
@@ -96,7 +96,7 @@ export default function AdminLayout({ currentUser, onLogout, token }) {
             <div className="flex items-center gap-3">
               <div className="text-right">
                 <p className="text-xs font-bold text-on-surface">{currentUser?.name || currentUser?.username || 'Admin'}</p>
-                <p className="text-[10px] text-on-surface-variant uppercase tracking-widest">Master Manager</p>
+                <p className="text-[10px] text-on-surface-variant uppercase tracking-widest">Yönetici</p>
               </div>
               <div className="w-9 h-9 rounded-full bg-primary flex items-center justify-center text-on-primary font-bold text-sm border-2 border-primary-container">
                 {(currentUser?.name || currentUser?.username || 'A')[0].toUpperCase()}

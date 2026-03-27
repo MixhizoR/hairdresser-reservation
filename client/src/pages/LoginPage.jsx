@@ -38,11 +38,11 @@ export default function LoginPage({ onLogin }) {
               <span className="material-symbols-outlined text-on-primary text-2xl" style={{ fontVariationSettings: "'FILL' 1" }}>spa</span>
             </div>
             <h1 className="text-2xl font-extrabold text-on-surface tracking-tight">HairMan Studio</h1>
-            <p className="text-on-surface-variant text-sm mt-1">Staff Portal</p>
+            <p className="text-on-surface-variant text-sm mt-1">Personel Paneli</p>
           </div>
 
-          <h2 className="text-xl font-extrabold text-on-surface mb-1">Welcome back</h2>
-          <p className="text-sm text-on-surface-variant mb-6">Sign in to access your panel</p>
+          <h2 className="text-xl font-extrabold text-on-surface mb-1">Tekrar hoş geldiniz</h2>
+          <p className="text-sm text-on-surface-variant mb-6">Panele erişmek için giriş yapın</p>
 
           {error && (
             <div className="bg-error-container text-on-error-container rounded-xl px-4 py-3 text-sm font-medium mb-4 flex items-center gap-2">
@@ -53,7 +53,7 @@ export default function LoginPage({ onLogin }) {
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <div>
-              <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-2 block">Username</label>
+              <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-2 block">Kullanıcı Adı</label>
               <input
                 type="text"
                 className="input-base"
@@ -65,7 +65,7 @@ export default function LoginPage({ onLogin }) {
               />
             </div>
             <div>
-              <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-2 block">Password</label>
+              <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-2 block">Şifre</label>
               <div className="relative">
                 <input
                   type={showPw ? 'text' : 'password'}
@@ -96,7 +96,7 @@ export default function LoginPage({ onLogin }) {
               ) : (
                 <>
                   <span className="material-symbols-outlined text-base">login</span>
-                  Sign In
+                  Giriş Yap
                 </>
               )}
             </button>
@@ -104,8 +104,8 @@ export default function LoginPage({ onLogin }) {
         </div>
 
         <p className="text-center text-sm text-on-surface-variant mt-6">
-          Are you a customer?{' '}
-          <a href="/book" className="text-primary font-semibold hover:underline">Book an appointment →</a>
+          Müşteri misiniz?{' '}
+          <a href="/book" className="text-primary font-semibold hover:underline">Randevu alın →</a>
         </p>
       </div>
     </div>

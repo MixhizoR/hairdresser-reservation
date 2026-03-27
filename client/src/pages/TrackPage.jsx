@@ -1,23 +1,53 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 
 const SERVER_URL = import.meta.env.VITE_API_URL || '';
 
 const STATUS_CONFIG = {
-  pending:   { label: 'Pending',   color: 'bg-amber-500',  icon: 'schedule',      desc: 'Awaiting confirmation from your stylist.' },
-  approved:  { label: 'Confirmed', color: 'bg-primary',    icon: 'check_circle',  desc: 'Your appointment is confirmed. See you soon!' },
-  completed: { label: 'Completed', color: 'bg-green-500',  icon: 'done_all',      desc: 'Service completed. Thank you for visiting!' },
-  rejected:  { label: 'Rejected',  color: 'bg-error',      icon: 'cancel',        desc: 'Unfortunately your appointment was rejected.' },
-  cancelled: { label: 'Cancelled', color: 'bg-slate-400',  icon: 'event_busy',    desc: 'This appointment has been cancelled.' },
+  pending: { label: 'Bekliyor', color: 'bg-amber-500', icon: 'schedule', desc: 'Stilistinizden onay bekleniyor.' },
+  approved: { label: 'Onaylandı', color: 'bg-primary', icon: 'check_circle', desc: 'Randevunuz onaylandı. Görüşmek üzere!' },
+  rejected: { label: 'Reddedildi', color: 'bg-error', icon: 'cancel', desc: 'Maalesef randevunuz reddedildi.' },
 };
 
-const TIMELINE = ['pending', 'approved', 'completed'];
+const TIMELINE = ['pending', 'approved'];
 
 export default function TrackPage() {
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const [query, setQuery] = useState('');
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  // Auto-search if code query param is present
+  useEffect(() => {
+    const codeParam = searchParams.get('code');
+    if (codeParam) {
+      setQuery(codeParam.toUpperCase());
+      performSearch(codeParam);
+    }
+  }, [searchParams]);
+
+  const performSearch = async (code) => {
+    const q = code.trim().toUpperCase();
+    if (!q) return;
+    setLoading(true);
+    setError('');
+    setResult(null);
+    try {
+      const res = await fetch(`${SERVER_URL}/api/appointments/track?code=${encodeURIComponent(q)}`);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Appointment not found');
+      const appt = Array.isArray(data) ? data[0] : data;
+      if (!appt) throw new Error('No appointment found for this code');
+      setResult(appt);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const search = async () => {
     const q = query.trim().toUpperCase();
@@ -41,8 +71,8 @@ export default function TrackPage() {
     }
   };
 
-  const fmt = (iso) => iso ? new Date(iso).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }) : '—';
-  const fmtTime = (iso) => iso ? new Date(iso).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : '';
+  const fmt = (iso) => iso ? new Date(iso).toLocaleDateString('tr-TR', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }) : '—';
+  const fmtTime = (iso) => iso ? new Date(iso).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }) : '';
 
   const statusKey = result?.status?.toLowerCase() || 'pending';
   const cfg = STATUS_CONFIG[statusKey] || STATUS_CONFIG.pending;
@@ -60,13 +90,54 @@ export default function TrackPage() {
             <div>
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-tertiary-container text-on-tertiary-container text-xs font-bold uppercase tracking-wider mb-4">
                 <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>verified</span>
-                Appointment Tracker
+                Randevu Takibi
               </div>
               <h1 className="text-4xl font-extrabold tracking-tight text-on-surface leading-tight mb-3">
-                Track Your<br />Appointment
+                Randevunuzu<br />Takip Edin
               </h1>
-              <p className="text-on-surface-variant">Enter the tracking code you received after booking to check your appointment status.</p>
+              <p className="text-on-surface-variant">Randevu durumunuzu kontrol etmek için rezervasyon sonrası aldığınız takip kodunu girin.</p>
             </div>
+
+            {/* Guidance section */}
+            <div className="bg-surface-container-lowest rounded-[2rem] p-6 ambient-shadow">
+              <h2 className="text-base font-extrabold text-on-surface mb-3 flex items-center gap-2">
+                <span className="material-symbols-outlined text-primary text-lg">info</span>
+                Nasıl Çalışır?
+              </h2>
+              <div className="flex flex-col gap-3">
+                <div className="flex items-start gap-3">
+                  <span className="w-7 h-7 rounded-full bg-primary text-on-primary flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">1</span>
+                  <div>
+                    <p className="text-sm font-semibold text-on-surface">Takip Kodunuzu Alın</p>
+                    <p className="text-xs text-on-surface-variant mt-0.5">Randevu oluşturma işlemi sonunda size verilen takip kodunu kullanın.</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <span className="w-7 h-7 rounded-full bg-primary text-on-primary flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">2</span>
+                  <div>
+                    <p className="text-sm font-semibold text-on-surface">Kodu Girin</p>
+                    <p className="text-xs text-on-surface-variant mt-0.5">Sağdaki arama kutusuna takip kodunu yazın veya kopyalayın.</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <span className="w-7 h-7 rounded-full bg-primary text-on-primary flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">3</span>
+                  <div>
+                    <p className="text-sm font-semibold text-on-surface">Durumunuzu Görün</p>
+                    <p className="text-xs text-on-surface-variant mt-0.5">Randevunuzun onay durumu, stilist ve saat bilgilerini anında görüntüleyin.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Sidebar "Bize Ulaşın" button */}
+            <Link
+              to="/contact"
+              className="flex items-center justify-center gap-2 bg-surface-container-lowest rounded-2xl px-6 py-4 text-on-surface font-bold text-sm hover:bg-surface-container transition-colors ambient-shadow"
+              aria-label="İletişim sayfasına git"
+            >
+              <span className="material-symbols-outlined text-primary text-lg">mail</span>
+              Bize Ulaşın
+            </Link>
 
             {result && (
               <>
@@ -74,7 +145,7 @@ export default function TrackPage() {
                 <div className="inline-flex items-center gap-3 bg-surface-container rounded-full px-6 py-4 self-start">
                   <span className="material-symbols-outlined text-primary">confirmation_number</span>
                   <div>
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Tracking Code</p>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Takip Kodu</p>
                     <p className="font-extrabold text-on-surface text-xl">{result.trackingCode}</p>
                   </div>
                 </div>
@@ -85,27 +156,27 @@ export default function TrackPage() {
                     {(result.barberName || result.barber?.name || '?')[0].toUpperCase()}
                   </div>
                   <div>
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Your Stylist</p>
-                    <p className="font-bold text-on-surface text-sm">{result.barberName || result.barber?.name || 'Stylist'}</p>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Stilistiniz</p>
+                    <p className="font-bold text-on-surface text-sm">{result.barberName || result.barber?.name || 'Stilist'}</p>
                   </div>
                 </div>
 
                 {/* Details */}
                 <div className="bg-surface-container-highest rounded-[2rem] px-8 py-6 flex flex-col gap-3">
                   <div className="flex justify-between items-center text-sm">
-                    <span className="text-on-surface-variant font-medium">Service</span>
+                    <span className="text-on-surface-variant font-medium">Hizmet</span>
                     <span className="font-bold text-on-surface">{result.service}</span>
                   </div>
                   <div className="flex justify-between items-center text-sm">
-                    <span className="text-on-surface-variant font-medium">Date</span>
+                    <span className="text-on-surface-variant font-medium">Tarih</span>
                     <span className="font-bold text-on-surface">{fmt(result.time)}</span>
                   </div>
                   <div className="flex justify-between items-center text-sm">
-                    <span className="text-on-surface-variant font-medium">Time</span>
+                    <span className="text-on-surface-variant font-medium">Saat</span>
                     <span className="font-bold text-on-surface">{fmtTime(result.time)}</span>
                   </div>
                   <div className="flex justify-between items-center text-sm">
-                    <span className="text-on-surface-variant font-medium">Name</span>
+                    <span className="text-on-surface-variant font-medium">İsim</span>
                     <span className="font-bold text-on-surface">{result.name}</span>
                   </div>
                 </div>
@@ -117,19 +188,20 @@ export default function TrackPage() {
           <div className="lg:col-span-7 flex flex-col gap-6">
             {/* Search card */}
             <div className="bg-surface-container-lowest rounded-[2rem] p-8 ambient-shadow">
-              <h2 className="text-xl font-extrabold text-on-surface mb-2">Find Your Appointment</h2>
-              <p className="text-sm text-on-surface-variant mb-6">Enter the tracking code (e.g. AB3X9Z) you received after booking.</p>
+              <h2 className="text-xl font-extrabold text-on-surface mb-2">Randevunuzu Bulun</h2>
+              <p className="text-sm text-on-surface-variant mb-6">Rezervasyon sonrası aldığınız takip kodunu girin.</p>
 
               <div className="flex gap-3">
                 <div className="relative flex-1">
-                  <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
+                  <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none z-10" aria-hidden="true">search</span>
                   <input
                     type="text"
                     value={query}
                     onChange={e => setQuery(e.target.value.toUpperCase())}
                     onKeyDown={e => e.key === 'Enter' && search()}
-                    placeholder="e.g. AB3X9Z"
-                    className="input-base pl-12 font-mono tracking-widest uppercase"
+                    className="input-base search-input font-mono tracking-widest uppercase"
+                    aria-label="Takip kodu girin"
+                    placeholder="XXXXXX"
                   />
                 </div>
                 <button onClick={search} disabled={loading || !query.trim()} className="btn-primary px-6 shrink-0 flex items-center gap-2 disabled:opacity-40">

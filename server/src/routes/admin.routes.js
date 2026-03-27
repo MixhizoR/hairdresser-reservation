@@ -23,9 +23,9 @@ router.get('/dashboard', authMiddleware, requireRole('ADMIN'), async (req, res) 
     try {
         const stats = await db.getDashboardStats();
 
-        // Get recent appointments
+        // Get recent appointments (last 5)
         const appointments = await db.getAppointments();
-        const recent = appointments.slice(0, 10);
+        const recent = appointments.slice(0, 5);
 
         // Get all barbers
         const barbers = await db.getAllBarbers();

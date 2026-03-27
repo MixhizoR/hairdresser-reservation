@@ -35,11 +35,11 @@ function ServiceCard({ service, featured, accent }) {
           ₺{service.price}
         </span>
       </div>
-      <p className="text-sm leading-relaxed opacity-80">{service.description || 'Premium grooming experience tailored for you.'}</p>
+      <p className="text-sm leading-relaxed opacity-80">{service.description || 'Size özel hazırlanmış premium kuaför deneyimi.'}</p>
       <div className="flex items-center gap-4 text-xs opacity-70 mt-auto">
         <span className="flex items-center gap-1">
           <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>schedule</span>
-          {service.duration} min
+          {service.duration} dk
         </span>
         <span className="flex items-center gap-1">
           <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>star</span>
@@ -88,10 +88,6 @@ function BarberCard({ barber, photoUrl, index }) {
           <p className="font-bold text-sm text-on-surface">{barber.name}</p>
           <p className="text-xs text-on-surface-variant">{barber.speciality || barber.level || 'Grooming Expert'}</p>
         </div>
-        <div className="flex items-center gap-1 text-xs text-amber-500 font-bold">
-          <span className="material-symbols-outlined" style={{ fontSize: '14px', fontVariationSettings: "'FILL' 1" }}>star</span>
-          4.9
-        </div>
       </div>
     </div>
   );
@@ -116,20 +112,11 @@ export default function LandingPage() {
 
   const displayServices = services.length > 0
     ? services.slice(0, 5)
-    : [
-        { id: 1, name: 'Classic Cut', price: 250, duration: 45, description: 'Timeless precision cut with hot towel finish.', category: 'BARBERING' },
-        { id: 2, name: 'Beard Sculpt', price: 150, duration: 30, description: 'Expert beard shaping and conditioning.', category: 'GROOMING' },
-        { id: 3, name: 'Full Experience Package', price: 550, duration: 90, description: 'The ultimate grooming ritual — cut, beard, scalp massage, and hot towel.', category: 'TREATMENTS' },
-      ];
+    : [];
 
   const displayBarbers = barbers.length > 0
     ? barbers
-    : [
-        { id: 1, name: 'Alex Morgan', level: 'MASTER', speciality: 'Fade Specialist' },
-        { id: 2, name: 'James Rivera', level: 'DIRECTOR', speciality: 'Classic Expert' },
-        { id: 3, name: 'David Park', level: 'SENIOR', speciality: 'Beard Sculptor' },
-        { id: 4, name: 'Marcus Chen', level: 'MASTER', speciality: 'Color Specialist' },
-      ];
+    : [];
 
   return (
     <div className="bg-surface text-on-surface font-body">
@@ -151,27 +138,27 @@ export default function LandingPage() {
         <div className="relative z-20 max-w-7xl mx-auto px-6 py-32">
           <div className="max-w-2xl">
             <span className="inline-block px-4 py-1.5 rounded-full bg-secondary-container text-on-secondary-container text-xs font-bold tracking-widest uppercase mb-6">
-              Excellence in Grooming
+              Kuaförlükte Mükemmellik
             </span>
             <h1 className="text-6xl md:text-7xl font-extrabold tracking-tight text-on-surface leading-[1.08] mb-6">
-              Your Morning<br />
-              <span className="text-primary">Ritual</span> Redefined.
+              Sabah Ritüeliniz<br />
+              <span className="text-primary">Yeniden</span> Tanımlandı.
             </h1>
             <p className="text-lg text-on-surface-variant mb-10 max-w-lg leading-relaxed">
-              Step into a world where every detail matters. Premium grooming experiences crafted for the modern gentleman.
+              Her detayın önemli olduğu bir dünyaya adım atın. Modern beyefendi için hazırlanmış premium kuaför deneyimleri.
             </p>
             <div className="flex flex-wrap gap-4">
               <button
                 onClick={() => navigate('/book')}
                 className="btn-primary text-base px-8 py-4"
               >
-                Book Now
+                Randevu Al
               </button>
               <button
                 onClick={() => document.querySelector('#services')?.scrollIntoView({ behavior: 'smooth' })}
                 className="btn-secondary text-base px-8 py-4"
               >
-                View Services
+                Hizmetleri Gör
               </button>
             </div>
           </div>
@@ -180,9 +167,9 @@ export default function LandingPage() {
         {/* Floating stats */}
         <div className="absolute bottom-10 right-10 z-20 hidden lg:flex gap-4">
           {[
-            { label: 'Happy Clients', value: '2.4K+' },
-            { label: 'Experience', value: '12 Yrs' },
-            { label: 'Rating', value: '4.9 ★' },
+            { label: 'Mutlu Müşteri', value: '2.4K+' },
+            { label: 'Deneyim', value: '12 Yıl' },
+            { label: 'Puan', value: '4.9 ★' },
           ].map((s) => (
             <div key={s.label} className="glass-card bg-white/70 rounded-2xl px-5 py-4 text-center ambient-shadow">
               <p className="text-2xl font-extrabold text-primary">{s.value}</p>
@@ -199,17 +186,17 @@ export default function LandingPage() {
           <div className="flex justify-between items-end mb-16">
             <div>
               <h2 className="text-4xl font-extrabold tracking-tight text-on-surface mb-3">
-                Curated Services
+                Özenle Seçilmiş Hizmetler
               </h2>
               <p className="text-on-surface-variant max-w-sm">
-                Each service is a carefully crafted experience, not just a haircut.
+                Her hizmet, sadece bir kesim değil, özenle hazırlanmış bir deneyimdir.
               </p>
             </div>
             <button
               onClick={() => navigate('/book')}
               className="hidden md:flex items-center gap-2 text-primary font-semibold hover:gap-3 transition-all"
             >
-              Book a Service
+              Hizmet Seç
               <span className="material-symbols-outlined">arrow_forward</span>
             </button>
           </div>
@@ -230,10 +217,10 @@ export default function LandingPage() {
       <section id="stylists" className="py-32 px-6">
         <div className="max-w-7xl mx-auto">
           <div className="mb-16">
-            <span className="text-xs font-bold uppercase tracking-widest text-primary mb-3 block">Our Team</span>
-            <h2 className="text-4xl font-extrabold tracking-tight text-on-surface mb-3">Meet the Artists</h2>
+            <span className="text-xs font-bold uppercase tracking-widest text-primary mb-3 block">Ekibimiz</span>
+            <h2 className="text-4xl font-extrabold tracking-tight text-on-surface mb-3">Uzmanlarla Tanışın</h2>
             <p className="text-on-surface-variant max-w-sm">
-              Masters of their craft, dedicated to making you look and feel extraordinary.
+              Alanında ustalaşmış ekibimiz, sizi olağanüstü hissettirmeye adanmış.
             </p>
           </div>
 
@@ -256,17 +243,17 @@ export default function LandingPage() {
           <div className="bg-surface-container-lowest rounded-[2rem] p-10 md:p-16 flex flex-col md:flex-row justify-between items-center gap-10 ambient-shadow">
             <div>
               <h2 className="text-4xl font-extrabold tracking-tight text-on-surface mb-3">
-                Ready to find your sanctuary?
+                Sığınacağınızı bulmaya hazır mısınız?
               </h2>
               <p className="text-on-surface-variant max-w-md">
-                Book your appointment in under 60 seconds. No account required.
+                Randevunuzu 60 saniyeden kısa sürede oluşturun. Hesap gerekmez.
               </p>
             </div>
             <button
               onClick={() => navigate('/book')}
               className="shrink-0 bg-primary text-on-primary font-bold rounded-full px-10 py-5 text-lg shadow-xl shadow-primary/25 hover:bg-primary-dim transition-all"
             >
-              Book Now →
+              Randevu Al →
             </button>
           </div>
         </div>
@@ -281,11 +268,11 @@ export default function LandingPage() {
             </div>
             <span className="font-bold text-on-surface">HairMan Studio</span>
           </div>
-          <p>© {new Date().getFullYear()} HairMan Studio. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} HairMan Studio. Tüm hakları saklıdır.</p>
           <div className="flex gap-6">
-            <button onClick={() => navigate('/book')} className="hover:text-primary transition-colors">Book Now</button>
-            <button onClick={() => navigate('/track')} className="hover:text-primary transition-colors">Track</button>
-            <button onClick={() => navigate('/login')} className="hover:text-primary transition-colors">Staff Login</button>
+            <button onClick={() => navigate('/book')} className="hover:text-primary transition-colors">Randevu Al</button>
+            <button onClick={() => navigate('/track')} className="hover:text-primary transition-colors">Takip Et</button>
+            <button onClick={() => navigate('/iletisim')} className="hover:text-primary transition-colors">İletişim</button>
           </div>
         </div>
       </footer>

@@ -24,18 +24,18 @@ describe('Database Service Stats', () => {
         jest.clearAllMocks();
     });
 
-    it('getDashboardStats should not return completedAppointments and should merge it into approved', async () => {
+    it('getDashboardStats should not return completedAppointments', async () => {
         // Mocking individual counts
         // 1. totalAppointments
         // 2. pendingAppointments
-        // 3. approvedAppointments (with in: ['approved', 'completed'])
+        // 3. approvedAppointments (now only 'approved', no 'completed')
         // 4. activeBarbers
         // 5. todayAppointments
         
         prismaMock.appointment.count
             .mockResolvedValueOnce(10) // total
             .mockResolvedValueOnce(3)  // pending
-            .mockResolvedValueOnce(5)  // approved + completed
+            .mockResolvedValueOnce(5)  // approved only
             .mockResolvedValueOnce(2); // today
 
         prismaMock.user.count.mockResolvedValue(4); // active barbers
@@ -51,10 +51,10 @@ describe('Database Service Stats', () => {
         // Ensure completedAppointments is NOT in the result
         expect(result.completedAppointments).toBeUndefined();
 
-        // Verify that approvedAppointments query uses 'in'
+        // Verify that approvedAppointments query uses only 'approved' (no 'completed')
         expect(prismaMock.appointment.count).toHaveBeenCalledWith(expect.objectContaining({
             where: {
-                status: { in: ['approved', 'completed'] }
+                status: 'approved'
             }
         }));
     });

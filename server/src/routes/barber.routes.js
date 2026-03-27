@@ -3,6 +3,7 @@ const router = express.Router();
 const bcrypt = require('bcrypt');
 const db = require('../services/db.service');
 const { authMiddleware, requireRole } = require('../middlewares/auth.middleware');
+const { photoUpload } = require('../middlewares/upload.middleware');
 
 // Get all active barbers (public)
 router.get('/', async (req, res) => {
@@ -16,6 +17,7 @@ router.get('/', async (req, res) => {
             username: b.username,
             name: b.name,
             phone: b.phone,
+            photoUrl: b.photoUrl,
             isActive: b.isActive,
             createdAt: b.createdAt
         }));
@@ -37,6 +39,7 @@ router.get('/all', authMiddleware, requireRole('ADMIN'), async (req, res) => {
             username: b.username,
             name: b.name,
             phone: b.phone,
+            photoUrl: b.photoUrl,
             isActive: b.isActive,
             createdAt: b.createdAt
         }));
@@ -62,6 +65,7 @@ router.get('/:id', authMiddleware, async (req, res) => {
             username: barber.username,
             name: barber.name,
             phone: barber.phone,
+            photoUrl: barber.photoUrl,
             isActive: barber.isActive,
             createdAt: barber.createdAt
         });
@@ -71,7 +75,7 @@ router.get('/:id', authMiddleware, async (req, res) => {
 });
 
 // Create new barber (admin only)
-router.post('/', authMiddleware, requireRole('ADMIN'), async (req, res) => {
+router.post('/', authMiddleware, requireRole('ADMIN'), photoUpload.single('photo'), async (req, res) => {
     const { username, password, name, phone } = req.body;
 
     if (!username || !password)
@@ -92,6 +96,7 @@ router.post('/', authMiddleware, requireRole('ADMIN'), async (req, res) => {
             role: 'BARBER',
             name: name || null,
             phone: phone || null,
+            photoUrl: req.file ? '/uploads/' + req.file.filename : null,
             isActive: true
         });
 
@@ -102,6 +107,7 @@ router.post('/', authMiddleware, requireRole('ADMIN'), async (req, res) => {
                 username: barber.username,
                 name: barber.name,
                 phone: barber.phone,
+                photoUrl: barber.photoUrl,
                 isActive: barber.isActive
             }
         });
@@ -111,7 +117,7 @@ router.post('/', authMiddleware, requireRole('ADMIN'), async (req, res) => {
 });
 
 // Update barber (admin or self)
-router.put('/:id', authMiddleware, async (req, res) => {
+router.put('/:id', authMiddleware, photoUpload.single('photo'), async (req, res) => {
     const { id } = req.params;
     const { name, phone, password } = req.body;
 
@@ -128,6 +134,7 @@ router.put('/:id', authMiddleware, async (req, res) => {
         if (name) updateData.name = name;
         if (phone) updateData.phone = phone;
         if (password) updateData.password = await bcrypt.hash(password, 12);
+        if (req.file) updateData.photoUrl = '/uploads/' + req.file.filename;
 
         const updated = await db.updateUser(id, updateData);
 
@@ -138,6 +145,7 @@ router.put('/:id', authMiddleware, async (req, res) => {
                 username: updated.username,
                 name: updated.name,
                 phone: updated.phone,
+                photoUrl: updated.photoUrl,
                 isActive: updated.isActive
             }
         });

@@ -77,12 +77,14 @@ const createAppointment = async (req, res) => {
     // Honeypot
     if (website) return res.status(201).json({ id: crypto.randomUUID(), status: 'pending' });
 
-    const allowedServices = [
-        'Saç Kesimi', 'Sakal Kesimi', 'Saç & Sakal Kesimi', 'Çocuk Tıraşı',
-        'Cilt Bakımı', 'Kaş Alımı', 'Fön', 'Ağda', 'Damat Tıraşı', 'Ev Tıraşı'
-    ];
-    if (!allowedServices.includes(service))
+    // Validate service against database
+    try {
+        const dbService = await db.findServiceByName(service);
+        if (!dbService)
+            return res.status(400).json({ error: 'Geçersiz hizmet seçimi.' });
+    } catch {
         return res.status(400).json({ error: 'Geçersiz hizmet seçimi.' });
+    }
 
     if (!isValidName(name))
         return res.status(400).json({ error: 'Geçersiz isim. Sadece harf kullanın (2-50 karakter).' });
@@ -103,6 +105,45 @@ const createAppointment = async (req, res) => {
 
     if (date < new Date())
         return res.status(400).json({ error: 'Geçmiş bir saat seçilemez.' });
+
+    // Validate against 24-hour working hours from settings
+    try {
+        const settingsRows = await db.getAllSettings();
+        const settingsMap = {};
+        for (const s of settingsRows) {
+            try { settingsMap[s.key] = JSON.parse(s.value); } catch { settingsMap[s.key] = s.value; }
+        }
+        const operatingHours = settingsMap.operatingHours || {};
+        const DAYS_MAP = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+        const dayOfWeek = DAYS_MAP[date.getDay()];
+        const dayConfig = operatingHours[dayOfWeek];
+
+        if (dayConfig) {
+            if (dayConfig.closed) {
+                return res.status(400).json({ error: 'Seçilen gün kapalıdır.' });
+            }
+            const hours = date.getHours();
+            const minutes = date.getMinutes();
+            const slotTime = hours * 60 + minutes;
+
+            const parseTime = (t) => {
+                const [h, m] = (t || '09:00').split(':').map(Number);
+                return h * 60 + m;
+            };
+
+            const openMinutes = parseTime(dayConfig.open);
+            const closeMinutes = parseTime(dayConfig.close);
+
+            if (slotTime < openMinutes || slotTime >= closeMinutes) {
+                return res.status(400).json({
+                    error: `Seçilen saat çalışma saatleri dışındadır (${dayConfig.open} - ${dayConfig.close}).`
+                });
+            }
+        }
+    } catch (err) {
+        // If settings can't be read, allow booking (fallback behavior)
+        log('warn', 'Could not validate working hours', { err: err.message });
+    }
 
     try {
         // Check if time slot is available for this specific barber

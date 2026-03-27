@@ -125,14 +125,14 @@ export default function ServicesPage({ token, authHeaders }) {
 
       {/* Header */}
       <div className="flex justify-between items-end">
-        <div>
-          <h2 className="text-3xl font-extrabold tracking-tight text-on-surface">Services</h2>
-          <p className="text-on-surface-variant mt-1">{services.filter(s => s.isActive).length} active services</p>
-        </div>
-        <button onClick={() => setModal('add')} className="btn-primary flex items-center gap-2">
-          <span className="material-symbols-outlined text-base">add</span>
-          Add Service
-        </button>
+      <div>
+        <h2 className="text-3xl font-extrabold tracking-tight text-on-surface">Hizmetler</h2>
+        <p className="text-on-surface-variant mt-1">{services.filter(s => s.isActive).length} aktif hizmet</p>
+      </div>
+      <button onClick={() => setModal('add')} className="btn-primary flex items-center gap-2">
+        <span className="material-symbols-outlined text-base">add</span>
+        Hizmet Ekle
+      </button>
       </div>
 
       {/* Table */}
@@ -148,15 +148,15 @@ export default function ServicesPage({ token, authHeaders }) {
             <button onClick={() => setModal('add')} className="btn-primary mt-4 text-sm">Add your first service</button>
           </div>
         ) : (
-          <table className="w-full">
+          <table className="w-full" style={{ tableLayout: 'fixed' }}>
             <thead>
               <tr className="bg-surface-container-low text-xs uppercase tracking-widest text-on-surface-variant">
-                <th className="text-left px-6 py-4 font-bold">Service</th>
-                <th className="text-left px-6 py-4 font-bold">Category</th>
-                <th className="text-left px-6 py-4 font-bold">Price</th>
-                <th className="text-left px-6 py-4 font-bold">Duration</th>
-                <th className="text-left px-6 py-4 font-bold">Status</th>
-                <th className="text-left px-6 py-4 font-bold">Actions</th>
+                <th className="text-left px-6 py-4 font-bold" style={{ width: '25%' }}>Hizmet</th>
+                <th className="text-left px-6 py-4 font-bold" style={{ width: '15%' }}>Kategori</th>
+                <th className="text-left px-6 py-4 font-bold" style={{ width: '12%' }}>Fiyat</th>
+                <th className="text-left px-6 py-4 font-bold" style={{ width: '12%' }}>Süre</th>
+                <th className="text-left px-6 py-4 font-bold" style={{ width: '12%' }}>Durum</th>
+                <th className="text-left px-6 py-4 font-bold" style={{ width: '24%' }}>İşlemler</th>
               </tr>
             </thead>
             <tbody>
@@ -178,7 +178,7 @@ export default function ServicesPage({ token, authHeaders }) {
                   </td>
                   <td className="px-6 py-4">
                     <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-full ${s.isActive ? 'bg-green-50 text-green-700' : 'bg-slate-100 text-slate-500'}`}>
-                      {s.isActive ? 'Active' : 'Inactive'}
+                      {s.isActive ? 'Aktif' : 'Pasif'}
                     </span>
                   </td>
                   <td className="px-6 py-4">

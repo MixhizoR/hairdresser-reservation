@@ -161,20 +161,6 @@ body {
   white-space: nowrap;
 }
 
-.status-completed {
-  display: inline-flex;
-  align-items: center;
-  background: #eaeff2;
-  color: #596064;
-  border-radius: 9999px;
-  padding: 2px 12px;
-  font-size: 0.7rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  white-space: nowrap;
-}
-
 .status-rejected {
   display: inline-flex;
   align-items: center;
@@ -266,6 +252,11 @@ body {
   font-family: 'Manrope', sans-serif;
   outline: none;
   transition: all 200ms;
+  box-sizing: border-box;
+}
+
+.input-base.search-input {
+  padding-left: 2.75rem;
 }
 
 .input-base::placeholder {

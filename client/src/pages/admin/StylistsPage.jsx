@@ -58,7 +58,7 @@ function StylistModal({ stylist, onClose, onSave }) {
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
       <div className="relative bg-surface-container-lowest rounded-[2rem] p-8 w-full max-w-lg ambient-shadow max-h-[90vh] overflow-y-auto">
-        <h3 className="text-xl font-extrabold text-on-surface mb-6">{stylist ? 'Edit Stylist' : 'Onboard New Stylist'}</h3>
+        <h3 className="text-xl font-extrabold text-on-surface mb-6">{stylist ? 'Stilist Düzenle' : 'Yeni Stilist Ekle'}</h3>
 
         {error && <div className="bg-error-container text-on-error-container rounded-xl px-4 py-3 text-sm mb-4">{error}</div>}
 
@@ -72,8 +72,8 @@ function StylistModal({ stylist, onClose, onSave }) {
           ) : (
             <>
               <span className="material-symbols-outlined text-5xl text-on-surface-variant/40 mb-2 block">add_photo_alternate</span>
-              <p className="text-sm text-on-surface-variant font-medium">Click to upload photo</p>
-              <p className="text-xs text-on-surface-variant/60 mt-1">Max 5MB · JPG, PNG, WebP</p>
+                <p className="text-sm text-on-surface-variant font-medium">Fotoğraf yüklemek için tıklayın</p>
+              <p className="text-xs text-on-surface-variant/60 mt-1">Maks 5MB · JPG, PNG, WebP</p>
             </>
           )}
           <input ref={fileRef} type="file" accept="image/*" onChange={onFileChange} className="hidden" />
@@ -82,19 +82,19 @@ function StylistModal({ stylist, onClose, onSave }) {
         <div className="flex flex-col gap-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-2 block">Full Name *</label>
-              <input className="input-base" value={form.name} onChange={e => update('name', e.target.value)} placeholder="Alex Morgan" />
+              <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-2 block">Ad Soyad *</label>
+              <input className="input-base" value={form.name} onChange={e => update('name', e.target.value)} placeholder="Ahmet Yılmaz" />
             </div>
             <div>
-              <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-2 block">Username *</label>
+              <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-2 block">Kullanıcı Adı *</label>
               <input className="input-base" value={form.username} onChange={e => update('username', e.target.value)} placeholder="alex_barber" disabled={!!stylist} />
             </div>
           </div>
           <div>
             <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-2 block">
-              Password {stylist ? '(leave blank to keep current)' : '*'}
+              Şifre {stylist?( 'değiştirmek istemiyorsanız boş bırakın') : '*'}
             </label>
-            <input type="password" className="input-base" value={form.password} onChange={e => update('password', e.target.value)} placeholder="Min 8 characters" />
+            <input type="password" className="input-base" value={form.password} onChange={e => update('password', e.target.value)} placeholder="En az 8 karakter" />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -104,20 +104,20 @@ function StylistModal({ stylist, onClose, onSave }) {
               </select>
             </div>
             <div>
-              <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-2 block">Phone</label>
+              <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-2 block">Telefon</label>
               <input className="input-base" value={form.phone} onChange={e => update('phone', e.target.value)} placeholder="05xxxxxxxxx" />
             </div>
           </div>
           <div>
-            <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-2 block">Speciality</label>
-            <input className="input-base" value={form.speciality} onChange={e => update('speciality', e.target.value)} placeholder="Fade Expert, Color Specialist..." />
+            <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-2 block">Uzmanlık</label>
+            <input className="input-base" value={form.speciality} onChange={e => update('speciality', e.target.value)} placeholder="Fade Uzmanı, Renk Uzmanı..." />
           </div>
         </div>
 
         <div className="flex gap-3 mt-8">
-          <button onClick={onClose} className="flex-1 btn-secondary py-3">Cancel</button>
+          <button onClick={onClose} className="flex-1 btn-secondary py-3">İptal</button>
           <button onClick={handleSubmit} disabled={loading} className="flex-1 btn-primary py-3 flex items-center justify-center gap-2">
-            {loading ? <span className="w-4 h-4 border-2 border-on-primary/30 border-t-on-primary rounded-full animate-spin" /> : stylist ? 'Save Changes' : 'Add Stylist'}
+            {loading ? <span className="w-4 h-4 border-2 border-on-primary/30 border-t-on-primary rounded-full animate-spin" /> : stylist ? 'Kaydet' : 'Stilist Ekle'}
           </button>
         </div>
       </div>
@@ -180,12 +180,12 @@ export default function StylistsPage({ token, authHeaders }) {
       {/* Header */}
       <div className="flex justify-between items-end">
         <div>
-          <h2 className="text-3xl font-extrabold tracking-tight text-on-surface">Stylists</h2>
-          <p className="text-on-surface-variant mt-1">{stylists.filter(s => s.isActive).length} active team members</p>
+          <h2 className="text-3xl font-extrabold tracking-tight text-on-surface">Stilistler</h2>
+          <p className="text-on-surface-variant mt-1">{stylists.filter(s => s.isActive).length} aktif ekip üyesi</p>
         </div>
         <button onClick={() => setModal('add')} className="btn-primary flex items-center gap-2">
           <span className="material-symbols-outlined text-base">person_add</span>
-          Add Stylist
+          Stilist Ekle
         </button>
       </div>
 
@@ -222,7 +222,7 @@ export default function StylistsPage({ token, authHeaders }) {
                 </span>
               </div>
               <p className="text-xs text-on-surface-variant mb-1">{s.speciality || '@' + s.username}</p>
-              <p className="text-xs text-on-surface-variant mb-4">{s.isActive ? '🟢 Active' : '🔴 Inactive'}</p>
+              <p className="text-xs text-on-surface-variant mb-4">{s.isActive ? '🟢 Aktif' : '🔴 Pasif'}</p>
 
               {/* Stats row */}
               <div className="grid grid-cols-2 gap-2 mb-4">
@@ -239,10 +239,10 @@ export default function StylistsPage({ token, authHeaders }) {
               {/* Actions */}
               <div className="flex gap-2">
                 <button onClick={() => setModal(s)} className="flex-1 py-2 bg-slate-100 hover:bg-slate-200 text-on-surface-variant text-xs font-bold rounded-xl transition-colors">
-                  Edit
+                  Düzenle
                 </button>
                 <button onClick={() => handleToggle(s.id)} className="flex-1 py-2 bg-blue-50 hover:bg-blue-100 text-primary text-xs font-bold rounded-xl transition-colors">
-                  {s.isActive ? 'Deactivate' : 'Activate'}
+                  {s.isActive ? 'Pasifleştir' : 'Aktifleştir'}
                 </button>
                 <button onClick={() => handleDelete(s.id)} className="py-2 px-3 bg-slate-50 hover:bg-red-50 text-slate-400 hover:text-red-600 rounded-xl transition-colors">
                   <span className="material-symbols-outlined text-base">delete</span>

@@ -22,12 +22,42 @@ model User {
   role      Role     @default(BARBER)
   name      String?  // Berberin görünen adı (opsiyonel)
   phone     String?  // Berberin telefonu (opsiyonel)
+  photoUrl  String?  // Berberin fotoğraf URL'si (opsiyonel)
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   // İlişkiler
   appointments Appointment[]
+}
+
+// Service Category Enum
+enum ServiceCategory {
+  BARBERING
+  GROOMING
+  TREATMENTS
+}
+
+// Service Model - Hizmetler
+model Service {
+  id          String           @id @default(uuid())
+  name        String
+  description String?
+  price       Float
+  duration    Int              // dakika cinsinden
+  category    ServiceCategory  @default(BARBERING)
+  isActive    Boolean          @default(true)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+}
+
+// Settings Model - Salon Ayarları
+model Settings {
+  id        String   @id @default(uuid())
+  key       String   @unique
+  value     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 // Appointment Model - Randevular

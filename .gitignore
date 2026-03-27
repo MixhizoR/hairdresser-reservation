@@ -66,3 +66,6 @@ implementation_plan.md
 task.md
 
 /client/public/sounds/*
+/client/public/uploads/*
+
+.kilo/

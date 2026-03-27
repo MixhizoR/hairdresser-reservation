@@ -1,6 +1,7 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 const { log } = require('../config/logger');
+const crypto = require('crypto');
 
 // ==================== USER METHODS ====================
 
@@ -93,13 +94,12 @@ const getAppointmentsByDeviceToken = async (deviceToken) => {
     });
 };
 
-const crypto = require('crypto');
-
 const generateTrackingCode = () => {
+    const bytes = crypto.randomBytes(4);
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     let result = '';
     for (let i = 0; i < 6; i++) {
-        result += chars.charAt(Math.floor(Math.random() * chars.length));
+        result += chars[bytes[i % bytes.length] % chars.length];
     }
     return result;
 };
@@ -149,7 +149,7 @@ const getDashboardStats = async () => {
     const pendingAppointments = await prisma.appointment.count({ where: { status: 'pending' } });
     const approvedAppointments = await prisma.appointment.count({ 
         where: { 
-            status: { in: ['approved', 'completed'] } 
+            status: 'approved'
         } 
     });
     const activeBarbers = await prisma.user.count({ where: { role: 'BARBER', isActive: true } });
@@ -176,6 +176,57 @@ const getDashboardStats = async () => {
         activeBarbers,
         todayAppointments
     };
+};
+
+// ==================== SERVICE METHODS ====================
+
+const getAllServices = async () => {
+    return await prisma.service.findMany({
+        orderBy: { createdAt: 'desc' }
+    });
+};
+
+const getActiveServices = async () => {
+    return await prisma.service.findMany({
+        where: { isActive: true },
+        orderBy: { name: 'asc' }
+    });
+};
+
+const getServiceById = async (id) => {
+    return await prisma.service.findUnique({ where: { id } });
+};
+
+const findServiceByName = async (name) => {
+    return await prisma.service.findFirst({
+        where: { name, isActive: true }
+    });
+};
+
+const createService = async (data) => {
+    return await prisma.service.create({ data });
+};
+
+const updateService = async (id, data) => {
+    return await prisma.service.update({ where: { id }, data });
+};
+
+// ==================== SETTINGS METHODS ====================
+
+const getAllSettings = async () => {
+    return await prisma.settings.findMany();
+};
+
+const getSettingByKey = async (key) => {
+    return await prisma.settings.findUnique({ where: { key } });
+};
+
+const upsertSetting = async (key, value) => {
+    return await prisma.settings.upsert({
+        where: { key },
+        update: { value, updatedAt: new Date() },
+        create: { key, value },
+    });
 };
 
 // ==================== CONNECTION ====================
@@ -210,6 +261,17 @@ module.exports = {
     createAppointment,
     updateAppointment,
     deleteAppointment,
+    // Service
+    getAllServices,
+    getActiveServices,
+    getServiceById,
+    findServiceByName,
+    createService,
+    updateService,
+    // Settings
+    getAllSettings,
+    getSettingByKey,
+    upsertSetting,
     // Dashboard
     getDashboardStats,
     connect,

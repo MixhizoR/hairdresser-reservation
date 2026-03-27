@@ -14,10 +14,9 @@ export default function Navbar() {
   }, []);
 
   const navLinks = [
-    { label: 'Home', href: '#home' },
-    { label: 'Services', href: '#services' },
-    { label: 'Stylists', href: '#stylists' },
-    { label: 'Contact', href: '#contact' },
+    { label: 'Ana Sayfa', href: '#home' },
+    { label: 'Hizmetler', href: '#services' },
+    { label: 'Stilistler', href: '#stylists' },
   ];
 
   const scrollTo = (id) => {
@@ -66,16 +65,22 @@ export default function Navbar() {
         {/* Right CTA — desktop */}
         <div className="hidden md:flex items-center gap-3">
           <Link
+            to="/contact"
+            className="text-sm font-semibold text-on-surface-variant hover:text-primary transition-colors px-4 py-2"
+          >
+            İletişim
+          </Link>
+          <Link
             to="/track"
             className="text-sm font-semibold text-on-surface-variant hover:text-primary transition-colors px-4 py-2"
           >
-            Track Appointment
+            Randevu Takip
           </Link>
           <Link
             to="/book"
             className="btn-primary text-sm px-5 py-2.5"
           >
-            Book Now
+            Randevu Al
           </Link>
         </div>
 
@@ -103,11 +108,14 @@ export default function Navbar() {
             </button>
           ))}
           <hr className="border-outline-variant/30" />
+          <Link to="/contact" onClick={() => setMobileOpen(false)} className="py-2 text-sm font-medium text-on-surface-variant">
+            İletişim
+          </Link>
           <Link to="/track" onClick={() => setMobileOpen(false)} className="py-2 text-sm font-medium text-on-surface-variant">
-            Track Appointment
+            Randevu Takip
           </Link>
           <Link to="/book" onClick={() => setMobileOpen(false)} className="btn-primary text-sm text-center">
-            Book Now
+            Randevu Al
           </Link>
         </div>
       )}

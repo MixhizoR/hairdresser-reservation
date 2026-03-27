@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 
 const SERVER_URL = import.meta.env.VITE_API_URL || '';
@@ -12,8 +13,8 @@ function MonthCalendar({ selectedDate, onSelect }) {
     return { year: d.getFullYear(), month: d.getMonth() };
   });
 
-  const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-  const DAYS = ['Su','Mo','Tu','We','Th','Fr','Sa'];
+  const MONTHS = ['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
+  const DAYS = ['Pa','Pt','Sa','Ça','Pe','Cu','Ct'];
   const firstDay = new Date(cursor.year, cursor.month, 1).getDay();
   const daysInMonth = new Date(cursor.year, cursor.month + 1, 0).getDate();
 
@@ -33,8 +34,10 @@ function MonthCalendar({ selectedDate, onSelect }) {
 
   const select = (d) => {
     if (!d || isPast(d)) return;
-    const date = new Date(cursor.year, cursor.month, d);
-    onSelect(date.toISOString().split('T')[0]);
+    const y = cursor.year;
+    const m = String(cursor.month + 1).padStart(2, '0');
+    const dd = String(d).padStart(2, '0');
+    onSelect(`${y}-${m}-${dd}`);
   };
 
   const prev = () => setCursor(c => c.month === 0 ? { year: c.year - 1, month: 11 } : { ...c, month: c.month - 1 });
@@ -86,6 +89,7 @@ const PLACEHOLDER_PHOTOS = [
 ];
 
 export default function BookingPage() {
+  const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [services, setServices] = useState([]);
   const [barbers, setBarbers] = useState([]);
@@ -94,6 +98,8 @@ export default function BookingPage() {
   const [submitError, setSubmitError] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [phoneError, setPhoneError] = useState('');
+  const [copySuccess, setCopySuccess] = useState(false);
+  const [settings, setSettings] = useState(null);
 
   const [form, setForm] = useState({ serviceId: '', barberId: '', date: '', time: '', name: '', phone: '', notes: '' });
   const update = (k, v) => setForm(f => ({ ...f, [k]: v }));
@@ -101,6 +107,7 @@ export default function BookingPage() {
   useEffect(() => {
     fetch(`${SERVER_URL}/api/services`).then(r => r.json()).then(d => setServices(Array.isArray(d) ? d : [])).catch(() => {});
     fetch(`${SERVER_URL}/api/barbers`).then(r => r.json()).then(d => setBarbers(Array.isArray(d) ? d : [])).catch(() => {});
+    fetch(`${SERVER_URL}/api/settings`).then(r => r.json()).then(d => setSettings(d)).catch(() => {});
   }, []);
 
   /* Fetch taken slots when barber+date changes */
@@ -138,11 +145,38 @@ export default function BookingPage() {
   const blockedSlots = getBlockedSlots();
   const isSlotUnavailable = (slot) => takenSlots.includes(slot) || blockedSlots.includes(slot);
 
-  /* Generate time slots 09:00 – 18:00 */
+  /* Generate time slots based on configured working hours (24h format) */
   const times = [];
-  for (let h = 9; h < 18; h++) {
-    times.push(`${String(h).padStart(2, '0')}:00`);
-    times.push(`${String(h).padStart(2, '0')}:30`);
+  if (form.date && settings?.operatingHours) {
+    const DAYS_MAP = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+    const dateObj = new Date(form.date + 'T12:00');
+    const dayKey = DAYS_MAP[dateObj.getDay()];
+    const dayConfig = settings.operatingHours[dayKey];
+
+    if (dayConfig && !dayConfig.closed) {
+      const parseTime = (t) => {
+        const [h, m] = (t || '09:00').split(':').map(Number);
+        return { h, m };
+      };
+      const { h: openH, m: openM } = parseTime(dayConfig.open || '09:00');
+      const { h: closeH, m: closeM } = parseTime(dayConfig.close || '18:00');
+      const openTotal = openH * 60 + openM;
+      const closeTotal = closeH * 60 + closeM;
+
+      for (let t = openTotal; t < closeTotal; t += 30) {
+        const hh = String(Math.floor(t / 60)).padStart(2, '0');
+        const mm = String(t % 60).padStart(2, '0');
+        times.push(`${hh}:${mm}`);
+      }
+    }
+  }
+
+  // Fallback: if no settings loaded or no date selected, show default 09:00-18:00
+  if (times.length === 0 && form.date) {
+    for (let h = 9; h < 18; h++) {
+      times.push(`${String(h).padStart(2, '0')}:00`);
+      times.push(`${String(h).padStart(2, '0')}:30`);
+    }
   }
 
   const validatePhone = (val) => {
@@ -182,28 +216,70 @@ export default function BookingPage() {
 
   /* ── Success screen ── */
   if (success) {
+    const trackingCode = success.trackingCode || success.id?.slice(0, 8).toUpperCase();
+
+    const handleCopy = async () => {
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          await navigator.clipboard.writeText(trackingCode);
+        } else {
+          // Fallback for browsers that disallow clipboard access
+          const ta = document.createElement('textarea');
+          ta.value = trackingCode;
+          ta.style.position = 'fixed';
+          ta.style.left = '-9999px';
+          document.body.appendChild(ta);
+          ta.select();
+          document.execCommand('copy');
+          document.body.removeChild(ta);
+        }
+        setCopySuccess(true);
+        setTimeout(() => setCopySuccess(false), 2000);
+      } catch {
+        // Graceful fallback - show manual copy prompt
+        prompt('Kopyalamak için kodu seçin:', trackingCode);
+      }
+    };
+
+    const handleTrack = () => {
+      navigate(`/track?code=${encodeURIComponent(trackingCode)}`);
+    };
+
     return (
       <div className="min-h-screen bg-surface flex flex-col items-center justify-center px-6 text-center font-body">
         <div className="w-24 h-24 rounded-full bg-green-100 flex items-center justify-center mb-6 ambient-shadow">
           <span className="material-symbols-outlined text-green-600 text-5xl" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
         </div>
-        <h2 className="text-3xl font-extrabold text-on-surface mb-3">Booking Request Sent!</h2>
-        <p className="text-on-surface-variant mb-2 max-w-sm">Your appointment is pending confirmation. Save your tracking code below.</p>
+        <h2 className="text-3xl font-extrabold text-on-surface mb-3">Randevu Talebi Gönderildi!</h2>
+        <p className="text-on-surface-variant mb-2 max-w-sm">Randevunuz onay bekliyor. Takip kodunuzu aşağıda saklayın.</p>
         <div className="bg-surface-container-lowest rounded-[2rem] px-10 py-6 inline-block ambient-shadow my-6">
-          <p className="text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-2">Tracking Code</p>
-          <span className="text-4xl font-extrabold tracking-widest text-primary">{success.trackingCode || success.id?.slice(0, 8).toUpperCase()}</span>
+          <p className="text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-2">Takip Kodu</p>
+          <div className="flex items-center gap-3 justify-center">
+            <span className="text-4xl font-extrabold tracking-widest text-primary">{trackingCode}</span>
+            <button
+              onClick={handleCopy}
+              className="p-2 rounded-full hover:bg-surface-container transition-colors"
+              aria-label="Takip kodunu kopyala"
+              title={copySuccess ? 'Kopyalandı!' : 'Kopyala'}
+            >
+              <span className={`material-symbols-outlined text-xl ${copySuccess ? 'text-green-600' : 'text-on-surface-variant'}`}>
+                {copySuccess ? 'check' : 'content_copy'}
+              </span>
+            </button>
+          </div>
+          {copySuccess && <p className="text-xs text-green-600 mt-2 font-medium">Kopyalandı!</p>}
         </div>
-        <p className="text-sm text-on-surface-variant mb-8">Use this code at <strong>/track</strong> to check your appointment status.</p>
+        <p className="text-sm text-on-surface-variant mb-8">Randevu durumunuzu kontrol etmek için bu kodu <strong>/track</strong> sayfasında kullanın.</p>
         <div className="flex gap-4 flex-wrap justify-center">
-          <a href="/track" className="btn-primary">Track Appointment</a>
-          <a href="/" className="btn-secondary">Back to Home</a>
+          <button onClick={handleTrack} className="btn-primary">Randevuyu Takip Et</button>
+          <a href="/" className="btn-secondary">Ana Sayfaya Dön</a>
         </div>
       </div>
     );
   }
 
   const selectedBarber = barbers.find(b => String(b.id) === form.barberId);
-  const steps = ['Service', 'Stylist', 'Date & Time', 'Details'];
+  const steps = ['Hizmet', 'Stilist', 'Tarih & Saat', 'Detaylar'];
 
   return (
     <div className="min-h-screen bg-surface font-body">
@@ -212,12 +288,12 @@ export default function BookingPage() {
       <div className="max-w-7xl mx-auto px-6 pt-28 pb-20">
         {/* Page title */}
         <div className="mb-10">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold uppercase tracking-wider mb-4">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold uppercase tracking-wider mb-4">
             <span className="material-symbols-outlined text-sm">lock_open</span>
-            No login required
+            Giriş gerekmez
           </div>
-          <h1 className="text-5xl font-extrabold tracking-tight text-on-surface mb-3">Book Your Transformation</h1>
-          <p className="text-on-surface-variant text-lg max-w-xl">Select your service, stylist, and preferred time to begin your journey.</p>
+          <h1 className="text-5xl font-extrabold tracking-tight text-on-surface mb-3">Randevunuzu Oluşturun</h1>
+          <p className="text-on-surface-variant text-lg max-w-xl">Hizmetinizi, stilistinizi ve tercih ettiğiniz saati seçerek yolculuğunuza başlayın.</p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
@@ -233,7 +309,7 @@ export default function BookingPage() {
               {/* Summary */}
               {(selectedService || selectedBarber || form.date || form.time) && (
                 <div className="bg-primary/5 rounded-[2rem] p-6 border border-primary/10">
-                  <p className="text-xs font-bold uppercase tracking-widest text-primary mb-4">Your Selection</p>
+                  <p className="text-xs font-bold uppercase tracking-widest text-primary mb-4">Seçiminiz</p>
                   <div className="flex flex-col gap-3 text-sm">
                     {selectedService && (
                       <div className="flex items-center justify-between gap-2">
@@ -253,7 +329,7 @@ export default function BookingPage() {
                     {form.date && (
                       <div className="flex items-center gap-2">
                         <span className="material-symbols-outlined text-primary text-base">calendar_month</span>
-                        <span className="font-medium text-on-surface">{new Date(form.date + 'T12:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</span>
+                        <span className="font-medium text-on-surface">{new Date(form.date + 'T12:00').toLocaleDateString('tr-TR', { weekday: 'short', month: 'short', day: 'numeric' })}</span>
                       </div>
                     )}
                     {form.time && (
@@ -265,7 +341,7 @@ export default function BookingPage() {
                     )}
                     {selectedService && (
                       <div className="mt-2 pt-3 border-t border-primary/10 flex justify-between">
-                        <span className="font-bold text-on-surface">Estimated Total</span>
+                        <span className="font-bold text-on-surface">Tahmini Toplam</span>
                         <span className="font-extrabold text-primary text-lg">₺{selectedService.price}</span>
                       </div>
                     )}
@@ -283,14 +359,10 @@ export default function BookingPage() {
               <div>
                 <h2 className="text-2xl font-extrabold text-on-surface mb-6 flex items-center gap-3">
                   <span className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-on-primary text-sm">1</span>
-                  Select Curated Service
+                  Hizmet Seçin
                 </h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {(services.length > 0 ? services : [
-                    { id: '1', name: 'Classic Cut', price: 250, duration: 45, description: 'Timeless precision cut with hot towel finish.', category: 'BARBERING' },
-                    { id: '2', name: 'Beard Sculpt', price: 150, duration: 30, description: 'Expert beard shaping and conditioning.', category: 'GROOMING' },
-                    { id: '3', name: 'Full Experience', price: 550, duration: 90, description: 'The ultimate grooming ritual.', category: 'TREATMENTS' },
-                  ]).map(s => (
+                  {(services.length > 0 ? services : []).map(s => (
                     <button key={s.id} onClick={() => { update('serviceId', String(s.id)); setStep(2); }}
                       className={`group relative text-left rounded-[2rem] p-6 border-2 transition-all duration-200 ${form.serviceId === String(s.id) ? 'border-primary bg-primary/5' : 'border-outline-variant/30 bg-surface-container-lowest hover:border-primary/40 ambient-shadow'}`}
                     >
@@ -317,13 +389,10 @@ export default function BookingPage() {
               <div>
                 <h2 className="text-2xl font-extrabold text-on-surface mb-6 flex items-center gap-3">
                   <span className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-on-primary text-sm">2</span>
-                  Choose Your Stylist
+                  Stilistinizi Seçin
                 </h2>
                 <div className="flex overflow-x-auto gap-5 pb-4 no-scrollbar">
-                  {(barbers.length > 0 ? barbers : [
-                    { id: '1', name: 'Alex Morgan', level: 'MASTER', speciality: 'Fade Specialist' },
-                    { id: '2', name: 'James Rivera', level: 'DIRECTOR', speciality: 'Classic Expert' },
-                  ]).map((b, i) => (
+                  {(barbers.length > 0 ? barbers : []).map((b, i) => (
                     <button key={b.id} onClick={() => { update('barberId', String(b.id)); setStep(3); }}
                       className={`relative rounded-[2rem] overflow-hidden shrink-0 w-52 transition-all ${form.barberId === String(b.id) ? 'ring-4 ring-primary' : 'hover:ring-2 hover:ring-primary/40'}`}
                     >
@@ -357,7 +426,7 @@ export default function BookingPage() {
               <div className="flex flex-col gap-6">
                 <h2 className="text-2xl font-extrabold text-on-surface flex items-center gap-3">
                   <span className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-on-primary text-sm">3</span>
-                  Select Schedule
+                  Tarih ve Saat Seçin
                 </h2>
                 <div className="bg-surface-container-low rounded-[2rem] p-6">
                   <MonthCalendar selectedDate={form.date} onSelect={d => { update('date', d); update('time', ''); }} />
@@ -365,7 +434,7 @@ export default function BookingPage() {
 
                 {form.date && (
                   <div className="bg-surface-container-low rounded-[2rem] p-6">
-                    <p className="text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-4">Available Times</p>
+                    <p className="text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-4">Müsait Saatler</p>
                     <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
                       {times.map(t => {
                         const unavail = isSlotUnavailable(t);
@@ -380,16 +449,16 @@ export default function BookingPage() {
                     {selectedService && (
                       <p className="text-xs text-on-surface-variant mt-3 flex items-center gap-1">
                         <span className="material-symbols-outlined text-sm">info</span>
-                        {selectedService.duration} min session — {Math.ceil(selectedService.duration / 30)} slot(s) will be reserved
+                        {selectedService.duration} dk seans — {Math.ceil(selectedService.duration / 30)} slot ayrılacak
                       </p>
                     )}
                   </div>
                 )}
 
                 <div className="flex gap-4">
-                  <button onClick={() => setStep(2)} className="btn-secondary flex-1">← Back</button>
+                  <button onClick={() => setStep(2)} className="btn-secondary flex-1">← Geri</button>
                   <button disabled={!form.date || !form.time} onClick={() => setStep(4)} className="btn-primary flex-1 disabled:opacity-40">
-                    Continue →
+                    Devam →
                   </button>
                 </div>
               </div>
@@ -400,7 +469,7 @@ export default function BookingPage() {
               <div className="flex flex-col gap-6">
                 <h2 className="text-2xl font-extrabold text-on-surface flex items-center gap-3">
                   <span className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-on-primary text-sm">4</span>
-                  Your Details
+                  Bilgileriniz
                 </h2>
 
                 {submitError && (
@@ -415,11 +484,11 @@ export default function BookingPage() {
                   <input type="text" name="website" style={{ display: 'none' }} tabIndex={-1} autoComplete="off" readOnly />
 
                   <div>
-                    <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-2 block">Full Name *</label>
-                    <input className="input-base" placeholder="John Doe" value={form.name} onChange={e => update('name', e.target.value)} />
+                    <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-2 block">Ad Soyad *</label>
+                    <input className="input-base" placeholder="Ahmet Yılmaz" value={form.name} onChange={e => update('name', e.target.value)} />
                   </div>
                   <div>
-                    <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-2 block">Phone Number *</label>
+                    <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-2 block">Telefon Numarası *</label>
                     <input
                       className="input-base"
                       placeholder="05xxxxxxxxx"
@@ -429,13 +498,13 @@ export default function BookingPage() {
                     {phoneError && <p className="text-xs text-red-600 mt-1">{phoneError}</p>}
                   </div>
                   <div>
-                    <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-2 block">Notes (optional)</label>
-                    <textarea className="input-base resize-none h-24" placeholder="Any special requests..." value={form.notes} onChange={e => update('notes', e.target.value)} />
+                    <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-2 block">Notlar (isteğe bağlı)</label>
+                    <textarea className="input-base resize-none h-24" placeholder="Özel istekleriniz..." value={form.notes} onChange={e => update('notes', e.target.value)} />
                   </div>
                 </div>
 
                 <div className="flex gap-4">
-                  <button onClick={() => setStep(3)} className="btn-secondary flex-1">← Back</button>
+                  <button onClick={() => setStep(3)} className="btn-secondary flex-1">← Geri</button>
                   <button
                     disabled={!form.name.trim() || !form.phone.trim() || !!phoneError || submitting}
                     onClick={submit}
@@ -443,7 +512,7 @@ export default function BookingPage() {
                   >
                     {submitting
                       ? <span className="w-5 h-5 border-2 border-on-primary/30 border-t-on-primary rounded-full animate-spin" />
-                      : <><span className="material-symbols-outlined text-base">check_circle</span> Confirm Booking</>
+                      : <><span className="material-symbols-outlined text-base">check_circle</span> Randevuyu Onayla</>
                     }
                   </button>
                 </div>
