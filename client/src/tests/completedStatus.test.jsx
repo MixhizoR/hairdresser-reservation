@@ -175,9 +175,6 @@ describe('Absence of completed/cancelled status', () => {
       currentUser: { name: 'Test Barber', username: 'testbarber' },
       authHeaders: () => ({ 'Content-Type': 'application/json', Authorization: 'Bearer test-token' }),
       onLogout: vi.fn(),
-      audioEnabled: false,
-      toggleAudio: vi.fn(),
-      playSynth: vi.fn(),
     };
 
     it('does NOT have a "Tamamlandı Olarak İşaretle" button', async () => {
@@ -209,7 +206,8 @@ describe('Absence of completed/cancelled status', () => {
       );
 
       await waitFor(() => {
-        expect(screen.getByText('Onay Bekleyen')).toBeInTheDocument();
+        const elements = screen.getAllByText('Onay Bekleyen');
+        expect(elements.length).toBeGreaterThan(0);
       });
 
       const approveButtons = screen.getAllByText('Onayla');

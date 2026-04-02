@@ -58,19 +58,21 @@ describe('App Component - Booking Flow', () => {
 
     // Step 1: Choose Service
     await waitFor(() => {
-        expect(screen.getByText('Hizmet Seçin')).toBeInTheDocument();
+        expect(screen.getAllByText('Hizmet Seçin').length).toBeGreaterThan(0);
     });
-    fireEvent.click(screen.getByText('Saç Kesimi'));
+    const serviceElements = screen.getAllByText('Saç Kesimi');
+    fireEvent.click(serviceElements[serviceElements.length - 1]);
 
     // Step 2: Choose Stylist
     await waitFor(() => {
-        expect(screen.getByText('Stilistinizi Seçin')).toBeInTheDocument();
+        expect(screen.getAllByText('Stilistinizi Seçin').length).toBeGreaterThan(0);
     });
-    fireEvent.click(screen.getByText('Test Berber'));
+    const barberElements = screen.getAllByText('Test Berber');
+    fireEvent.click(barberElements[barberElements.length - 1]);
 
     // Step 3: Pick a Date
     await waitFor(() => {
-        expect(screen.getByText('Tarih ve Saat Seçin')).toBeInTheDocument();
+        expect(screen.getAllByText('Tarih ve Saat Seçin').length).toBeGreaterThan(0);
     });
 
     const today = new Date().getDate();
@@ -79,30 +81,30 @@ describe('App Component - Booking Flow', () => {
     fireEvent.click(dayButton);
 
     await waitFor(() => {
-        expect(screen.getByText('10:00')).toBeInTheDocument();
+        expect(screen.getAllByText('10:00').length).toBeGreaterThan(0);
     });
-    fireEvent.click(screen.getByText('10:00'));
+    fireEvent.click(screen.getAllByText('10:00')[0]);
 
-    fireEvent.click(screen.getByText('Devam →'));
+    fireEvent.click(screen.getAllByText('Devam →')[0]);
 
     // Step 4: Details
     await waitFor(() => {
-        expect(screen.getByText('Bilgileriniz')).toBeInTheDocument();
+        expect(screen.getAllByText('Bilgileriniz').length).toBeGreaterThan(0);
     });
 
     fireEvent.change(screen.getByPlaceholderText('Ahmet Yılmaz'), { target: { value: 'Test Kullanıcı' } });
     fireEvent.change(screen.getByPlaceholderText('05xxxxxxxxx'), { target: { value: '05321234567' } });
 
-    fireEvent.click(screen.getByText('Randevuyu Onayla'));
+    fireEvent.click(screen.getAllByText('Randevuyu Onayla')[0]);
 
     // Verify success screen appears
     await waitFor(() => {
-        expect(screen.getByText('Randevu Talebi Gönderildi!')).toBeInTheDocument();
+        expect(screen.getAllByText('Randevu Talebi Gönderildi!').length).toBeGreaterThan(0);
     });
 
     // Verify tracking code is displayed
     await waitFor(() => {
-        expect(screen.getByText('TRACK1')).toBeInTheDocument();
+        expect(screen.getAllByText('TRACK1').length).toBeGreaterThan(0);
     });
   });
 });

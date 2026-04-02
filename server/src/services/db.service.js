@@ -142,6 +142,13 @@ const deleteAppointment = async (id) => {
     return await prisma.appointment.delete({ where: { id } });
 };
 
+const rejectPastPending = async () => {
+    return await prisma.appointment.updateMany({
+        where: { status: 'pending', time: { lt: new Date() } },
+        data: { status: 'rejected' }
+    });
+};
+
 // ==================== DASHBOARD STATS ====================
 
 const getDashboardStats = async () => {
@@ -261,6 +268,7 @@ module.exports = {
     createAppointment,
     updateAppointment,
     deleteAppointment,
+    rejectPastPending,
     // Service
     getAllServices,
     getActiveServices,

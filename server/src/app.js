@@ -11,7 +11,7 @@ const apiRoutes = require('./routes/index');
 const app = express();
 
 // ─── Security Headers ───
-app.use(helmet({ crossOriginEmbedderPolicy: false, contentSecurityPolicy: false }));
+app.use(helmet({ crossOriginEmbedderPolicy: false, crossOriginResourcePolicy: false, contentSecurityPolicy: false }));
 
 // ─── Request Logger ───
 app.use(requestLogger);
@@ -37,6 +37,9 @@ app.use(sanitizeMiddleware);
 
 // ─── Serve uploaded files ───
 app.use('/uploads', express.static(path.join(__dirname, '..', '..', 'client', 'public', 'uploads')));
+
+// ─── Serve notification sounds ───
+app.use('/sounds', express.static(path.join(__dirname, '..', '..', 'client', 'public', 'sounds')));
 
 // ─── API Routes ───
 app.use('/api', apiRoutes);

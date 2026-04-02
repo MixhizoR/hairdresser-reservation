@@ -3,6 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 
 /* ─── helpers ─── */
+const CATEGORY_TR = {
+  GROOMING: 'Bakım',
+  TREATMENTS: 'Tedaviler',
+  BARBERING: 'Kuaförlük',
+};
 const UNSPLASH_HERO =
   'https://images.unsplash.com/photo-1585747860715-2ba37e788b70?auto=format&fit=crop&w=1920&q=80';
 
@@ -17,14 +22,13 @@ function ServiceCard({ service, featured, accent }) {
   const bg = featured
     ? 'bg-primary text-on-primary'
     : accent
-    ? 'bg-tertiary-container text-on-tertiary-container'
-    : 'bg-surface-container-lowest text-on-surface';
+      ? 'bg-tertiary-container text-on-tertiary-container'
+      : 'bg-surface-container-lowest text-on-surface';
 
   return (
     <div
-      className={`${bg} rounded-[2rem] p-8 card-hover ambient-shadow flex flex-col gap-4 ${
-        featured ? 'md:col-span-2 relative overflow-hidden' : ''
-      }`}
+      className={`${bg} rounded-[2rem] p-8 card-hover ambient-shadow flex flex-col gap-4 ${featured ? 'md:col-span-2 relative overflow-hidden' : ''
+        }`}
     >
       {featured && (
         <div className="absolute -top-10 -right-10 w-48 h-48 rounded-full bg-on-primary/10 blur-3xl pointer-events-none" />
@@ -43,14 +47,15 @@ function ServiceCard({ service, featured, accent }) {
         </span>
         <span className="flex items-center gap-1">
           <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>star</span>
-          {service.category || 'Premium'}
+          {CATEGORY_TR[service.category] || service.category || 'Premium'}
         </span>
       </div>
       {featured && (
         <button
+          onClick={() => window.location.href = '/book'}
           className="mt-4 self-start bg-on-primary/20 hover:bg-on-primary/30 text-on-primary font-bold rounded-full px-6 py-2.5 text-sm transition-all"
         >
-          Book Package →
+          Paket Al →
         </button>
       )}
     </div>
@@ -64,6 +69,12 @@ function BarberCard({ barber, photoUrl, index }) {
     MASTER: 'bg-amber-50 text-amber-700',
     DIRECTOR: 'bg-purple-50 text-purple-700',
   };
+  const LEVEL_TR = {
+    JUNIOR: 'Çırak',
+    SENIOR: 'Kıdemli',
+    MASTER: 'Usta',
+    DIRECTOR: 'Direktör',
+  };
   const level = barber.level || 'SENIOR';
 
   return (
@@ -76,18 +87,13 @@ function BarberCard({ barber, photoUrl, index }) {
       />
       {/* Level badge */}
       <span
-        className={`absolute top-4 left-4 text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full ${
-          LEVEL_COLORS[level] || LEVEL_COLORS.SENIOR
-        }`}
+        className={`absolute top-4 left-4 text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full ${LEVEL_COLORS[level] || LEVEL_COLORS.SENIOR}`}
       >
-        {level}
+        {LEVEL_TR[level] || level}
       </span>
       {/* Glass overlay */}
       <div className="absolute bottom-4 left-4 right-4 glass-card bg-white/70 backdrop-blur-md rounded-full px-5 py-3 flex items-center justify-between">
-        <div>
-          <p className="font-bold text-sm text-on-surface">{barber.name}</p>
-          <p className="text-xs text-on-surface-variant">{barber.speciality || barber.level || 'Grooming Expert'}</p>
-        </div>
+        <p className="font-bold text-sm text-on-surface">{barber.name}</p>
       </div>
     </div>
   );
@@ -102,12 +108,12 @@ export default function LandingPage() {
     fetch('/api/services')
       .then((r) => r.json())
       .then((d) => setServices(Array.isArray(d) ? d : []))
-      .catch(() => {});
+      .catch(() => { });
 
     fetch('/api/barbers')
       .then((r) => r.json())
       .then((d) => setBarbers(Array.isArray(d) ? d : []))
-      .catch(() => {});
+      .catch(() => { });
   }, []);
 
   const displayServices = services.length > 0
@@ -243,10 +249,10 @@ export default function LandingPage() {
           <div className="bg-surface-container-lowest rounded-[2rem] p-10 md:p-16 flex flex-col md:flex-row justify-between items-center gap-10 ambient-shadow">
             <div>
               <h2 className="text-4xl font-extrabold tracking-tight text-on-surface mb-3">
-                Sığınacağınızı bulmaya hazır mısınız?
+                Yeni stilinizi keşfetmeye hazır mısınız?
               </h2>
               <p className="text-on-surface-variant max-w-md">
-                Randevunuzu 60 saniyeden kısa sürede oluşturun. Hesap gerekmez.
+                Üyelik zahmetine girmeden, 60 saniye içinde randevunuzu oluşturun.
               </p>
             </div>
             <button
@@ -268,7 +274,7 @@ export default function LandingPage() {
             </div>
             <span className="font-bold text-on-surface">HairMan Studio</span>
           </div>
-          <p>© {new Date().getFullYear()} HairMan Studio. Tüm hakları saklıdır.</p>
+          <p>© 2026 HairMan Studio. Tüm hakları saklıdır. | Powered by <a href="https://www.linkedin.com/in/oguz-selman-cetin/" target="_blank" rel="noopener noreferrer">Oğuz Selman Çetin</a>.</p>
           <div className="flex gap-6">
             <button onClick={() => navigate('/book')} className="hover:text-primary transition-colors">Randevu Al</button>
             <button onClick={() => navigate('/track')} className="hover:text-primary transition-colors">Takip Et</button>

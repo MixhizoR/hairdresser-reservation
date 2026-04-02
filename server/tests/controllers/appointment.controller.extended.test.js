@@ -11,7 +11,8 @@ jest.mock('../../src/services/db.service', () => ({
     getAppointmentById: jest.fn(),
     getAppointments: jest.fn(),
     deleteAppointment: jest.fn(),
-    updateAppointment: jest.fn()
+    updateAppointment: jest.fn(),
+    rejectPastPending: jest.fn().mockResolvedValue({ count: 0 })
 }));
 
 jest.mock('../../src/middlewares/rateLimit.middleware', () => {

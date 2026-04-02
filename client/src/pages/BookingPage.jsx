@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 
 const SERVER_URL = import.meta.env.VITE_API_URL || '';
+const CAT_LABELS_TR = { BARBERING: 'Berberlik', GROOMING: 'Bakım', TREATMENTS: 'Tedavi' };
 
 /* ── Month Calendar ── */
 function MonthCalendar({ selectedDate, onSelect }) {
@@ -81,6 +82,7 @@ function Step({ num, label, active, done }) {
 }
 
 const LEVEL_STYLE = { JUNIOR: 'bg-slate-100 text-slate-600', SENIOR: 'bg-blue-50 text-blue-700', MASTER: 'bg-amber-50 text-amber-700', DIRECTOR: 'bg-purple-50 text-purple-700' };
+const LEVEL_TR = { JUNIOR: 'Çırak', SENIOR: 'Uzman', MASTER: 'Usta', DIRECTOR: 'Direktör' };
 const PLACEHOLDER_PHOTOS = [
   'https://images.unsplash.com/photo-1622286342621-4bd786c2447c?auto=format&fit=crop&w=200&q=80',
   'https://images.unsplash.com/photo-1599351431202-1e0f0137899a?auto=format&fit=crop&w=200&q=80',
@@ -103,6 +105,23 @@ export default function BookingPage() {
 
   const [form, setForm] = useState({ serviceId: '', barberId: '', date: '', time: '', name: '', phone: '', notes: '' });
   const update = (k, v) => setForm(f => ({ ...f, [k]: v }));
+  const maskPhone = (val) => {
+    let clean = val.replace(/\D/g, '');
+    if (clean.length > 11) clean = clean.slice(0, 11);
+    if (clean.length === 0) return '';
+    let masked = '0';
+    if (clean.startsWith('0')) clean = clean.slice(1);
+    const part1 = clean.slice(0, 3);
+    const part2 = clean.slice(3, 6);
+    const part3 = clean.slice(6, 8);
+    const part4 = clean.slice(8, 10);
+    if (part1) masked += ` (${part1}`;
+    if (part1.length === 3) masked += ')';
+    if (part2) masked += ` ${part2}`;
+    if (part3) masked += ` ${part3}`;
+    if (part4) masked += ` ${part4}`;
+    return masked;
+  };
 
   useEffect(() => {
     fetch(`${SERVER_URL}/api/services`).then(r => r.json()).then(d => setServices(Array.isArray(d) ? d : [])).catch(() => {});
@@ -155,13 +174,17 @@ export default function BookingPage() {
 
     if (dayConfig && !dayConfig.closed) {
       const parseTime = (t) => {
-        const [h, m] = (t || '09:00').split(':').map(Number);
+        const [h, m] = (t || '08:30').split(':').map(Number);
         return { h, m };
       };
-      const { h: openH, m: openM } = parseTime(dayConfig.open || '09:00');
-      const { h: closeH, m: closeM } = parseTime(dayConfig.close || '18:00');
-      const openTotal = openH * 60 + openM;
-      const closeTotal = closeH * 60 + closeM;
+      const { h: openH, m: openM } = parseTime(dayConfig.open || '08:30');
+      const { h: closeH, m: closeM } = parseTime(dayConfig.close || '19:00');
+      
+      const HARD_OPEN = 8 * 60 + 30; // 08:30
+      const HARD_CLOSE = 19 * 60;   // 19:00
+      
+      const openTotal = Math.max(openH * 60 + openM, HARD_OPEN);
+      const closeTotal = Math.min(closeH * 60 + closeM, HARD_CLOSE);
 
       for (let t = openTotal; t < closeTotal; t += 30) {
         const hh = String(Math.floor(t / 60)).padStart(2, '0');
@@ -171,20 +194,45 @@ export default function BookingPage() {
     }
   }
 
-  // Fallback: if no settings loaded or no date selected, show default 09:00-18:00
+  // Fallback: if no settings loaded or no date selected, show default 08:30-19:00
   if (times.length === 0 && form.date) {
-    for (let h = 9; h < 18; h++) {
-      times.push(`${String(h).padStart(2, '0')}:00`);
-      times.push(`${String(h).padStart(2, '0')}:30`);
+    for (let h = 8; h < 19; h++) {
+      if (h === 8) {
+        times.push('08:30');
+      } else {
+        times.push(`${String(h).padStart(2, '0')}:00`);
+        times.push(`${String(h).padStart(2, '0')}:30`);
+      }
     }
   }
 
+  /* Disable past time slots for today */
+  const now = new Date();
+  const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+  const isPastTime = (slot) => {
+    if (form.date !== todayStr) return false;
+    const [sh, sm] = slot.split(':').map(Number);
+    const slotMinutes = sh * 60 + sm;
+    const nowMinutes = now.getHours() * 60 + now.getMinutes();
+    return slotMinutes <= nowMinutes;
+  };
+
   const validatePhone = (val) => {
-    setPhoneError(/^05\d{9}$/.test(val) || val === '' ? '' : 'Format: 05xxxxxxxxx (11 digits)');
+    const clean = val.replace(/\D/g, '');
+    if (val === '') { setPhoneError(''); return; }
+    if (clean.length !== 11) {
+      setPhoneError('Telefon numarası 11 haneli olmalıdır.');
+    } else if (!/^05\d{9}$/.test(clean)) {
+      setPhoneError('Format: 05xxxxxxxxx (05 ile başlamalıdır)');
+    } else {
+      setPhoneError('');
+    }
   };
 
   const submit = async () => {
-    if (!/^05\d{9}$/.test(form.phone)) { setPhoneError('Format: 05xxxxxxxxx (11 digits)'); return; }
+    const cleanPhone = form.phone.replace(/\D/g, '');
+    if (!/^05\d{9}$/.test(cleanPhone)) { setPhoneError('Format: 05xxxxxxxxx (11 haneli)'); return; }
+
     setSubmitting(true);
     setSubmitError('');
     try {
@@ -192,12 +240,12 @@ export default function BookingPage() {
       const dt = new Date(`${form.date}T${form.time}:00`);
       const body = {
         name: form.name.trim(),
-        phone: form.phone.trim(),
-        service: selectedService?.name || '',   // backend wants service NAME (string)
+        phone: form.phone.replace(/\D/g, ''),
+        service: selectedService?.name || '',
         time: dt.toISOString(),
         barberId: form.barberId,
         notes: form.notes.trim() || undefined,
-        website: '',  // honeypot — always empty
+        website: '',
       };
       const res = await fetch(`${SERVER_URL}/api/appointments`, {
         method: 'POST',
@@ -205,7 +253,9 @@ export default function BookingPage() {
         body: JSON.stringify(body),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Something went wrong');
+      if (!res.ok) {
+        throw new Error(data.error || 'Bir şeyler ters gitti');
+      }
       setSuccess(data);
     } catch (err) {
       setSubmitError(err.message);
@@ -372,10 +422,10 @@ export default function BookingPage() {
                           <h3 className="font-extrabold text-on-surface">{s.name}</h3>
                           <span className="font-extrabold text-primary">₺{s.price}</span>
                         </div>
-                        <p className="text-xs text-on-surface-variant mb-4 leading-relaxed">{s.description || 'Premium grooming experience.'}</p>
+                        <p className="text-xs text-on-surface-variant mb-4 leading-relaxed">{s.description || 'Premium bakım deneyimi.'}</p>
                         <div className="flex items-center gap-3 text-xs text-on-surface-variant">
-                          <span className="flex items-center gap-1"><span className="material-symbols-outlined text-sm">schedule</span>{s.duration} min</span>
-                          <span className="flex items-center gap-1"><span className="material-symbols-outlined text-sm">category</span>{s.category}</span>
+                          <span className="flex items-center gap-1"><span className="material-symbols-outlined text-sm">schedule</span>{s.duration} dk</span>
+                          <span className="flex items-center gap-1"><span className="material-symbols-outlined text-sm">category</span>{CAT_LABELS_TR[s.category] || s.category}</span>
                         </div>
                       </div>
                     </button>
@@ -391,32 +441,35 @@ export default function BookingPage() {
                   <span className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-on-primary text-sm">2</span>
                   Stilistinizi Seçin
                 </h2>
-                <div className="flex overflow-x-auto gap-5 pb-4 no-scrollbar">
-                  {(barbers.length > 0 ? barbers : []).map((b, i) => (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {barbers.map((b, i) => (
                     <button key={b.id} onClick={() => { update('barberId', String(b.id)); setStep(3); }}
-                      className={`relative rounded-[2rem] overflow-hidden shrink-0 w-52 transition-all ${form.barberId === String(b.id) ? 'ring-4 ring-primary' : 'hover:ring-2 hover:ring-primary/40'}`}
+                      className={`group relative text-left rounded-[2rem] overflow-hidden border-2 transition-all duration-200 ${
+                        form.barberId === String(b.id)
+                          ? 'border-primary bg-primary/5'
+                          : 'border-outline-variant/30 bg-surface-container-lowest hover:border-primary/40 ambient-shadow'
+                      }`}
                     >
                       <img
                         src={b.photoUrl ? `${SERVER_URL}${b.photoUrl}` : PLACEHOLDER_PHOTOS[i % PLACEHOLDER_PHOTOS.length]}
                         alt={b.name}
-                        className="w-52 h-64 object-cover"
+                        className="w-full h-48 object-cover"
                         onError={e => { e.target.src = PLACEHOLDER_PHOTOS[i % PLACEHOLDER_PHOTOS.length]; }}
                       />
-                      <span className={`absolute top-3 left-3 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${LEVEL_STYLE[b.level] || LEVEL_STYLE.SENIOR}`}>{b.level || 'SENIOR'}</span>
+                      <span className={`absolute top-3 left-3 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${LEVEL_STYLE[b.level] || LEVEL_STYLE.SENIOR}`}>{LEVEL_TR[b.level] || b.level || 'Uzman'}</span>
                       {form.barberId === String(b.id) && (
                         <span className="absolute top-3 right-3 w-6 h-6 bg-primary rounded-full flex items-center justify-center">
                           <span className="material-symbols-outlined text-on-primary text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>check</span>
                         </span>
                       )}
-                      <div className="absolute bottom-3 left-3 right-3 bg-white/80 backdrop-blur-md rounded-full px-4 py-2">
+                      <div className="absolute bottom-0 left-0 right-0 bg-white/80 backdrop-blur-md px-4 py-3">
                         <p className="font-bold text-on-surface text-sm">{b.name}</p>
-                        <p className="text-xs text-on-surface-variant">{b.speciality || b.level}</p>
                       </div>
                     </button>
                   ))}
                 </div>
                 <button onClick={() => setStep(1)} className="mt-4 text-sm text-on-surface-variant hover:text-on-surface flex items-center gap-1">
-                  <span className="material-symbols-outlined text-base">arrow_back</span> Back
+                  <span className="material-symbols-outlined text-base">arrow_back</span> Geri
                 </button>
               </div>
             )}
@@ -437,7 +490,8 @@ export default function BookingPage() {
                     <p className="text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-4">Müsait Saatler</p>
                     <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
                       {times.map(t => {
-                        const unavail = isSlotUnavailable(t);
+                        const pastTime = isPastTime(t);
+                        const unavail = isSlotUnavailable(t) || pastTime;
                         const sel = form.time === t;
                         return (
                           <button key={t} disabled={unavail} onClick={() => !unavail && update('time', t)}
@@ -491,9 +545,13 @@ export default function BookingPage() {
                     <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-2 block">Telefon Numarası *</label>
                     <input
                       className="input-base"
-                      placeholder="05xxxxxxxxx"
+                      placeholder="0 (5__) ___ __ __"
                       value={form.phone}
-                      onChange={e => { update('phone', e.target.value); validatePhone(e.target.value); }}
+                      onChange={e => {
+                        const masked = maskPhone(e.target.value);
+                        update('phone', masked);
+                        validatePhone(masked);
+                      }}
                     />
                     {phoneError && <p className="text-xs text-red-600 mt-1">{phoneError}</p>}
                   </div>

@@ -84,21 +84,23 @@ describe('Booking Flow - Tracking Code & Redirect', () => {
       </MemoryRouter>
     );
 
-    // Step 1: Select service
+    // Step 1: Select service - last match is in step content
     await waitFor(() => {
-      expect(screen.getByText('Hizmet Seçin')).toBeInTheDocument();
+      expect(screen.getAllByText('Hizmet Seçin').length).toBeGreaterThan(0);
     });
-    fireEvent.click(screen.getByText('Saç Kesimi'));
+    const serviceElements = screen.getAllByText('Saç Kesimi');
+    fireEvent.click(serviceElements[serviceElements.length - 1]);
 
-    // Step 2: Select barber
+    // Step 2: Select barber - use last match (in step content, not summary)
     await waitFor(() => {
-      expect(screen.getByText('Stilistinizi Seçin')).toBeInTheDocument();
+      expect(screen.getAllByText('Stilistinizi Seçin').length).toBeGreaterThan(0);
     });
-    fireEvent.click(screen.getByText('Test Berber'));
+    const barberElements = screen.getAllByText('Test Berber');
+    fireEvent.click(barberElements[barberElements.length - 1]);
 
     // Step 3: Date & time
     await waitFor(() => {
-      expect(screen.getByText('Tarih ve Saat Seçin')).toBeInTheDocument();
+      expect(screen.getAllByText('Tarih ve Saat Seçin').length).toBeGreaterThan(0);
     });
 
     const today = new Date().getDate();
@@ -115,28 +117,28 @@ describe('Booking Flow - Tracking Code & Redirect', () => {
     const availableSlot = timeSlots.find(el => !el.classList.contains('taken') && el.closest('button') && !el.closest('button').disabled);
     fireEvent.click(availableSlot || timeSlots[0]);
 
-    fireEvent.click(screen.getByText('Devam →'));
+    fireEvent.click(screen.getAllByText('Devam →')[0]);
 
     // Step 4: Fill details
     await waitFor(() => {
-      expect(screen.getByText('Bilgileriniz')).toBeInTheDocument();
+      expect(screen.getAllByText('Bilgileriniz').length).toBeGreaterThan(0);
     });
 
     fireEvent.change(screen.getByPlaceholderText('Ahmet Yılmaz'), { target: { value: 'Test Kullanıcı' } });
     fireEvent.change(screen.getByPlaceholderText('05xxxxxxxxx'), { target: { value: '05321234567' } });
 
-    fireEvent.click(screen.getByText('Randevuyu Onayla'));
+    fireEvent.click(screen.getAllByText('Randevuyu Onayla')[0]);
   };
 
   it('shows success screen with tracking code after booking', async () => {
     await completeBooking();
 
     await waitFor(() => {
-      expect(screen.getByText('Randevu Talebi Gönderildi!')).toBeInTheDocument();
+      expect(screen.getAllByText('Randevu Talebi Gönderildi!').length).toBeGreaterThan(0);
     });
 
     await waitFor(() => {
-      expect(screen.getByText('ABC123')).toBeInTheDocument();
+      expect(screen.getAllByText('ABC123').length).toBeGreaterThan(0);
     });
   });
 
@@ -144,7 +146,7 @@ describe('Booking Flow - Tracking Code & Redirect', () => {
     await completeBooking();
 
     await waitFor(() => {
-      expect(screen.getByText('ABC123')).toBeInTheDocument();
+      expect(screen.getAllByText('ABC123').length).toBeGreaterThan(0);
     });
 
     const copyButtons = screen.getAllByRole('button', { name: /takip kodunu kopyala/i });

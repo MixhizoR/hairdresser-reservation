@@ -141,31 +141,15 @@ export default function TrackPage() {
 
             {result && (
               <>
-                {/* ID card */}
-                <div className="inline-flex items-center gap-3 bg-surface-container rounded-full px-6 py-4 self-start">
-                  <span className="material-symbols-outlined text-primary">confirmation_number</span>
-                  <div>
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Takip Kodu</p>
-                    <p className="font-extrabold text-on-surface text-xl">{result.trackingCode}</p>
-                  </div>
-                </div>
-
-                {/* Barber */}
-                <div className="flex items-center gap-4 bg-surface-container rounded-full px-4 py-3 self-start">
-                  <div className="w-10 h-10 rounded-full bg-secondary-container flex items-center justify-center font-bold text-primary text-sm">
-                    {(result.barberName || result.barber?.name || '?')[0].toUpperCase()}
-                  </div>
-                  <div>
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Stilistiniz</p>
-                    <p className="font-bold text-on-surface text-sm">{result.barberName || result.barber?.name || 'Stilist'}</p>
-                  </div>
-                </div>
-
                 {/* Details */}
                 <div className="bg-surface-container-highest rounded-[2rem] px-8 py-6 flex flex-col gap-3">
                   <div className="flex justify-between items-center text-sm">
                     <span className="text-on-surface-variant font-medium">Hizmet</span>
                     <span className="font-bold text-on-surface">{result.service}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-on-surface-variant font-medium">Stilist</span>
+                    <span className="font-bold text-on-surface">{result.barberName || result.barber?.name || 'Stilist'}</span>
                   </div>
                   <div className="flex justify-between items-center text-sm">
                     <span className="text-on-surface-variant font-medium">Tarih</span>
@@ -179,6 +163,7 @@ export default function TrackPage() {
                     <span className="text-on-surface-variant font-medium">İsim</span>
                     <span className="font-bold text-on-surface">{result.name}</span>
                   </div>
+
                 </div>
               </>
             )}

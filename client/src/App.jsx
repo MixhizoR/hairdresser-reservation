@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 
 import LandingPage from './pages/LandingPage';
@@ -11,49 +11,9 @@ import DashboardPage from './pages/admin/DashboardPage';
 import AppointmentsPage from './pages/admin/AppointmentsPage';
 import ServicesPage from './pages/admin/ServicesPage';
 import StylistsPage from './pages/admin/StylistsPage';
-import SettingsPage from './pages/admin/SettingsPage';
 import BarberPanel from './pages/barber/BarberPanel';
 
 const SERVER_URL = import.meta.env.VITE_API_URL || '';
-
-/* ── Audio helpers (passed down to barber/admin panels) ── */
-function useAudio() {
-  const ctxRef = useRef(null);
-  const [enabled, setEnabled] = useState(false);
-
-  const getCtx = () => {
-    if (!ctxRef.current)
-      ctxRef.current = new (window.AudioContext || window.webkitAudioContext)();
-    return ctxRef.current;
-  };
-
-  const playSynth = () => {
-    try {
-      const ctx = getCtx();
-      if (ctx.state === 'suspended') ctx.resume();
-      const now = ctx.currentTime;
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = 'triangle';
-      osc.frequency.setValueAtTime(880, now);
-      osc.frequency.exponentialRampToValueAtTime(440, now + 1.2);
-      gain.gain.setValueAtTime(0.18, now);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 1.2);
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.start(now);
-      osc.stop(now + 1.2);
-    } catch { /* ignore */ }
-  };
-
-  const toggle = () => {
-    const next = !enabled;
-    setEnabled(next);
-    if (next) playSynth();
-  };
-
-  return { audioEnabled: enabled, toggleAudio: toggle, playSynth };
-}
 
 /* ── Protected Route ── */
 function ProtectedRoute({ children, allowedRoles, token, userRole, isRestoring }) {
@@ -77,7 +37,6 @@ export default function App() {
   const [userRole, setUserRole] = useState(() => localStorage.getItem('noir_user_role'));
   const [currentUser, setCurrentUser] = useState(null);
   const [isRestoring, setIsRestoring] = useState(!!localStorage.getItem('noir_token'));
-  const { audioEnabled, toggleAudio, playSynth } = useAudio();
 
   /* ── Restore session ── */
   useEffect(() => {
@@ -134,7 +93,7 @@ export default function App() {
   });
 
   /* Shared props for admin/barber panels */
-  const panelProps = { token, currentUser, userRole, authHeaders, onLogout: handleLogout, audioEnabled, toggleAudio, playSynth };
+  const panelProps = { token, currentUser, userRole, authHeaders, onLogout: handleLogout };
 
   return (
     <Routes>
@@ -160,7 +119,6 @@ export default function App() {
         <Route path="appointments" element={<AppointmentsPage {...panelProps} />} />
         <Route path="services" element={<ServicesPage {...panelProps} />} />
         <Route path="stylists" element={<StylistsPage {...panelProps} />} />
-        <Route path="settings" element={<SettingsPage {...panelProps} />} />
       </Route>
 
       {/* Barber */}

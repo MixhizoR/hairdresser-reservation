@@ -10,7 +10,7 @@ export default function ContactPage() {
     fetch(`${SERVER_URL}/api/settings`)
       .then(r => r.json())
       .then(d => setSettings(d))
-      .catch(() => {});
+      .catch(() => { });
   }, []);
 
   return (
@@ -25,7 +25,7 @@ export default function ContactPage() {
           </div>
           <h1 className="text-5xl font-extrabold tracking-tight text-on-surface mb-3">İletişim</h1>
           <p className="text-on-surface-variant text-lg max-w-xl">
-            {settings?.salonDescription || 'Premium kuaför deneyimi için bize ulaşın.'}
+            Her detayın önemli olduğu bir dünyaya adım atın. Modern beyefendi için hazırlanmış premium kuaför deneyimleri.
           </p>
         </div>
 
@@ -90,7 +90,7 @@ export default function ContactPage() {
         {/* CTA */}
         <div className="mt-12 bg-primary text-on-primary rounded-[2rem] p-10 md:p-16 text-center">
           <h2 className="text-3xl font-extrabold mb-3">Randevu Almaya Hazır mısınız?</h2>
-          <p className="text-on-primary/80 mb-6 max-w-md mx-auto">Hemen online randevu oluşturun, dakikalar içinde onaylayın.</p>
+          <p className="text-on-primary/80 mb-6 max-w-md mx-auto">Hemen online randevu oluşturun.</p>
           <a href="/book" className="inline-block bg-on-primary text-primary font-bold rounded-full px-10 py-4 text-lg hover:bg-on-primary/90 transition-all">
             Randevu Al →
           </a>

@@ -8,6 +8,9 @@ const getAvailability = async (req, res) => {
     const { barberId } = req.query;
 
     try {
+        // Auto-reject past pending appointments
+        await db.rejectPastPending();
+
         let appointments;
         if (barberId) {
             // Get appointments for specific barber
@@ -35,6 +38,9 @@ const getAppointments = async (req, res) => {
     const { barberId, status, date } = req.query;
 
     try {
+        // Auto-reject past pending appointments
+        await db.rejectPastPending();
+
         const filters = {};
 
         // If barber, only show their appointments
@@ -126,17 +132,20 @@ const createAppointment = async (req, res) => {
             const minutes = date.getMinutes();
             const slotTime = hours * 60 + minutes;
 
-            const parseTime = (t) => {
-                const [h, m] = (t || '09:00').split(':').map(Number);
+            const parseTimeStr = (t) => {
+                const [h, m] = (t || '08:30').split(':').map(Number);
                 return h * 60 + m;
             };
 
-            const openMinutes = parseTime(dayConfig.open);
-            const closeMinutes = parseTime(dayConfig.close);
+            const HARD_OPEN = 8 * 60 + 30; // 08:30
+            const HARD_CLOSE = 19 * 60;   // 19:00
+            
+            const openMinutes = Math.max(parseTimeStr(dayConfig.open || '08:30'), HARD_OPEN);
+            const closeMinutes = Math.min(parseTimeStr(dayConfig.close || '19:00'), HARD_CLOSE);
 
             if (slotTime < openMinutes || slotTime >= closeMinutes) {
                 return res.status(400).json({
-                    error: `Seçilen saat çalışma saatleri dışındadır (${dayConfig.open} - ${dayConfig.close}).`
+                    error: `Seçilen saat çalışma saatleri dışındadır (08:30 - 19:00).`
                 });
             }
         }

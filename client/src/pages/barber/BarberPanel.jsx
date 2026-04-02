@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
 
 const SERVER_URL = import.meta.env.VITE_API_URL || '';
 
@@ -15,302 +14,359 @@ const STATUS_TR = {
   rejected: 'Reddedildi',
 };
 
-/* ── Calendar View ── */
-function ScheduleCalendar({ appointments, selectedDate, onSelectDate }) {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const [cursor, setCursor] = useState({ year: today.getFullYear(), month: today.getMonth() });
+const MONTHS = ['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
+const DAYS_FULL = ['Pazar','Pazartesi','Salı','Çarşamba','Perşembe','Cuma','Cumartesi'];
+const DAY_SHORT = ['Pa','Pt','Sa','Ça','Pe','Cu','Ct'];
 
-  const MONTHS = ['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
-  const DAYS = ['Pa','Pt','Sa','Ça','Pe','Cu','Ct'];
-  const firstDay = new Date(cursor.year, cursor.month, 1).getDay();
-  const daysInMonth = new Date(cursor.year, cursor.month + 1, 0).getDate();
+/* ── Horizontal Date Bar ── */
+function DateBar({ cursor, onPrev, onNext, selectedDate, onSelectDate, appointments, slideDir }) {
+  const baseDate = new Date(cursor.year, cursor.month, cursor.day);
+  // Show 7 days: -3 before, selected (center), +3 after
+  const days = [];
+  for (let i = -3; i <= 3; i++) {
+    const d = new Date(baseDate);
+    d.setDate(d.getDate() + i);
+    days.push(d);
+  }
 
-  const cells = [];
-  for (let i = 0; i < firstDay; i++) cells.push(null);
-  for (let d = 1; d <= daysInMonth; d++) cells.push(d);
-
-  const getDateStr = (d) => {
-    if (!d) return null;
-    const m = String(cursor.month + 1).padStart(2, '0');
-    const dd = String(d).padStart(2, '0');
-    return `${cursor.year}-${m}-${dd}`;
+  const dateStr = (d) => {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${dd}`;
   };
 
-  const hasAppointments = (d) => {
-    const dateStr = getDateStr(d);
-    if (!dateStr) return false;
-    return appointments.some(a => {
-      const aDate = new Date(a.time).toISOString().split('T')[0];
-      return aDate === dateStr && a.status === 'approved';
-    });
-  };
-
-  const isSel = (d) => {
-    const dateStr = getDateStr(d);
-    return dateStr === selectedDate;
-  };
-
-  const isToday = (d) => {
-    if (!d) return false;
-    const date = new Date(cursor.year, cursor.month, d);
-    return date.toDateString() === today.toDateString();
-  };
-
-  const prev = () => setCursor(c => c.month === 0 ? { year: c.year - 1, month: 11 } : { ...c, month: c.month - 1 });
-  const next = () => setCursor(c => c.month === 11 ? { year: c.year + 1, month: 0 } : { ...c, month: c.month + 1 });
+  const hasPending = (d) => appointments.some(a => a.status === 'pending' && new Date(a.time).toISOString().split('T')[0] === dateStr(d));
+  const hasApproved = (d) => appointments.some(a => a.status === 'approved' && new Date(a.time).toISOString().split('T')[0] === dateStr(d));
 
   return (
-    <div className="bg-surface-container-lowest rounded-[2rem] p-6 ambient-shadow">
+    <div className="bg-surface-container-lowest rounded-[2rem] p-5 ambient-shadow">
+      {/* Header with arrows */}
       <div className="flex items-center justify-between mb-4">
-        <button onClick={prev} className="p-2 rounded-full hover:bg-surface-container transition-colors" aria-label="Önceki ay">
+        <button onClick={onPrev} className="p-2 rounded-full hover:bg-surface-container transition-colors" aria-label="Önceki gün">
           <span className="material-symbols-outlined text-on-surface-variant">chevron_left</span>
         </button>
-        <span className="font-bold text-on-surface">{MONTHS[cursor.month]} {cursor.year}</span>
-        <button onClick={next} className="p-2 rounded-full hover:bg-surface-container transition-colors" aria-label="Sonraki ay">
+        <div className="text-center">
+          <p className="text-sm font-extrabold text-on-surface">{MONTHS[cursor.month]} {cursor.year}</p>
+          <p className="text-[10px] text-on-surface-variant">{DAYS_FULL[baseDate.getDay()]}, {cursor.day} {MONTHS[cursor.month]} {cursor.year}</p>
+        </div>
+        <button onClick={onNext} className="p-2 rounded-full hover:bg-surface-container transition-colors" aria-label="Sonraki gün">
           <span className="material-symbols-outlined text-on-surface-variant">chevron_right</span>
         </button>
       </div>
-      <div className="grid grid-cols-7 mb-1">
-        {DAYS.map(d => <span key={d} className="text-center text-[10px] font-bold text-on-surface-variant uppercase py-1">{d}</span>)}
+
+      {/* 7-day strip with slide animation */}
+      <div className="overflow-hidden">
+        <div
+          className="grid grid-cols-7 gap-1 transition-transform duration-300 ease-out"
+          style={{
+            transform: slideDir === 'left' ? 'translateX(-8px)' : slideDir === 'right' ? 'translateX(8px)' : 'translateX(0)',
+            opacity: slideDir ? 0.6 : 1,
+          }}
+        >
+          {days.map((d, i) => {
+            const ds = dateStr(d);
+            const isSel = ds === selectedDate;
+            const isToday = ds === new Date().toISOString().split('T')[0];
+            const dotColor = hasApproved(d) ? 'bg-red-400' : hasPending(d) ? 'bg-amber-400' : '';
+
+            return (
+              <button
+                key={`${ds}-${i}`}
+                onClick={() => onSelectDate(ds)}
+                className={`flex flex-col items-center gap-1 py-2.5 rounded-xl transition-all duration-200 ${
+                  isSel ? 'bg-primary text-on-primary shadow-lg shadow-primary/20 scale-105' :
+                  isToday ? 'bg-primary/10 text-primary ring-2 ring-primary/30' :
+                  'hover:bg-surface-container text-on-surface'
+                }`}
+                aria-label={`${d.getDate()} ${MONTHS[d.getMonth()]}`}
+                aria-current={isSel ? 'date' : undefined}
+              >
+                <span className={`text-[10px] font-bold uppercase ${isSel ? 'text-on-primary/70' : 'text-on-surface-variant'}`}>
+                  {DAY_SHORT[d.getDay()]}
+                </span>
+                <span className="text-lg font-extrabold">{d.getDate()}</span>
+                <span className={`w-1.5 h-1.5 rounded-full ${
+                  isSel ? 'bg-on-primary' : dotColor || 'bg-green-400'
+                }`} />
+              </button>
+            );
+          })}
+        </div>
       </div>
-      <div className="grid grid-cols-7 gap-y-1">
-        {cells.map((d, i) => (
-          <div
-            key={i}
-            onClick={() => d && onSelectDate(getDateStr(d))}
-            className={`cal-day ${!d ? 'invisible' : ''} ${isSel(d) ? 'active' : ''} ${isToday(d) ? 'ring-2 ring-primary/30' : ''} relative cursor-pointer`}
-          >
-            {d}
-            {hasAppointments(d) && (
-              <span className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 w-1 h-1 bg-primary rounded-full" />
-            )}
-          </div>
-        ))}
+
+      {/* Legend */}
+      <div className="flex items-center justify-center gap-4 mt-3">
+        <div className="flex items-center gap-1">
+          <span className="w-2 h-2 rounded-full bg-green-400" />
+          <span className="text-[10px] text-on-surface-variant">Boş</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <span className="w-2 h-2 rounded-full bg-amber-400" />
+          <span className="text-[10px] text-on-surface-variant">Bekliyor</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <span className="w-2 h-2 rounded-full bg-red-400" />
+          <span className="text-[10px] text-on-surface-variant">Onaylı</span>
+        </div>
       </div>
     </div>
   );
 }
 
-/* ── Clock/Timeline View ── */
+/* ── Day Timeline — 30-min slots, multi-slot appointments ── */
 function DayTimeline({ appointments, selectedDate }) {
   const dayAppts = appointments.filter(a => {
     const aDate = new Date(a.time).toISOString().split('T')[0];
-    return aDate === selectedDate && a.status === 'approved';
+    return aDate === selectedDate;
   }).sort((a, b) => new Date(a.time) - new Date(b.time));
 
-  const now = new Date();
-  const hours = Array.from({ length: 12 }, (_, i) => i + 8); // 08:00 - 19:00
+  // Generate 30-min slots from 08:00 to 19:30
+  const slots = [];
+  for (let h = 8; h < 20; h++) {
+    slots.push({ h, m: 0, label: `${String(h).padStart(2, '0')}:00` });
+    slots.push({ h, m: 30, label: `${String(h).padStart(2, '0')}:30` });
+  }
+
+  // Find which slot an appointment starts in and how many slots it spans
+  const getSlotInfo = (appt) => {
+    const apptTime = new Date(appt.time);
+    const startH = apptTime.getHours();
+    const startM = apptTime.getMinutes();
+    const startSlotIdx = slots.findIndex(s => s.h === startH && s.m === startM);
+
+    // Get duration from service or default 30 min
+    const duration = appt.duration || 30;
+    const spanSlots = Math.ceil(duration / 30);
+
+    return { startSlotIdx, spanSlots };
+  };
+
+  // Map slot index to appointment (if it starts there)
+  const slotMap = {};
+  // Track which slots are occupied (by spanning appointments)
+  const occupiedSlots = new Set();
+
+  dayAppts.forEach(appt => {
+    const { startSlotIdx, spanSlots } = getSlotInfo(appt);
+    if (startSlotIdx >= 0) {
+      slotMap[startSlotIdx] = { appt, spanSlots };
+      for (let i = 0; i < spanSlots; i++) {
+        occupiedSlots.add(startSlotIdx + i);
+      }
+    }
+  });
 
   return (
     <div className="bg-surface-container-lowest rounded-[2rem] p-6 ambient-shadow">
       <h3 className="text-lg font-extrabold text-on-surface mb-4">
-        <span className="material-symbols-outlined text-base mr-2">schedule</span>
-        {new Date(selectedDate + 'T12:00').toLocaleDateString('tr-TR', { weekday: 'long', month: 'long', day: 'numeric' })}
+        <span className="material-symbols-outlined text-base mr-2">today</span>
+        {new Date(selectedDate + 'T12:00').toLocaleDateString('tr-TR', { weekday: 'long', day: 'numeric', month: 'long' })}
       </h3>
-      <div className="space-y-1">
-        {hours.map(h => {
-          const hourAppts = dayAppts.filter(a => new Date(a.time).getHours() === h);
-          const isNow = selectedDate === now.toISOString().split('T')[0] && now.getHours() === h;
+
+      <div className="space-y-0.5">
+        {slots.map((slot, idx) => {
+          const info = slotMap[idx];
+          const isOccupiedBySpan = occupiedSlots.has(idx) && !info;
+          const isHalfHour = slot.m === 30;
+
+          // Skip slots that are covered by a spanning appointment (not the start)
+          if (isOccupiedBySpan) return null;
+
           return (
-            <div key={h} className={`flex items-start gap-3 py-2 ${isNow ? 'bg-primary/5 -mx-2 px-2 rounded-lg' : ''}`}>
-              <span className={`text-xs font-bold w-12 text-right pt-1 ${isNow ? 'text-primary' : 'text-on-surface-variant'}`}>
-                {String(h).padStart(2, '0')}:00
+            <div key={idx} className={`flex items-stretch gap-3 py-1 ${isHalfHour ? 'opacity-70' : ''}`}>
+              {/* Time label */}
+              <span className={`text-[11px] w-12 text-right shrink-0 pt-2 ${isHalfHour ? 'text-on-surface-variant/60 font-medium' : 'font-bold text-on-surface-variant'}`}>
+                {slot.label}
               </span>
-              <div className="flex-1 border-l-2 border-surface-container pl-3">
-                {hourAppts.length === 0 ? (
-                  <div className="py-1">
-                    <span className="text-xs text-on-surface-variant/40">Boş</span>
+
+              {/* Slot content */}
+              <div className="flex-1 border-l-2 border-surface-container pl-3 flex flex-col gap-1">
+                {info ? (
+                  // Appointment — spans multiple 30-min slots
+                  <div
+                    className={`rounded-lg px-3 py-2 flex items-center gap-2 ${
+                      info.appt.status === 'pending'
+                        ? 'bg-amber-50 border border-amber-200'
+                        : info.appt.status === 'approved'
+                        ? 'bg-red-50 border border-red-200'
+                        : 'bg-slate-50 border border-slate-200'
+                    }`}
+                    style={{ minHeight: `${info.spanSlots * 36 - 4}px` }}
+                  >
+                    <span className={`w-2 h-2 rounded-full shrink-0 ${
+                      info.appt.status === 'pending' ? 'bg-amber-400' :
+                      info.appt.status === 'approved' ? 'bg-red-400' : 'bg-slate-400'
+                    }`} />
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-bold text-on-surface truncate">{info.appt.name}</p>
+                      <p className="text-[10px] text-on-surface-variant">
+                        {info.appt.service}
+                        {info.spanSlots > 1 && ` (${info.spanSlots * 30}dk)`}
+                        {' · '}
+                        <span className={info.appt.status === 'pending' ? 'text-amber-600 font-bold' : 'text-red-600 font-bold'}>
+                          {STATUS_TR[info.appt.status]}
+                        </span>
+                      </p>
+                    </div>
                   </div>
                 ) : (
-                  hourAppts.map(a => (
-                    <div key={a.id} className="bg-primary/10 rounded-xl px-3 py-2 mb-1">
-                      <p className="text-sm font-bold text-on-surface">{a.name}</p>
-                      <p className="text-xs text-on-surface-variant">{a.service} · {new Date(a.time).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}</p>
-                    </div>
-                  ))
+                  // Empty — green available
+                  <div className="bg-green-50 border border-green-100 rounded-lg px-3 py-1.5 flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-green-400 shrink-0" />
+                    <span className="text-[11px] text-green-700 font-medium">Müsait</span>
+                  </div>
                 )}
               </div>
             </div>
           );
         })}
       </div>
+
       {dayAppts.length === 0 && (
-        <p className="text-sm text-on-surface-variant text-center py-6">Bu gün için randevu yok</p>
+        <div className="mt-4 bg-green-50 border border-green-200 rounded-2xl p-4 text-center">
+          <span className="material-symbols-outlined text-green-500 text-3xl block mb-1">event_available</span>
+          <p className="text-sm font-bold text-green-700">Bu gün tamamen boş</p>
+          <p className="text-xs text-green-600 mt-0.5">Randevu bulunmuyor</p>
+        </div>
       )}
     </div>
   );
 }
 
-/* ── Audio Upload & Selection Modal ── */
-function SoundManager({ onClose, onSelect, currentSound }) {
-  const [sounds, setSounds] = useState([]);
-  const [uploading, setUploading] = useState(false);
-  const [error, setError] = useState('');
-  const fileRef = useRef();
-  const token = localStorage.getItem('noir_token');
+export default function BarberPanel({ token, currentUser, authHeaders, onLogout }) {
+  const [appointments, setAppointments] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [actionId, setActionId] = useState(null);
+  const today = new Date();
+  const [selectedDate, setSelectedDate] = useState(today.toISOString().split('T')[0]);
+  const [cursor, setCursor] = useState({ year: today.getFullYear(), month: today.getMonth(), day: today.getDate() });
+  const [view, setView] = useState('calendar');
+  const [slideDir, setSlideDir] = useState('');
 
-  const loadSounds = () => {
+  // ── Sound state ──
+  const [sounds, setSounds] = useState([]);
+  const [selectedSound, setSelectedSound] = useState(() => localStorage.getItem('barber_selected_sound') || '');
+  const [audioEnabled, setAudioEnabled] = useState(() => localStorage.getItem('barber_audio_enabled') === 'true');
+  const audioRef = useRef(null);
+  const audioEnabledRef = useRef(audioEnabled);
+  const selectedSoundRef = useRef(selectedSound);
+  const firstLoadRef = useRef(true);
+
+  useEffect(() => { audioEnabledRef.current = audioEnabled; }, [audioEnabled]);
+  useEffect(() => { selectedSoundRef.current = selectedSound; }, [selectedSound]);
+
+  useEffect(() => {
     fetch(`${SERVER_URL}/api/sounds`)
       .then(r => r.json())
       .then(d => setSounds(d.files || []))
       .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    return () => { if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; } };
+  }, []);
+
+  const stopAudio = () => {
+    if (audioRef.current) { audioRef.current.pause(); audioRef.current.currentTime = 0; audioRef.current = null; }
   };
 
-  useEffect(loadSounds, []);
-
-  const handleUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const ext = file.name.split('.').pop().toLowerCase();
-    if (!['mp3', 'wav'].includes(ext)) {
-      setError('Sadece MP3 ve WAV dosyaları yüklenebilir.');
-      return;
+  const playSound = useCallback(() => {
+    stopAudio();
+    const sound = selectedSoundRef.current;
+    if (sound) {
+      const audio = new Audio(`${SERVER_URL}/sounds/${sound}`);
+      audio.volume = 0.7;
+      audioRef.current = audio;
+      audio.play().catch(() => tryPlaySynth());
+    } else {
+      tryPlaySynth();
     }
-    setUploading(true);
-    setError('');
-    try {
-      const fd = new FormData();
-      fd.append('sound', file);
-      const res = await fetch(`${SERVER_URL}/api/sounds/upload`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
-        body: fd,
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Yükleme başarısız');
-      loadSounds();
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setUploading(false);
-    }
-  };
+  }, []);
 
-  const handleDelete = async (filename) => {
-    if (!confirm(`${filename} silinsin mi?`)) return;
+  const tryPlaySynth = () => {
     try {
-      await fetch(`${SERVER_URL}/api/sounds/${filename}`, {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      loadSounds();
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      if (ctx.state === 'suspended') ctx.resume();
+      const now = ctx.currentTime;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(880, now);
+      osc.frequency.exponentialRampToValueAtTime(440, now + 1.2);
+      gain.gain.setValueAtTime(0.18, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 1.2);
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.start(now); osc.stop(now + 1.2);
     } catch {}
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative bg-surface-container-lowest rounded-[2rem] p-8 w-full max-w-lg ambient-shadow max-h-[90vh] overflow-y-auto">
-        <h3 className="text-xl font-extrabold text-on-surface mb-6">Bildirim Sesi Yönet</h3>
+  const toggleAudio = () => {
+    stopAudio();
+    const next = !audioEnabledRef.current;
+    audioEnabledRef.current = next;
+    setAudioEnabled(next);
+    localStorage.setItem('barber_audio_enabled', String(next));
+    if (next) playSound();
+  };
 
-        {error && <div className="bg-error-container text-on-error-container rounded-xl px-4 py-3 text-sm mb-4">{error}</div>}
-
-        {/* Upload */}
-        <div className="mb-6">
-          <button
-            onClick={() => fileRef.current?.click()}
-            disabled={uploading}
-            className="w-full border-2 border-dashed border-outline-variant rounded-2xl p-4 text-center cursor-pointer hover:border-primary transition-colors"
-          >
-            <span className="material-symbols-outlined text-3xl text-on-surface-variant/40 mb-1 block">upload_file</span>
-            <p className="text-sm text-on-surface-variant font-medium">
-              {uploading ? 'Yükleniyor...' : 'MP3 veya WAV dosyası yüklemek için tıklayın'}
-            </p>
-          </button>
-          <input ref={fileRef} type="file" accept=".mp3,.wav,audio/mpeg,audio/wav" onChange={handleUpload} className="hidden" />
-        </div>
-
-        {/* Sound list */}
-        <div className="space-y-2 mb-6">
-          {sounds.length === 0 ? (
-            <p className="text-sm text-on-surface-variant text-center py-4">Henüz ses dosyası yüklenmemiş</p>
-          ) : (
-            sounds.map(f => (
-              <div key={f} className={`flex items-center justify-between p-3 rounded-xl border-2 transition-colors ${currentSound === f ? 'border-primary bg-primary/5' : 'border-transparent bg-surface-container-low hover:bg-surface-container'}`}>
-                <button
-                  onClick={() => onSelect(f)}
-                  className="flex items-center gap-3 flex-1 text-left"
-                >
-                  <span className="material-symbols-outlined text-primary">{currentSound === f ? 'check_circle' : 'music_note'}</span>
-                  <span className="text-sm font-semibold text-on-surface">{f}</span>
-                </button>
-                <button onClick={() => handleDelete(f)} className="p-1.5 rounded-lg hover:bg-red-50 text-slate-400 hover:text-red-600 transition-colors">
-                  <span className="material-symbols-outlined text-base">delete</span>
-                </button>
-              </div>
-            ))
-          )}
-        </div>
-
-        <button onClick={onClose} className="w-full btn-primary py-3">Kapat</button>
-      </div>
-    </div>
-  );
-}
-
-export default function BarberPanel({ token, currentUser, authHeaders, onLogout, audioEnabled, toggleAudio, playSynth }) {
-  const navigate = useNavigate();
-  const [appointments, setAppointments] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [actionId, setActionId] = useState(null);
-  const [prevPending, setPrevPending] = useState(0);
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
-  const [view, setView] = useState('list'); // 'list', 'calendar', 'timeline'
-  const [soundModalOpen, setSoundModalOpen] = useState(false);
-  const [selectedSound, setSelectedSound] = useState(() => localStorage.getItem('noir_selected_sound') || '');
-  const audioRef = useRef(null);
-
-  // Load selected sound from settings
-  useEffect(() => {
-    fetch(`${SERVER_URL}/api/settings`)
-      .then(r => r.json())
-      .then(d => {
-        if (d.notificationSound) setSelectedSound(d.notificationSound);
-      })
-      .catch(() => {});
-  }, []);
-
-  const playNotificationSound = useCallback(() => {
-    if (!audioEnabled) return;
-    if (selectedSound) {
-      // Play selected custom sound
-      try {
-        if (audioRef.current) {
-          audioRef.current.pause();
-          audioRef.current.currentTime = 0;
-        }
-        const audio = new Audio(`${SERVER_URL}/sounds/${selectedSound}`);
-        audioRef.current = audio;
-        audio.play().catch(() => {
-          // Fallback to synth
-          playSynth();
-        });
-      } catch {
-        playSynth();
-      }
-    } else {
-      playSynth();
+  const handleSoundChange = (e) => {
+    const filename = e.target.value;
+    stopAudio();
+    selectedSoundRef.current = filename;
+    setSelectedSound(filename);
+    localStorage.setItem('barber_selected_sound', filename);
+    if (filename) {
+      const audio = new Audio(`${SERVER_URL}/sounds/${filename}`);
+      audio.volume = 0.7;
+      audioRef.current = audio;
+      audio.play().catch(() => {});
     }
-  }, [audioEnabled, selectedSound, playSynth]);
+  };
 
+  // Date navigation with slide animation
+  const navigateDay = (offset) => {
+    setSlideDir(offset > 0 ? 'left' : 'right');
+    setTimeout(() => {
+      const d = new Date(cursor.year, cursor.month, cursor.day);
+      d.setDate(d.getDate() + offset);
+      setCursor({ year: d.getFullYear(), month: d.getMonth(), day: d.getDate() });
+      setSelectedDate(d.toISOString().split('T')[0]);
+      setSlideDir('');
+    }, 150);
+  };
+
+  const handleSelectDate = (ds) => {
+    const [y, m, d] = ds.split('-').map(Number);
+    const oldDate = new Date(cursor.year, cursor.month, cursor.day);
+    const newDate = new Date(y, m - 1, d);
+    const diff = (newDate - oldDate) / (1000 * 60 * 60 * 24);
+
+    if (diff !== 0) {
+      setSlideDir(diff > 0 ? 'left' : 'right');
+      setTimeout(() => {
+        setCursor({ year: y, month: m - 1, day: d });
+        setSelectedDate(ds);
+        setSlideDir('');
+      }, 150);
+    }
+  };
+
+  // Fetch appointments
   const fetchAppts = useCallback(async () => {
     try {
       const res = await fetch(`${SERVER_URL}/api/appointments`, { headers: authHeaders() });
       if (!res.ok) return;
       const data = await res.json();
       const list = Array.isArray(data) ? data : [];
-      const newPending = list.filter(a => a.status === 'pending').length;
-      if (newPending > prevPending && prevPending !== 0 && audioEnabled) {
-        playNotificationSound();
-      }
-      setPrevPending(newPending);
+      const pendingCount = list.filter(a => a.status === 'pending').length;
+      if (!firstLoadRef.current && pendingCount > 0 && audioEnabledRef.current) playSound();
+      firstLoadRef.current = false;
       setAppointments(list);
       setLoading(false);
     } catch { setLoading(false); }
-  }, [token, audioEnabled, playNotificationSound]);
+  }, [authHeaders, playSound]);
 
-  /* Poll every 15 seconds */
   useEffect(() => {
     fetchAppts();
     const id = setInterval(fetchAppts, 15000);
@@ -321,40 +377,18 @@ export default function BarberPanel({ token, currentUser, authHeaders, onLogout,
     setActionId(id);
     try {
       await fetch(`${SERVER_URL}/api/appointments/${id}`, {
-        method: 'PATCH',
-        headers: authHeaders(),
-        body: JSON.stringify({ status }),
+        method: 'PATCH', headers: authHeaders(), body: JSON.stringify({ status }),
       });
       await fetchAppts();
     } finally { setActionId(null); }
   };
 
-  const handleSoundSelect = async (filename) => {
-    setSelectedSound(filename);
-    localStorage.setItem('noir_selected_sound', filename);
-
-    // Persist to server settings
-    try {
-      const settingsRes = await fetch(`${SERVER_URL}/api/settings`);
-      const settings = await settingsRes.json();
-      settings.notificationSound = filename;
-      await fetch(`${SERVER_URL}/api/settings`, {
-        method: 'PUT',
-        headers: authHeaders(),
-        body: JSON.stringify({ notificationSound: filename }),
-      });
-    } catch {}
-  };
-
-  const today = new Date().toLocaleDateString('tr-TR', { weekday: 'long', month: 'long', day: 'numeric' });
   const pending = appointments.filter(a => a.status === 'pending');
   const upcoming = appointments.filter(a => a.status === 'approved' && new Date(a.time) >= new Date());
-  const past = appointments.filter(a => a.status === 'approved' && new Date(a.time) < new Date());
 
   function AppointmentCard({ appt, showActions }) {
-    const timeStr = new Date(appt.time).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-    const dateStr = new Date(appt.time).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-
+    const timeStr = new Date(appt.time).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit', hour12: false });
+    const dateStr = new Date(appt.time).toLocaleDateString('tr-TR', { month: 'short', day: 'numeric' });
     return (
       <div className="bg-surface-container-lowest rounded-[2rem] p-5 ambient-shadow">
         <div className="flex items-start justify-between mb-3">
@@ -376,18 +410,10 @@ export default function BarberPanel({ token, currentUser, authHeaders, onLogout,
         </div>
         {showActions && appt.status === 'pending' && (
           <div className="flex gap-3">
-            <button
-              disabled={actionId === appt.id}
-              onClick={() => updateStatus(appt.id, 'approved')}
-              className="flex-1 py-3 bg-green-500 text-white rounded-xl font-bold text-sm hover:bg-green-600 transition-colors flex items-center justify-center gap-2 active:scale-95"
-            >
+            <button disabled={actionId === appt.id} onClick={() => updateStatus(appt.id, 'approved')} className="flex-1 py-3 bg-green-500 text-white rounded-xl font-bold text-sm hover:bg-green-600 transition-colors flex items-center justify-center gap-2 active:scale-95">
               <span className="material-symbols-outlined text-base">check</span> Onayla
             </button>
-            <button
-              disabled={actionId === appt.id}
-              onClick={() => updateStatus(appt.id, 'rejected')}
-              className="flex-1 py-3 bg-red-50 text-red-600 rounded-xl font-bold text-sm hover:bg-red-100 transition-colors flex items-center justify-center gap-2 active:scale-95"
-            >
+            <button disabled={actionId === appt.id} onClick={() => updateStatus(appt.id, 'rejected')} className="flex-1 py-3 bg-red-50 text-red-600 rounded-xl font-bold text-sm hover:bg-red-100 transition-colors flex items-center justify-center gap-2 active:scale-95">
               <span className="material-symbols-outlined text-base">close</span> Reddet
             </button>
           </div>
@@ -398,17 +424,8 @@ export default function BarberPanel({ token, currentUser, authHeaders, onLogout,
 
   return (
     <div className="min-h-screen bg-surface font-body">
-      {/* Sound Manager Modal */}
-      {soundModalOpen && (
-        <SoundManager
-          onClose={() => setSoundModalOpen(false)}
-          onSelect={handleSoundSelect}
-          currentSound={selectedSound}
-        />
-      )}
-
       {/* Header */}
-      <header className="sticky top-0 z-40 bg-surface/90 backdrop-blur-xl border-b border-surface-container px-6 py-4 flex items-center justify-between">
+      <header className="sticky top-0 z-40 bg-surface/90 backdrop-blur-xl border-b border-surface-container px-4 md:px-6 py-3 md:py-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-on-primary font-bold">
             {(currentUser?.name || currentUser?.username || 'B')[0].toUpperCase()}
@@ -419,44 +436,36 @@ export default function BarberPanel({ token, currentUser, authHeaders, onLogout,
           </div>
         </div>
         <div className="flex items-center gap-2">
-          {/* View toggle */}
-          <button
-            onClick={() => setView('list')}
-            className={`p-2.5 rounded-full transition-colors ${view === 'list' ? 'bg-primary text-on-primary' : 'bg-surface-container text-on-surface-variant'}`}
-            title="Liste Görünümü"
-          >
-            <span className="material-symbols-outlined text-base">list</span>
-          </button>
-          <button
-            onClick={() => setView('calendar')}
-            className={`p-2.5 rounded-full transition-colors ${view === 'calendar' || view === 'timeline' ? 'bg-primary text-on-primary' : 'bg-surface-container text-on-surface-variant'}`}
-            title="Takvim Görünümü"
-          >
-            <span className="material-symbols-outlined text-base">calendar_month</span>
-          </button>
-          {/* Sound settings */}
-          <button
-            onClick={() => setSoundModalOpen(true)}
-            className="p-2.5 rounded-full bg-surface-container text-on-surface-variant hover:bg-blue-50 hover:text-primary transition-colors"
-            title="Bildirim sesi ayarla"
-          >
-            <span className="material-symbols-outlined text-base">tune</span>
-          </button>
-          <button
-            onClick={toggleAudio}
-            className={`p-2.5 rounded-full transition-colors ${audioEnabled ? 'bg-primary text-on-primary' : 'bg-surface-container text-on-surface-variant'}`}
-            title={audioEnabled ? 'Sound on' : 'Sound off'}
-          >
+          {/* Sound selector (desktop) */}
+          <div className="hidden md:flex items-center gap-2">
+            <select value={selectedSound} onChange={handleSoundChange} className="input-base text-xs w-40 py-1.5" aria-label="Bildirim sesi seç">
+              <option value="">Varsayılan (synth)</option>
+              {sounds.map(f => <option key={f} value={f}>{f}</option>)}
+            </select>
+            <button onClick={playSound} className="p-2 rounded-lg bg-surface-container hover:bg-surface-container-high transition-colors" title="Sesi test et">
+              <span className="material-symbols-outlined text-on-surface-variant text-base">play_arrow</span>
+            </button>
+          </div>
+          <button onClick={toggleAudio} className={`p-2.5 rounded-full transition-colors ${audioEnabled ? 'bg-primary text-on-primary' : 'bg-surface-container text-on-surface-variant'}`} aria-label={audioEnabled ? 'Sesi kapat' : 'Sesi aç'} title={audioEnabled ? 'Bildirim sesi açık' : 'Bildirim sesi kapalı'}>
             <span className="material-symbols-outlined text-base">{audioEnabled ? 'volume_up' : 'volume_off'}</span>
           </button>
-          <button onClick={onLogout} className="p-2.5 rounded-full bg-surface-container text-on-surface-variant hover:bg-red-50 hover:text-error transition-colors">
+          <button onClick={onLogout} className="p-2.5 rounded-full bg-surface-container text-on-surface-variant hover:bg-red-50 hover:text-error transition-colors" aria-label="Çıkış yap">
             <span className="material-symbols-outlined text-base">logout</span>
           </button>
         </div>
       </header>
 
-      <div className="max-w-2xl mx-auto px-4 py-6 space-y-6">
-        <p className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">{today}</p>
+      <div className="max-w-7xl mx-auto px-4 py-6">
+        {/* Mobile sound selector */}
+        <div className="md:hidden flex items-center gap-2 mb-4">
+          <select value={selectedSound} onChange={handleSoundChange} className="input-base text-xs flex-1" aria-label="Bildirim sesi seç">
+            <option value="">Varsayılan (synth)</option>
+            {sounds.map(f => <option key={f} value={f}>{f}</option>)}
+          </select>
+          <button onClick={playSound} className="p-2 rounded-lg bg-surface-container" title="Test et">
+            <span className="material-symbols-outlined text-on-surface-variant text-base">play_arrow</span>
+          </button>
+        </div>
 
         {loading ? (
           <div className="flex items-center justify-center py-16">
@@ -464,22 +473,16 @@ export default function BarberPanel({ token, currentUser, authHeaders, onLogout,
           </div>
         ) : (
           <>
-            {/* Calendar/Timeline View */}
-            {(view === 'calendar' || view === 'timeline') && (
+            {/* ── DESKTOP: side by side ── */}
+            <div className="hidden md:grid md:grid-cols-2 gap-6">
+              {/* Left: Date bar + day timeline */}
               <div className="space-y-6">
-                <ScheduleCalendar
-                  appointments={appointments}
-                  selectedDate={selectedDate}
-                  onSelectDate={setSelectedDate}
-                />
+                <DateBar cursor={cursor} onPrev={() => navigateDay(-1)} onNext={() => navigateDay(1)} selectedDate={selectedDate} onSelectDate={handleSelectDate} appointments={appointments} slideDir={slideDir} />
                 <DayTimeline appointments={appointments} selectedDate={selectedDate} />
               </div>
-            )}
 
-            {/* List View */}
-            {view === 'list' && (
-              <>
-                {/* Pending */}
+              {/* Right: pending + upcoming lists */}
+              <div className="space-y-6">
                 {pending.length > 0 && (
                   <section>
                     <div className="flex items-center gap-2 mb-3">
@@ -491,8 +494,6 @@ export default function BarberPanel({ token, currentUser, authHeaders, onLogout,
                     </div>
                   </section>
                 )}
-
-                {/* Upcoming */}
                 {upcoming.length > 0 && (
                   <section>
                     <h2 className="font-extrabold text-on-surface mb-3">Bugünkü Program</h2>
@@ -501,26 +502,39 @@ export default function BarberPanel({ token, currentUser, authHeaders, onLogout,
                     </div>
                   </section>
                 )}
-
-                {/* Past */}
-                {past.length > 0 && (
-                  <section>
-                    <h2 className="font-extrabold text-on-surface mb-3 text-on-surface-variant">Geçmiş</h2>
-                    <div className="flex flex-col gap-3">
-                      {past.slice(0, 5).map(a => <AppointmentCard key={a.id} appt={a} showActions={false} />)}
-                    </div>
-                  </section>
-                )}
-
-                {appointments.length === 0 && (
+                {pending.length === 0 && upcoming.length === 0 && (
                   <div className="text-center py-16 text-on-surface-variant">
                     <span className="material-symbols-outlined text-6xl mb-4 block opacity-30">event_available</span>
                     <p className="font-semibold">Henüz randevu yok</p>
-                    <p className="text-sm mt-1">Yeni rezervasyonlar burada görünecek</p>
                   </div>
                 )}
-              </>
-            )}
+              </div>
+            </div>
+
+            {/* ── MOBILE: always show appointments first, then calendar ── */}
+            <div className="md:hidden space-y-6">
+              {pending.length > 0 && (
+                <section>
+                  <div className="flex items-center gap-2 mb-3">
+                    <h2 className="font-extrabold text-on-surface">Onay Bekleyen</h2>
+                    <span className="bg-amber-500 text-white text-[10px] font-bold rounded-full px-2 py-0.5">{pending.length}</span>
+                  </div>
+                  <div className="flex flex-col gap-3">
+                    {pending.map(a => <AppointmentCard key={a.id} appt={a} showActions={true} />)}
+                  </div>
+                </section>
+              )}
+              {upcoming.length > 0 && (
+                <section>
+                  <h2 className="font-extrabold text-on-surface mb-3">Bugünkü Program</h2>
+                  <div className="flex flex-col gap-3">
+                    {upcoming.map(a => <AppointmentCard key={a.id} appt={a} showActions={false} />)}
+                  </div>
+                </section>
+              )}
+              <DateBar cursor={cursor} onPrev={() => navigateDay(-1)} onNext={() => navigateDay(1)} selectedDate={selectedDate} onSelectDate={handleSelectDate} appointments={appointments} slideDir={slideDir} />
+              <DayTimeline appointments={appointments} selectedDate={selectedDate} />
+            </div>
           </>
         )}
       </div>

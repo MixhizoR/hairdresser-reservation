@@ -19,6 +19,7 @@ router.get('/', async (req, res) => {
             phone: b.phone,
             photoUrl: b.photoUrl,
             isActive: b.isActive,
+            level: b.level,
             createdAt: b.createdAt
         }));
         console.log('[DEBUG] Sending safeBarbers:', safeBarbers);
@@ -41,6 +42,7 @@ router.get('/all', authMiddleware, requireRole('ADMIN'), async (req, res) => {
             phone: b.phone,
             photoUrl: b.photoUrl,
             isActive: b.isActive,
+            level: b.level,
             createdAt: b.createdAt
         }));
         res.json(safeBarbers);
@@ -67,6 +69,7 @@ router.get('/:id', authMiddleware, async (req, res) => {
             phone: barber.phone,
             photoUrl: barber.photoUrl,
             isActive: barber.isActive,
+            level: barber.level,
             createdAt: barber.createdAt
         });
     } catch (err) {
@@ -76,7 +79,8 @@ router.get('/:id', authMiddleware, async (req, res) => {
 
 // Create new barber (admin only)
 router.post('/', authMiddleware, requireRole('ADMIN'), photoUpload.single('photo'), async (req, res) => {
-    const { username, password, name, phone } = req.body;
+    const { username, password, name, phone, level } = req.body;
+    const cleanPhone = phone ? String(phone).replace(/\D/g, '') : null;
 
     if (!username || !password)
         return res.status(400).json({ error: 'Kullanıcı adı ve şifre gerekli.' });
@@ -84,6 +88,10 @@ router.post('/', authMiddleware, requireRole('ADMIN'), photoUpload.single('photo
         return res.status(400).json({ error: 'Kullanıcı adı 3-30 karakter arasında.' });
     if (password.length < 8)
         return res.status(400).json({ error: 'Şifre en az 8 karakter.' });
+    if (cleanPhone && cleanPhone.length !== 11)
+        return res.status(400).json({ error: 'Telefon numarası 11 haneli olmalıdır.' });
+    if (cleanPhone && !cleanPhone.startsWith('05'))
+        return res.status(400).json({ error: 'Telefon numarası 05 ile başlamalıdır.' });
 
     try {
         if (await db.usernameExists(username))
@@ -95,8 +103,9 @@ router.post('/', authMiddleware, requireRole('ADMIN'), photoUpload.single('photo
             password: hash,
             role: 'BARBER',
             name: name || null,
-            phone: phone || null,
+            phone: cleanPhone,
             photoUrl: req.file ? '/uploads/' + req.file.filename : null,
+            level: level || 'SENIOR',
             isActive: true
         });
 
@@ -108,6 +117,7 @@ router.post('/', authMiddleware, requireRole('ADMIN'), photoUpload.single('photo
                 name: barber.name,
                 phone: barber.phone,
                 photoUrl: barber.photoUrl,
+                level: barber.level,
                 isActive: barber.isActive
             }
         });
@@ -119,7 +129,15 @@ router.post('/', authMiddleware, requireRole('ADMIN'), photoUpload.single('photo
 // Update barber (admin or self)
 router.put('/:id', authMiddleware, photoUpload.single('photo'), async (req, res) => {
     const { id } = req.params;
-    const { name, phone, password } = req.body;
+    const { name, phone, password, level, username } = req.body;
+    const cleanPhone = phone ? String(phone).replace(/\D/g, '') : undefined;
+
+    if (cleanPhone && cleanPhone.length !== 11)
+        return res.status(400).json({ error: 'Telefon numarası 11 haneli olmalıdır.' });
+    if (cleanPhone && !cleanPhone.startsWith('05'))
+        return res.status(400).json({ error: 'Telefon numarası 05 ile başlamalıdır.' });
+    if (password && password.length < 8)
+        return res.status(400).json({ error: 'Şifre en az 8 karakter.' });
 
     try {
         const barber = await db.findUserById(id);
@@ -131,8 +149,10 @@ router.put('/:id', authMiddleware, photoUpload.single('photo'), async (req, res)
             return res.status(403).json({ error: 'Yetkiniz yok.' });
 
         const updateData = {};
-        if (name) updateData.name = name;
-        if (phone) updateData.phone = phone;
+        if (name !== undefined) updateData.name = name;
+        if (username !== undefined) updateData.username = username;
+        if (phone !== undefined) updateData.phone = cleanPhone;
+        if (level !== undefined) updateData.level = level;
         if (password) updateData.password = await bcrypt.hash(password, 12);
         if (req.file) updateData.photoUrl = '/uploads/' + req.file.filename;
 
@@ -146,7 +166,8 @@ router.put('/:id', authMiddleware, photoUpload.single('photo'), async (req, res)
                 name: updated.name,
                 phone: updated.phone,
                 photoUrl: updated.photoUrl,
-                isActive: updated.isActive
+                isActive: updated.isActive,
+                level: updated.level
             }
         });
     } catch (err) {

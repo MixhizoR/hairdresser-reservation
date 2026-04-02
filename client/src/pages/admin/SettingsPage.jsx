@@ -124,9 +124,9 @@ export default function SettingsPage({ token, authHeaders, audioEnabled, toggleA
                   <span className="text-sm text-on-surface-variant">Kapalı</span>
                 ) : (
                   <div className="flex items-center gap-2 text-sm">
-                    <input type="time" className="input-base w-28" value={h.open} onChange={e => updateHour(day, 'open', e.target.value)} step="1800" />
+                    <input type="time" className="input-base w-28" value={h.open} onChange={e => updateHour(day, 'open', e.target.value)} step="1800" min="08:30" max="19:00" />
                     <span className="text-on-surface-variant">—</span>
-                    <input type="time" className="input-base w-28" value={h.close} onChange={e => updateHour(day, 'close', e.target.value)} step="1800" />
+                    <input type="time" className="input-base w-28" value={h.close} onChange={e => updateHour(day, 'close', e.target.value)} step="1800" min="08:30" max="19:00" />
                   </div>
                 )}
                 <button

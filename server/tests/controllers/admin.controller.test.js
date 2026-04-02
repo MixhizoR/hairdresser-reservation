@@ -287,6 +287,39 @@ describe('Admin Controller', () => {
             expect(createCall.password).not.toBe('plaintextpass');
             expect(createCall.password).toMatch(/^\$2b\$12\$/);
         });
+
+        it('should sanitize phone number (remove spaces) before saving', async () => {
+            dbService.usernameExists.mockResolvedValue(false);
+            dbService.createUser.mockResolvedValue({ id: 'v-1', username: 'v1', role: 'BARBER' });
+
+            await request(app)
+                .post('/api/auth/register')
+                .set('Authorization', `Bearer ${adminToken}`)
+                .send({ username: 'reg_barber_1', password: 'password123', phone: '0532 444 55 66' });
+
+            const createCall = dbService.createUser.mock.calls[0][0];
+            expect(createCall.phone).toBe('05324445566');
+        });
+
+        it('should return 400 if phone is not 11 digits', async () => {
+            const res = await request(app)
+                .post('/api/auth/register')
+                .set('Authorization', `Bearer ${adminToken}`)
+                .send({ username: 'reg_barber_2', password: 'password123', phone: '0532123456' });
+
+            expect(res.status).toBe(400);
+            expect(res.body.error).toContain('11 haneli');
+        });
+
+        it('should return 400 if phone does not start with 05', async () => {
+            const res = await request(app)
+                .post('/api/auth/register')
+                .set('Authorization', `Bearer ${adminToken}`)
+                .send({ username: 'reg_barber_3', password: 'password123', phone: '15321234567' });
+
+            expect(res.status).toBe(400);
+            expect(res.body.error).toContain('05 ile başlamalıdır');
+        });
     });
 
     // ==================== GET ME ====================
@@ -360,6 +393,28 @@ describe('Admin Controller', () => {
             expect(res.body.success).toBe(true);
             expect(res.body.user.name).toBe('Updated Name');
             expect(res.body.user.phone).toBe('05329876543');
+        });
+
+        it('should sanitize phone number during profile update', async () => {
+            dbService.updateUser.mockResolvedValue({ id: 'barber-1', phone: '05329998877' });
+
+            const res = await request(app)
+                .put('/api/auth/profile')
+                .set('Authorization', `Bearer ${barberToken}`)
+                .send({ phone: '0532 999 88 77' });
+
+            expect(res.status).toBe(200);
+            const updateCall = dbService.updateUser.mock.calls[0][1];
+            expect(updateCall.phone).toBe('05329998877');
+        });
+
+        it('should return 400 for invalid phone during profile update', async () => {
+            const res = await request(app)
+                .put('/api/auth/profile')
+                .set('Authorization', `Bearer ${barberToken}`)
+                .send({ phone: '123' });
+
+            expect(res.status).toBe(400);
         });
     });
 

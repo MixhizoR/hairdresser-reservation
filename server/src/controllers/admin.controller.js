@@ -46,7 +46,8 @@ const login = async (req, res) => {
 
 // Register - Sadece admin kullanıcı oluşturabilir
 const register = async (req, res) => {
-    const { username, password, role, name, phone } = req.body;
+    const { username, password, role, name, phone, level } = req.body;
+    const cleanPhone = phone ? String(phone).replace(/\D/g, '') : null;
 
     if (!username || !password)
         return res.status(400).json({ error: 'Kullanıcı adı ve şifre gerekli.' });
@@ -54,6 +55,10 @@ const register = async (req, res) => {
         return res.status(400).json({ error: 'Kullanıcı adı 3-30 karakter arasında olmalıdır.' });
     if (password.length < 8)
         return res.status(400).json({ error: 'Şifre en az 8 karakter olmalıdır.' });
+    if (cleanPhone && cleanPhone.length !== 11)
+        return res.status(400).json({ error: 'Telefon numarası 11 haneli olmalıdır.' });
+    if (cleanPhone && !cleanPhone.startsWith('05'))
+        return res.status(400).json({ error: 'Telefon numarası 05 ile başlamalıdır.' });
 
     // Validate role
     const allowedRoles = ['ADMIN', 'BARBER'];
@@ -70,7 +75,8 @@ const register = async (req, res) => {
             password: hash,
             role: role || 'BARBER',
             name: name || null,
-            phone: phone || null,
+            phone: cleanPhone,
+            level: level || 'SENIOR',
             isActive: true
         });
 
@@ -80,7 +86,8 @@ const register = async (req, res) => {
                 id: user.id,
                 username: user.username,
                 role: user.role,
-                name: user.name
+                name: user.name,
+                level: user.level
             }
         });
     } catch (err) {
@@ -103,6 +110,7 @@ const getMe = async (req, res) => {
             name: user.name,
             phone: user.phone,
             isActive: user.isActive,
+            level: user.level,
             createdAt: user.createdAt
         });
     } catch (err) {
@@ -114,11 +122,17 @@ const getMe = async (req, res) => {
 // Update user profile (for barbers to update their info)
 const updateProfile = async (req, res) => {
     const { name, phone } = req.body;
+    const cleanPhone = phone ? String(phone).replace(/\D/g, '') : undefined;
+
+    if (cleanPhone && cleanPhone.length !== 11)
+        return res.status(400).json({ error: 'Telefon numarası 11 haneli olmalıdır.' });
+    if (cleanPhone && !cleanPhone.startsWith('05'))
+        return res.status(400).json({ error: 'Telefon numarası 05 ile başlamalıdır.' });
 
     try {
         const user = await db.updateUser(req.user.id, {
             name: name || undefined,
-            phone: phone || undefined
+            phone: cleanPhone
         });
 
         res.json({

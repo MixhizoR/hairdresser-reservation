@@ -10,6 +10,12 @@ const STATUS_STYLE = {
   rejected: 'status-rejected',
 };
 
+const STATUS_LABELS = {
+  pending: 'Bekliyor',
+  approved: 'Onaylandı',
+  rejected: 'Reddedildi',
+};
+
 /* ── Polling: fetch every 15 seconds ── */
 function useAppointmentsPolling(token, authHeadersFn) {
   const [appointments, setAppointments] = useState([]);
@@ -66,7 +72,7 @@ export default function AppointmentsPage({ token, authHeaders, audioEnabled, pla
   };
 
   const deleteAppointment = async (id) => {
-    if (!confirm('Cancel this appointment?')) return;
+    if (!confirm('Bu randevuyu silmek istiyor musunuz?')) return;
     setActionLoading(id + 'del');
     try {
       await fetch(`${SERVER_URL}/api/appointments/${id}`, { method: 'DELETE', headers: authHeaders() });
@@ -101,13 +107,12 @@ export default function AppointmentsPage({ token, authHeaders, audioEnabled, pla
           <button
             key={f}
             onClick={() => setFilter(f)}
-            className={`px-4 py-1.5 rounded-full text-sm font-semibold transition-all ${
-              filter === f
+            className={`px-4 py-1.5 rounded-full text-sm font-semibold transition-all ${filter === f
                 ? 'bg-primary text-on-primary shadow-md shadow-primary/20'
                 : 'bg-surface-container text-on-surface-variant hover:bg-surface-container-high'
-            }`}
-            >
-              {FILTER_LABELS[f] || f.charAt(0).toUpperCase() + f.slice(1)}
+              }`}
+          >
+            {FILTER_LABELS[f] || f.charAt(0).toUpperCase() + f.slice(1)}
             {f === 'pending' && pendingCount > 0 && (
               <span className="ml-2 bg-amber-500 text-white rounded-full text-[10px] px-1.5 py-0.5">{pendingCount}</span>
             )}
@@ -124,25 +129,25 @@ export default function AppointmentsPage({ token, authHeaders, audioEnabled, pla
         ) : filtered.length === 0 ? (
           <div className="text-center py-16 text-on-surface-variant">
             <span className="material-symbols-outlined text-5xl mb-3 block opacity-30">event_busy</span>
-            <p className="font-medium">No appointments</p>
+            <p className="font-medium">Henüz randevu yok</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full" style={{ tableLayout: 'fixed' }}>
               <thead>
                 <tr className="bg-surface-container-low text-xs uppercase tracking-widest text-on-surface-variant">
-                  <th className="text-left px-6 py-4 font-bold" style={{ width: '15%' }}>Saat</th>
-                  <th className="text-left px-6 py-4 font-bold" style={{ width: '20%' }}>Müşteri</th>
-                  <th className="text-left px-6 py-4 font-bold" style={{ width: '18%' }}>Stilist</th>
-                  <th className="text-left px-6 py-4 font-bold" style={{ width: '17%' }}>Hizmet</th>
-                  <th className="text-left px-6 py-4 font-bold" style={{ width: '12%' }}>Durum</th>
-                  <th className="text-left px-6 py-4 font-bold" style={{ width: '18%' }}>İşlemler</th>
+                  <th className="text-left px-6 py-4 font-bold whitespace-nowrap" style={{ width: '15%' }}>Saat</th>
+                  <th className="text-left px-6 py-4 font-bold whitespace-nowrap" style={{ width: '20%' }}>Müşteri</th>
+                  <th className="text-left px-6 py-4 font-bold whitespace-nowrap hidden md:table-cell" style={{ width: '18%' }}>Stilist</th>
+                  <th className="text-left px-6 py-4 font-bold whitespace-nowrap hidden md:table-cell" style={{ width: '17%' }}>Hizmet</th>
+                  <th className="text-left px-6 py-4 font-bold whitespace-nowrap" style={{ width: '12%' }}>Durum</th>
+                  <th className="text-left px-6 py-4 font-bold whitespace-nowrap" style={{ width: '18%' }}>İşlemler</th>
                 </tr>
               </thead>
               <tbody>
                 {filtered.map(a => (
                   <tr key={a.id} className="border-t border-surface-container hover:bg-surface-container-low/50 transition-colors">
-                    <td className="px-6 py-4">
+                    <td className="px-6 py-4 whitespace-nowrap min-w-0">
                       <p className="font-bold text-sm text-on-surface">
                         {new Date(a.time).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
                       </p>
@@ -150,11 +155,11 @@ export default function AppointmentsPage({ token, authHeaders, audioEnabled, pla
                         {new Date(a.time).toLocaleDateString('tr-TR', { month: 'short', day: 'numeric' })}
                       </p>
                     </td>
-                    <td className="px-6 py-4">
-                      <p className="font-semibold text-sm text-on-surface">{a.name}</p>
+                    <td className="px-6 py-4 whitespace-nowrap min-w-0">
+                      <p className="font-semibold text-sm text-on-surface overflow-hidden text-ellipsis">{a.name}</p>
                       <p className="text-xs text-on-surface-variant">{a.phone}</p>
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-6 py-4 whitespace-nowrap min-w-0 hidden md:table-cell">
                       <div className="flex items-center gap-2">
                         <div className="w-7 h-7 rounded-full bg-secondary-container flex items-center justify-center text-xs font-bold text-primary shrink-0">
                           {(a.barber?.name || '?')[0]}
@@ -162,11 +167,11 @@ export default function AppointmentsPage({ token, authHeaders, audioEnabled, pla
                         <span className="text-sm text-on-surface">{a.barber?.name || '—'}</span>
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-sm text-on-surface">{a.service}</td>
-                    <td className="px-6 py-4">
-                      <span className={STATUS_STYLE[a.status] || STATUS_STYLE.pending}>{a.status}</span>
+                    <td className="px-6 py-4 text-sm text-on-surface whitespace-nowrap min-w-0 hidden md:table-cell overflow-hidden text-ellipsis">{a.service}</td>
+                    <td className="px-6 py-4 whitespace-nowrap min-w-0">
+                      <span className={STATUS_STYLE[a.status] || STATUS_STYLE.pending}>{STATUS_LABELS[a.status] || a.status}</span>
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-6 py-4 whitespace-nowrap min-w-0">
                       <div className="flex items-center gap-1">
                         {a.status === 'pending' && (
                           <>
@@ -174,7 +179,7 @@ export default function AppointmentsPage({ token, authHeaders, audioEnabled, pla
                               disabled={!!actionLoading}
                               onClick={() => updateStatus(a.id, 'approved')}
                               className="p-1.5 rounded-lg bg-green-50 hover:bg-green-100 text-green-700 transition-colors"
-                              title="Approve"
+                              title="Onayla"
                             >
                               <span className="material-symbols-outlined text-base">check</span>
                             </button>
@@ -182,7 +187,7 @@ export default function AppointmentsPage({ token, authHeaders, audioEnabled, pla
                               disabled={!!actionLoading}
                               onClick={() => updateStatus(a.id, 'rejected')}
                               className="p-1.5 rounded-lg bg-red-50 hover:bg-red-100 text-red-700 transition-colors"
-                              title="Reject"
+                              title="Reddet"
                             >
                               <span className="material-symbols-outlined text-base">close</span>
                             </button>
@@ -192,7 +197,7 @@ export default function AppointmentsPage({ token, authHeaders, audioEnabled, pla
                           disabled={!!actionLoading}
                           onClick={() => deleteAppointment(a.id)}
                           className="p-1.5 rounded-lg bg-slate-50 hover:bg-red-50 text-slate-500 hover:text-red-600 transition-colors"
-                          title="Cancel"
+                          title="Sil"
                         >
                           <span className="material-symbols-outlined text-base">delete</span>
                         </button>

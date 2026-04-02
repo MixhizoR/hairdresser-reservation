@@ -24,8 +24,13 @@ model User {
   phone     String?  // Berberin telefonu (opsiyonel)
   photoUrl  String?  // Berberin fotoğraf URL'si (opsiyonel)
   isActive  Boolean  @default(true)
+  level     String   @default("SENIOR")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  // Notification sound preference (server-side persistence)
+  notificationSoundUrl  String?  // URL/path to the selected sound file
+  notificationSoundName String?  // Display name of the selected sound
 
   // İlişkiler
   appointments Appointment[]

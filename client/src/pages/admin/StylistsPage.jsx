@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 
 const SERVER_URL = import.meta.env.VITE_API_URL || '';
 const LEVELS = ['JUNIOR', 'SENIOR', 'MASTER', 'DIRECTOR'];
+const LEVEL_LABELS = { JUNIOR: 'Çırak', SENIOR: 'Kıdemli', MASTER: 'Usta', DIRECTOR: 'Direktör' };
 const LEVEL_STYLE = {
   JUNIOR: 'bg-slate-100 text-slate-600',
   SENIOR: 'bg-blue-50 text-blue-700',
@@ -16,7 +17,6 @@ function StylistModal({ stylist, onClose, onSave }) {
     password: '',
     phone: stylist?.phone || '',
     level: stylist?.level || 'SENIOR',
-    speciality: stylist?.speciality || '',
   });
   const [photoFile, setPhotoFile] = useState(null);
   const [preview, setPreview] = useState(stylist?.photoUrl ? `${SERVER_URL}${stylist.photoUrl}` : null);
@@ -25,6 +25,23 @@ function StylistModal({ stylist, onClose, onSave }) {
   const fileRef = useRef();
 
   const update = (k, v) => setForm(f => ({ ...f, [k]: v }));
+  const maskPhone = (val) => {
+    let clean = val.replace(/\D/g, '');
+    if (clean.length > 11) clean = clean.slice(0, 11);
+    if (clean.length === 0) return '';
+    let masked = '0';
+    if (clean.startsWith('0')) clean = clean.slice(1);
+    const part1 = clean.slice(0, 3);
+    const part2 = clean.slice(3, 6);
+    const part3 = clean.slice(6, 8);
+    const part4 = clean.slice(8, 10);
+    if (part1) masked += ` (${part1}`;
+    if (part1.length === 3) masked += ')';
+    if (part2) masked += ` ${part2}`;
+    if (part3) masked += ` ${part3}`;
+    if (part4) masked += ` ${part4}`;
+    return masked;
+  };
 
   const onFileChange = (e) => {
     const file = e.target.files[0];
@@ -34,9 +51,11 @@ function StylistModal({ stylist, onClose, onSave }) {
   };
 
   const handleSubmit = async () => {
-    if (!form.name || !form.username) { setError('Name and username are required.'); return; }
-    if (!stylist && !form.password) { setError('Password is required for new stylists.'); return; }
-    if (form.password && form.password.length < 8) { setError('Password must be at least 8 characters.'); return; }
+    if (!form.name || !form.username) { setError('Ad ve kullanıcı adı zorunludur.'); return; }
+    if (!stylist && !form.password) { setError('Yeni stilistler için şifre zorunludur.'); return; }
+    if (form.password && form.password.length < 8) { setError('Şifre en az 8 karakter olmalıdır.'); return; }
+    const cleanPhone = form.phone.replace(/\D/g, '');
+    if (cleanPhone && !/^05\d{9}$/.test(cleanPhone)) { setError('Format: 05xxxxxxxxx (05 ile başlamalıdır)'); return; }
     setLoading(true);
     setError('');
     try {
@@ -45,9 +64,8 @@ function StylistModal({ stylist, onClose, onSave }) {
       fd.append('name', form.name);
       fd.append('username', form.username);
       if (form.password) fd.append('password', form.password);
-      fd.append('phone', form.phone);
+      fd.append('phone', form.phone.replace(/\D/g, ''));
       fd.append('level', form.level);
-      fd.append('speciality', form.speciality);
       if (photoFile) fd.append('photo', photoFile);
       await onSave(fd);
     } catch (e) { setError(e.message); }
@@ -58,7 +76,7 @@ function StylistModal({ stylist, onClose, onSave }) {
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
       <div className="relative bg-surface-container-lowest rounded-[2rem] p-8 w-full max-w-lg ambient-shadow max-h-[90vh] overflow-y-auto">
-        <h3 className="text-xl font-extrabold text-on-surface mb-6">{stylist ? 'Stilist Düzenle' : 'Yeni Stilist Ekle'}</h3>
+        <h3 className="text-xl font-extrabold text-on-surface mb-6">{stylist ? 'Stilisti Düzenle' : 'Yeni Stilist Ekle'}</h3>
 
         {error && <div className="bg-error-container text-on-error-container rounded-xl px-4 py-3 text-sm mb-4">{error}</div>}
 
@@ -72,7 +90,7 @@ function StylistModal({ stylist, onClose, onSave }) {
           ) : (
             <>
               <span className="material-symbols-outlined text-5xl text-on-surface-variant/40 mb-2 block">add_photo_alternate</span>
-                <p className="text-sm text-on-surface-variant font-medium">Fotoğraf yüklemek için tıklayın</p>
+              <p className="text-sm text-on-surface-variant font-medium">Fotoğraf yüklemek için tıklayın</p>
               <p className="text-xs text-on-surface-variant/60 mt-1">Maks 5MB · JPG, PNG, WebP</p>
             </>
           )}
@@ -92,25 +110,21 @@ function StylistModal({ stylist, onClose, onSave }) {
           </div>
           <div>
             <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-2 block">
-              Şifre {stylist?( 'değiştirmek istemiyorsanız boş bırakın') : '*'}
+              Şifre {stylist ? '(değiştirmek istemiyorsanız boş bırakın)' : '*'}
             </label>
             <input type="password" className="input-base" value={form.password} onChange={e => update('password', e.target.value)} placeholder="En az 8 karakter" />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-2 block">Level</label>
+              <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-2 block">Seviye</label>
               <select className="input-base" value={form.level} onChange={e => update('level', e.target.value)}>
-                {LEVELS.map(l => <option key={l} value={l}>{l}</option>)}
+                {LEVELS.map(l => <option key={l} value={l}>{LEVEL_LABELS[l] || l}</option>)}
               </select>
             </div>
             <div>
-              <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-2 block">Telefon</label>
-              <input className="input-base" value={form.phone} onChange={e => update('phone', e.target.value)} placeholder="05xxxxxxxxx" />
+              <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-2 block">Telefon (11 Hane)</label>
+              <input className="input-base" value={form.phone} onChange={e => update('phone', maskPhone(e.target.value))} placeholder="0 (5__) ___ __ __" />
             </div>
-          </div>
-          <div>
-            <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-2 block">Uzmanlık</label>
-            <input className="input-base" value={form.speciality} onChange={e => update('speciality', e.target.value)} placeholder="Fade Uzmanı, Renk Uzmanı..." />
           </div>
         </div>
 
@@ -147,7 +161,7 @@ export default function StylistsPage({ token, authHeaders }) {
     const headers = { Authorization: `Bearer ${token}` };
     const res = await fetch(url, { method, headers, body: formData });
     const d = await res.json();
-    if (!res.ok) throw new Error(d.error || 'Failed to save');
+    if (!res.ok) throw new Error(d.error || 'Kaydetme başarısız oldu');
     setModal(null);
     load();
   };
@@ -158,10 +172,10 @@ export default function StylistsPage({ token, authHeaders }) {
   };
 
   const handleDelete = async (id) => {
-    if (!confirm('Deactivate this stylist? This cannot be undone if they have upcoming appointments.')) return;
+    if (!confirm('Bu stilist pasifleştirilecek. Yaklaşan randevuları varsa geri alınamaz. Devam edilsin mi?')) return;
     const res = await fetch(`${SERVER_URL}/api/barbers/${id}`, { method: 'DELETE', headers: authHeaders() });
     const d = await res.json();
-    if (!res.ok) { alert(d.error || 'Cannot delete stylist'); return; }
+    if (!res.ok) { alert(d.error || 'Stilist silinemiyor'); return; }
     load();
   };
 
@@ -218,7 +232,7 @@ export default function StylistsPage({ token, authHeaders }) {
               <div className="flex items-start justify-between mb-1">
                 <p className="font-extrabold text-on-surface">{s.name || s.username}</p>
                 <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${LEVEL_STYLE[s.level] || LEVEL_STYLE.SENIOR}`}>
-                  {s.level || 'SENIOR'}
+                  {LEVEL_LABELS[s.level] || s.level || 'Kıdemli'}
                 </span>
               </div>
               <p className="text-xs text-on-surface-variant mb-1">{s.speciality || '@' + s.username}</p>
@@ -227,11 +241,11 @@ export default function StylistsPage({ token, authHeaders }) {
               {/* Stats row */}
               <div className="grid grid-cols-2 gap-2 mb-4">
                 <div className="bg-surface-container-low rounded-xl p-3">
-                  <p className="text-[10px] text-on-surface-variant uppercase tracking-wider font-bold">Phone</p>
+                  <p className="text-[10px] text-on-surface-variant uppercase tracking-wider font-bold">Telefon</p>
                   <p className="text-xs font-semibold text-on-surface mt-0.5">{s.phone || '—'}</p>
                 </div>
                 <div className="bg-surface-container-low rounded-xl p-3">
-                  <p className="text-[10px] text-on-surface-variant uppercase tracking-wider font-bold">Username</p>
+                  <p className="text-[10px] text-on-surface-variant uppercase tracking-wider font-bold">Kullanıcı Adı</p>
                   <p className="text-xs font-semibold text-on-surface mt-0.5">@{s.username}</p>
                 </div>
               </div>
@@ -257,7 +271,7 @@ export default function StylistsPage({ token, authHeaders }) {
             className="border-2 border-dashed border-outline-variant rounded-[2rem] p-6 flex flex-col items-center justify-center gap-3 hover:border-primary transition-colors min-h-[200px] text-on-surface-variant hover:text-primary"
           >
             <span className="material-symbols-outlined text-4xl">person_add</span>
-            <p className="font-semibold text-sm">Onboard New Stylist</p>
+            <p className="font-semibold text-sm">Yeni Stilist Ekle</p>
           </button>
         </div>
       )}

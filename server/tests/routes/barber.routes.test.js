@@ -288,6 +288,42 @@ describe('Barber Routes (Integration)', () => {
         });
     });
 
+    // ==================== Validation Tests ====================
+    describe('Validation', () => {
+        it('should sanitize phone number (remove spaces) before saving', async () => {
+            dbService.usernameExists.mockResolvedValue(false);
+            dbService.createUser.mockResolvedValue({ id: 'v-1', username: 'v1', isActive: true });
+
+            await request(app)
+                .post('/api/barbers')
+                .set('Authorization', `Bearer ${adminToken}`)
+                .send({ username: 'valid_barber_1', password: 'password123', phone: '0532 444 55 66' });
+
+            const createCall = dbService.createUser.mock.calls[0][0];
+            expect(createCall.phone).toBe('05324445566');
+        });
+
+        it('should return 400 if phone is not 11 digits', async () => {
+            const res = await request(app)
+                .post('/api/barbers')
+                .set('Authorization', `Bearer ${adminToken}`)
+                .send({ username: 'valid_barber_2', password: 'password123', phone: '0532123456' }); // 10 digits
+
+            expect(res.status).toBe(400);
+            expect(res.body.error).toContain('11 haneli');
+        });
+
+        it('should return 400 if phone does not start with 05', async () => {
+            const res = await request(app)
+                .post('/api/barbers')
+                .set('Authorization', `Bearer ${adminToken}`)
+                .send({ username: 'valid_barber_3', password: 'password123', phone: '15321234567' });
+
+            expect(res.status).toBe(400);
+            expect(res.body.error).toContain('05 ile başlamalıdır');
+        });
+    });
+
     // ==================== DELETE /api/barbers/:id ====================
     describe('DELETE /api/barbers/:id', () => {
         it('should return 401 without auth token', async () => {
