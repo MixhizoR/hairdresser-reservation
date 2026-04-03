@@ -15,12 +15,12 @@ describe('Debug Phone Validation', () => {
 
     it('should debug why phone sanitization fails', async () => {
         dbService.usernameExists.mockResolvedValue(false);
-        dbService.createUser.mockResolvedValue({ id: 'v-1', username: 'v1', isActive: true });
+        dbService.createUser.mockResolvedValue({ id: 'v-1', username: 'validusername', isActive: true });
 
         const res = await request(app)
             .post('/api/barbers')
             .set('Authorization', `Bearer ${adminToken}`)
-            .send({ username: 'v1', password: 'password123', phone: '0532 444 55 66' });
+            .send({ username: 'validusername', password: 'password123', phone: '0532 444 55 66' });
 
         console.log('Response Status:', res.status);
         console.log('Response Body:', res.body);

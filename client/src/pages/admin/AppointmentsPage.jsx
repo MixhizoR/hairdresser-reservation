@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 
 const SERVER_URL = import.meta.env.VITE_API_URL || '';
 const FILTERS = ['all', 'pending', 'approved', 'rejected'];

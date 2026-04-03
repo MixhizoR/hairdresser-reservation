@@ -69,3 +69,4 @@ task.md
 /client/public/uploads/*
 
 .kilo/
+.qwen/

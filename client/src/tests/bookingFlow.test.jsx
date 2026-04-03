@@ -1,3 +1,4 @@
+import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
@@ -124,8 +125,8 @@ describe('Booking Flow - Tracking Code & Redirect', () => {
       expect(screen.getAllByText('Bilgileriniz').length).toBeGreaterThan(0);
     });
 
-    fireEvent.change(screen.getByPlaceholderText('Ahmet Yılmaz'), { target: { value: 'Test Kullanıcı' } });
-    fireEvent.change(screen.getByPlaceholderText('05xxxxxxxxx'), { target: { value: '05321234567' } });
+    fireEvent.change(screen.getAllByPlaceholderText('Ahmet Yılmaz')[0], { target: { value: 'Test Kullanıcı' } });
+    fireEvent.change(screen.getByPlaceholderText('0 (5__) ___ __ __'), { target: { value: '05321234567' } });
 
     fireEvent.click(screen.getAllByText('Randevuyu Onayla')[0]);
   };

@@ -108,12 +108,12 @@ describe('Booking Validation - Working Hours', () => {
             expect(res.status).toBe(201);
         });
 
-        it('should allow booking at last valid slot (19:30 for 20:00 close)', async () => {
+        it('should allow booking at last valid slot (18:30 for 19:00 hard close)', async () => {
             dbService.getAllSettings.mockResolvedValue([
                 { key: 'operatingHours', value: JSON.stringify(standardOperatingHours()) }
             ]);
 
-            const monday1930 = getNextMondayAt(19, 30);
+            const monday1830 = getNextMondayAt(18, 30);
 
             const res = await request(app)
                 .post('/api/appointments')
@@ -121,7 +121,7 @@ describe('Booking Validation - Working Hours', () => {
                     name: 'Test User',
                     phone: '05321234567',
                     service: 'Saç Kesimi',
-                    time: monday1930.toISOString(),
+                    time: monday1830.toISOString(),
                     barberId: 'barber-1'
                 });
 
@@ -244,8 +244,8 @@ describe('Booking Validation - Working Hours', () => {
                 });
 
             expect(res.status).toBe(400);
-            expect(res.body.error).toContain('10:00');
-            expect(res.body.error).toContain('17:00');
+            expect(res.body.error).toContain('08:30');
+            expect(res.body.error).toContain('19:00');
         });
     });
 

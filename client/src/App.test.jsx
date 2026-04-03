@@ -1,3 +1,4 @@
+import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
@@ -23,20 +24,42 @@ describe('App Component - Booking Flow', () => {
                 ])
             });
         }
+        if (url.includes('/api/settings')) {
+            return Promise.resolve({
+                ok: true,
+                json: () => Promise.resolve({
+                    operatingHours: {
+                        monday: { open: '09:00', close: '18:00' },
+                        tuesday: { open: '09:00', close: '18:00' },
+                        wednesday: { open: '09:00', close: '18:00' },
+                        thursday: { open: '09:00', close: '18:00' },
+                        friday: { open: '09:00', close: '18:00' },
+                        saturday: { open: '09:00', close: '18:00' },
+                        sunday: { closed: true },
+                    }
+                })
+            });
+        }
         if (url.includes('/api/appointments/availability')) {
             return Promise.resolve({
                 ok: true,
-                json: () => Promise.resolve(['10:30'])
+                json: () => Promise.resolve([])
             });
         }
-        if (url.includes('/api/appointments') && !url.includes('availability')) {
+        if (url.includes('/api/appointments') && !url.includes('availability') && !url.includes('track')) {
             return Promise.resolve({
                 ok: true,
                 json: () => Promise.resolve({
                     id: 'appt-123',
-                    deviceToken: 'test-device-token-123',
-                    trackingCode: 'TRACK1'
+                    trackingCode: 'TRACK1',
+                    status: 'pending'
                 })
+            });
+        }
+        if (url.includes('/api/sounds')) {
+            return Promise.resolve({
+                ok: true,
+                json: () => Promise.resolve({ files: [] })
             });
         }
         return Promise.resolve({ ok: true, json: () => Promise.resolve([]) });
@@ -46,6 +69,10 @@ describe('App Component - Booking Flow', () => {
         this.observe = () => null;
         this.unobserve = () => null;
         this.disconnect = () => null;
+    });
+
+    Object.assign(navigator, {
+      clipboard: { writeText: vi.fn().mockResolvedValue(undefined) },
     });
   });
 
@@ -81,9 +108,13 @@ describe('App Component - Booking Flow', () => {
     fireEvent.click(dayButton);
 
     await waitFor(() => {
-        expect(screen.getAllByText('10:00').length).toBeGreaterThan(0);
+        const slots = screen.getAllByText(/^\d{2}:\d{2}$/);
+        expect(slots.length).toBeGreaterThan(0);
     });
-    fireEvent.click(screen.getAllByText('10:00')[0]);
+
+    const timeSlots = screen.getAllByText(/^\d{2}:\d{2}$/);
+    const availableSlot = timeSlots.find(el => !el.classList.contains('taken') && el.closest('button') && !el.closest('button').disabled);
+    fireEvent.click(availableSlot || timeSlots[0]);
 
     fireEvent.click(screen.getAllByText('Devam →')[0]);
 
@@ -92,8 +123,8 @@ describe('App Component - Booking Flow', () => {
         expect(screen.getAllByText('Bilgileriniz').length).toBeGreaterThan(0);
     });
 
-    fireEvent.change(screen.getByPlaceholderText('Ahmet Yılmaz'), { target: { value: 'Test Kullanıcı' } });
-    fireEvent.change(screen.getByPlaceholderText('05xxxxxxxxx'), { target: { value: '05321234567' } });
+    fireEvent.change(screen.getAllByPlaceholderText('Ahmet Yılmaz')[0], { target: { value: 'Test Kullanıcı' } });
+    fireEvent.change(screen.getByPlaceholderText('0 (5__) ___ __ __'), { target: { value: '05321234567' } });
 
     fireEvent.click(screen.getAllByText('Randevuyu Onayla')[0]);
 

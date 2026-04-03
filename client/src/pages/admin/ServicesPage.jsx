@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 
 const SERVER_URL = import.meta.env.VITE_API_URL || '';
 const CATEGORIES = ['BARBERING', 'GROOMING', 'TREATMENTS'];

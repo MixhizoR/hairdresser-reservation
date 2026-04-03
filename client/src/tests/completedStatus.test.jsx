@@ -1,3 +1,4 @@
+import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
@@ -77,7 +78,7 @@ describe('Absence of completed/cancelled status', () => {
       );
 
       await waitFor(() => {
-        expect(screen.getByText('TEST01')).toBeInTheDocument();
+        expect(screen.getByText('Saç Kesimi')).toBeInTheDocument();
       });
 
       const allText = document.body.textContent;
@@ -94,7 +95,7 @@ describe('Absence of completed/cancelled status', () => {
       );
 
       await waitFor(() => {
-        expect(screen.getByText('TEST01')).toBeInTheDocument();
+        expect(screen.getByText('Saç Kesimi')).toBeInTheDocument();
       });
 
       const bekliyorElements = screen.getAllByText('Bekliyor');
