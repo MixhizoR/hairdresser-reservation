@@ -306,6 +306,89 @@ describe('Booking Validation - Working Hours', () => {
         });
     });
 
+    // ==================== SERVICE DURATION VALIDATION ====================
+
+    describe('Reject booking when service duration exceeds closing time', () => {
+        it('should reject 60-min service starting 30 mins before configured closing time', async () => {
+            const hours = standardOperatingHours();
+            hours.monday = { open: '09:00', close: '18:00', closed: false }; // 18:00 close
+
+            dbService.getAllSettings.mockResolvedValue([
+                { key: 'operatingHours', value: JSON.stringify(hours) }
+            ]);
+            // 60-minute service
+            dbService.findServiceByName.mockResolvedValue({ id: 'svc-long', name: 'Özel Bakım', duration: 60, isActive: true });
+
+            const monday1730 = getNextMondayAt(17, 30); // 17:30 start, ends at 18:30 > 18:00
+
+            const res = await request(app)
+                .post('/api/appointments')
+                .send({
+                    name: 'Test User',
+                    phone: '05321234567',
+                    service: 'Özel Bakım',
+                    time: monday1730.toISOString(),
+                    barberId: 'barber-1'
+                });
+
+            expect(res.status).toBe(400);
+            expect(res.body.error).toBe('Hizmet süresi kapanış saatini aşıyor.');
+        });
+
+        it('should allow service ending exactly at configured closing time', async () => {
+            const hours = standardOperatingHours();
+            hours.monday = { open: '09:00', close: '18:00', closed: false }; // 18:00 close
+
+            dbService.getAllSettings.mockResolvedValue([
+                { key: 'operatingHours', value: JSON.stringify(hours) }
+            ]);
+            // 60-minute service
+            dbService.findServiceByName.mockResolvedValue({ id: 'svc-long', name: 'Özel Bakım', duration: 60, isActive: true });
+            dbService.findAppointmentByTimeForBarber.mockResolvedValue(null);
+
+            const monday1700 = getNextMondayAt(17, 0); // 17:00 start, ends at 18:00 == 18:00
+
+            const res = await request(app)
+                .post('/api/appointments')
+                .send({
+                    name: 'Test User',
+                    phone: '05321234567',
+                    service: 'Özel Bakım',
+                    time: monday1700.toISOString(),
+                    barberId: 'barber-1'
+                });
+
+            expect(res.status).toBe(201);
+            expect(dbService.createAppointment).toHaveBeenCalled();
+        });
+
+        it('should reject service ending 1 minute after configured closing time', async () => {
+            const hours = standardOperatingHours();
+            hours.monday = { open: '09:00', close: '18:00', closed: false }; // 18:00 close
+
+            dbService.getAllSettings.mockResolvedValue([
+                { key: 'operatingHours', value: JSON.stringify(hours) }
+            ]);
+            // 31-minute service (just 1 minute over)
+            dbService.findServiceByName.mockResolvedValue({ id: 'svc-short', name: 'Saç Kesimi', duration: 31, isActive: true });
+
+            const monday1730 = getNextMondayAt(17, 30); // 17:30 start, ends at 18:01 > 18:00
+
+            const res = await request(app)
+                .post('/api/appointments')
+                .send({
+                    name: 'Test User',
+                    phone: '05321234567',
+                    service: 'Saç Kesimi',
+                    time: monday1730.toISOString(),
+                    barberId: 'barber-1'
+                });
+
+            expect(res.status).toBe(400);
+            expect(res.body.error).toBe('Hizmet süresi kapanış saatini aşıyor.');
+        });
+    });
+
     // ==================== FALLBACK ====================
 
     describe('Fallback when settings cannot be loaded', () => {

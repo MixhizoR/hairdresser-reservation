@@ -253,7 +253,8 @@ describe('Barber Routes (Integration)', () => {
                 username: 'newbarber',
                 name: 'New Barber',
                 phone: '05321234567',
-                isActive: true
+                isActive: true,
+                role: 'BARBER'
             });
 
             const res = await request(app)
@@ -273,7 +274,8 @@ describe('Barber Routes (Integration)', () => {
             dbService.createUser.mockResolvedValue({
                 id: 'new-barber',
                 username: 'newbarber',
-                isActive: true
+                isActive: true,
+                role: 'BARBER'
             });
 
             await request(app)
@@ -292,7 +294,7 @@ describe('Barber Routes (Integration)', () => {
     describe('Validation', () => {
         it('should sanitize phone number (remove spaces) before saving', async () => {
             dbService.usernameExists.mockResolvedValue(false);
-            dbService.createUser.mockResolvedValue({ id: 'v-1', username: 'v1', isActive: true });
+            dbService.createUser.mockResolvedValue({ id: 'v-1', username: 'v1', isActive: true, role: 'BARBER' });
 
             await request(app)
                 .post('/api/barbers')

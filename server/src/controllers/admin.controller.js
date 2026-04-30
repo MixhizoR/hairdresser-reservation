@@ -3,12 +3,19 @@ const jwt = require('jsonwebtoken');
 const db = require('../services/db.service');
 const { log } = require('../config/logger');
 const { JWT_SECRET, JWT_EXPIRES_IN } = require('../config/env');
+const { sanitizePhone } = require('../utils/validators');
 
 // Login - Tüm kullanıcılar için (admin ve berber)
 const login = async (req, res) => {
     const { username, password } = req.body;
+
+    // Check for missing fields first
     if (!username || !password)
         return res.status(400).json({ error: 'Kullanıcı adı ve şifre gerekli.' });
+
+    // Type checks
+    if (typeof username !== 'string' || typeof password !== 'string')
+        return res.status(400).json({ error: 'Geçersiz veri tipi: username/password' });
 
     try {
         const user = await db.findUserByUsername(username);
@@ -47,10 +54,20 @@ const login = async (req, res) => {
 // Register - Sadece admin kullanıcı oluşturabilir
 const register = async (req, res) => {
     const { username, password, role, name, phone, level } = req.body;
-    const cleanPhone = phone ? String(phone).replace(/\D/g, '') : null;
 
+    // Check for missing fields first
     if (!username || !password)
         return res.status(400).json({ error: 'Kullanıcı adı ve şifre gerekli.' });
+
+    // Type checks
+    if (typeof username !== 'string')
+        return res.status(400).json({ error: 'Geçersiz veri tipi: username' });
+    if (typeof password !== 'string')
+        return res.status(400).json({ error: 'Geçersiz veri tipi: password' });
+    if (name && typeof name !== 'string')
+        return res.status(400).json({ error: 'Geçersiz veri tipi: name' });
+
+    const cleanPhone = phone ? sanitizePhone(String(phone)) : null;
     if (username.length < 3 || username.length > 30)
         return res.status(400).json({ error: 'Kullanıcı adı 3-30 karakter arasında olmalıdır.' });
     if (password.length < 8)

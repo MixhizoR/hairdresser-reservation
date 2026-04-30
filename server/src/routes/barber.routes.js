@@ -4,6 +4,7 @@ const bcrypt = require('bcrypt');
 const db = require('../services/db.service');
 const { authMiddleware, requireRole } = require('../middlewares/auth.middleware');
 const { photoUpload } = require('../middlewares/upload.middleware');
+const { sanitizePhone } = require('../utils/validators');
 
 // Get all active barbers (public)
 router.get('/', async (req, res) => {
@@ -80,7 +81,7 @@ router.get('/:id', authMiddleware, async (req, res) => {
 // Create new barber (admin only)
 router.post('/', authMiddleware, requireRole('ADMIN'), photoUpload.single('photo'), async (req, res) => {
     const { username, password, name, phone, level } = req.body;
-    const cleanPhone = phone ? String(phone).replace(/\D/g, '') : null;
+    const cleanPhone = phone ? sanitizePhone(String(phone)) : null;
 
     if (!username || !password)
         return res.status(400).json({ error: 'Kullanıcı adı ve şifre gerekli.' });
@@ -130,7 +131,7 @@ router.post('/', authMiddleware, requireRole('ADMIN'), photoUpload.single('photo
 router.put('/:id', authMiddleware, photoUpload.single('photo'), async (req, res) => {
     const { id } = req.params;
     const { name, phone, password, level, username } = req.body;
-    const cleanPhone = phone ? String(phone).replace(/\D/g, '') : undefined;
+    const cleanPhone = phone ? sanitizePhone(String(phone)) : undefined;
 
     if (cleanPhone && cleanPhone.length !== 11)
         return res.status(400).json({ error: 'Telefon numarası 11 haneli olmalıdır.' });

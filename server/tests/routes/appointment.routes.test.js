@@ -1,11 +1,22 @@
 const request = require('supertest');
+
+// Mock rate limiter before importing app
+jest.mock('../../src/middlewares/rateLimit.middleware', () => ({
+    appointmentLimiter: (req, res, next) => next(),
+    trackLimiter: (req, res, next) => next(),
+    loginLimiter: (req, res, next) => next(),
+    generalLimiter: (req, res, next) => next()
+}));
+
 const app = require('../../src/app');
 
 // Mock db.service
 jest.mock('../../src/services/db.service', () => ({
     createAppointment: jest.fn(),
     findAppointmentByTimeForBarber: jest.fn(),
-    findServiceByName: jest.fn().mockResolvedValue({ id: 'svc-1', name: 'Saç Kesimi', isActive: true })
+    findServiceByName: jest.fn().mockResolvedValue({ id: 'svc-1', name: 'Saç Kesimi', isActive: true }),
+    getAppointmentByTrackingCode: jest.fn(),
+    updateAppointment: jest.fn()
 }));
 const dbService = require('../../src/services/db.service');
 
@@ -108,6 +119,81 @@ describe('Appointment Routes (Integration)', () => {
             const res = await request(app).get('/api/appointments/track');
             expect(res.status).toBe(400);
             expect(res.body.error).toBeDefined();
+        });
+    });
+
+    describe('POST /api/appointments/cancel', () => {
+        it('should return 400 if trackingCode is missing', async () => {
+            const res = await request(app)
+                .post('/api/appointments/cancel')
+                .send({});
+
+            expect(res.status).toBe(400);
+            expect(res.body.error).toBe('Takip kodu gereklidir.');
+        });
+
+        it('should return 404 if appointment not found', async () => {
+            dbService.getAppointmentByTrackingCode.mockResolvedValue(null);
+
+            const res = await request(app)
+                .post('/api/appointments/cancel')
+                .send({ trackingCode: 'INVALID' });
+
+            expect(res.status).toBe(404);
+            expect(res.body.error).toBe('Randevu bulunamadı.');
+        });
+
+        it('should return 400 if appointment is already approved', async () => {
+            dbService.getAppointmentByTrackingCode.mockResolvedValue({
+                id: 'appt-1',
+                status: 'approved',
+                trackingCode: 'TEST01'
+            });
+
+            const res = await request(app)
+                .post('/api/appointments/cancel')
+                .send({ trackingCode: 'TEST01' });
+
+            expect(res.status).toBe(400);
+            expect(res.body.error).toBe('Onaylanmış randevu sadece berber tarafından iptal edilebilir.');
+        });
+
+        it('should return 200 if appointment is already rejected (idempotent)', async () => {
+            dbService.getAppointmentByTrackingCode.mockResolvedValue({
+                id: 'appt-1',
+                status: 'rejected',
+                trackingCode: 'TEST02'
+            });
+
+            const res = await request(app)
+                .post('/api/appointments/cancel')
+                .send({ trackingCode: 'TEST02' });
+
+            expect(res.status).toBe(200);
+            expect(res.body.success).toBe(true);
+            expect(res.body.message).toBe('Randevu zaten iptal edilmiş.');
+        });
+
+        it('should successfully cancel pending appointment', async () => {
+            dbService.getAppointmentByTrackingCode.mockResolvedValue({
+                id: 'appt-1',
+                status: 'pending',
+                trackingCode: 'TEST03'
+            });
+            dbService.updateAppointment.mockResolvedValue({
+                id: 'appt-1',
+                status: 'rejected'
+            });
+
+            const res = await request(app)
+                .post('/api/appointments/cancel')
+                .send({ trackingCode: 'TEST03' });
+
+            expect(res.status).toBe(200);
+            expect(res.body.success).toBe(true);
+            expect(res.body.message).toBe('Randevu başarıyla iptal edildi.');
+            expect(res.body.appointment.status).toBe('rejected');
+            expect(dbService.updateAppointment).toHaveBeenCalledWith('appt-1', { status: 'rejected' });
         });
     });
 });

@@ -1,7 +1,7 @@
 const crypto = require('crypto');
 const db = require('../services/db.service');
 const { log } = require('../config/logger');
-const { isValidPhone, isValidName } = require('../utils/validators');
+const { isValidPhone, isValidName, sanitizePhone } = require('../utils/validators');
 
 // Get availability - supports optional barberId parameter
 const getAvailability = async (req, res) => {
@@ -80,14 +80,26 @@ const getAppointments = async (req, res) => {
 const createAppointment = async (req, res) => {
     const { name, phone, service, time, barberId, notes, website } = req.body;
 
+    // Type checks for string fields
+    if (typeof name !== 'string')
+        return res.status(400).json({ error: 'Geçersiz veri tipi: name' });
+    if (typeof phone !== 'string')
+        return res.status(400).json({ error: 'Geçersiz veri tipi: phone' });
+    if (typeof service !== 'string')
+        return res.status(400).json({ error: 'Geçersiz veri tipi: service' });
+    if (notes && typeof notes !== 'string')
+        return res.status(400).json({ error: 'Geçersiz veri tipi: notes' });
+
     // Honeypot
     if (website) return res.status(201).json({ id: crypto.randomUUID(), status: 'pending' });
 
-    // Validate service against database
+    // Validate service against database and get duration
+    let serviceDuration = 30; // default duration in minutes
     try {
         const dbService = await db.findServiceByName(service);
         if (!dbService)
             return res.status(400).json({ error: 'Geçersiz hizmet seçimi.' });
+        serviceDuration = dbService.duration || 30;
     } catch {
         return res.status(400).json({ error: 'Geçersiz hizmet seçimi.' });
     }
@@ -95,7 +107,9 @@ const createAppointment = async (req, res) => {
     if (!isValidName(name))
         return res.status(400).json({ error: 'Geçersiz isim. Sadece harf kullanın (2-50 karakter).' });
 
-    if (!isValidPhone(phone))
+    // Sanitize phone before validation
+    const sanitizedPhone = sanitizePhone(phone);
+    if (!isValidPhone(sanitizedPhone))
         return res.status(400).json({ error: 'Geçersiz telefon. Format: 05xxxxxxxxx' });
 
     // Validate barberId
@@ -148,6 +162,13 @@ const createAppointment = async (req, res) => {
                     error: `Seçilen saat çalışma saatleri dışındadır (08:30 - 19:00).`
                 });
             }
+
+            // Validate service duration doesn't exceed closing time
+            if (slotTime + serviceDuration > closeMinutes) {
+                return res.status(400).json({
+                    error: 'Hizmet süresi kapanış saatini aşıyor.'
+                });
+            }
         }
     } catch (err) {
         // If settings can't be read, allow booking (fallback behavior)
@@ -161,7 +182,7 @@ const createAppointment = async (req, res) => {
 
         const appt = await db.createAppointment({
             name: name.trim(),
-            phone: phone.trim(),
+            phone: sanitizedPhone,
             service: (service || '').trim(),
             time: date,
             barberId: barberId,
@@ -265,7 +286,7 @@ const trackAppointments = async (req, res) => {
         const maskedAppointments = appointments.map(appt => {
             const parts = appt.name.split(' ');
             const maskedName = parts.map(p => p.charAt(0) + '***').join(' ');
-            
+
             return {
                 id: appt.id,
                 name: maskedName,
@@ -284,6 +305,57 @@ const trackAppointments = async (req, res) => {
     }
 };
 
+// Cancel appointment via tracking code (customer self-service)
+const cancelAppointment = async (req, res) => {
+    const { trackingCode } = req.body;
+
+    if (!trackingCode) {
+        return res.status(400).json({ error: 'Takip kodu gereklidir.' });
+    }
+
+    try {
+        const appointment = await db.getAppointmentByTrackingCode(trackingCode);
+
+        if (!appointment) {
+            return res.status(404).json({ error: 'Randevu bulunamadı.' });
+        }
+
+        // Only allow cancellation of pending appointments
+        if (appointment.status === 'approved') {
+            return res.status(400).json({
+                error: 'Onaylanmış randevu sadece berber tarafından iptal edilebilir.'
+            });
+        }
+
+        // Already rejected/cancelled is idempotent success
+        if (appointment.status === 'rejected') {
+            return res.json({
+                success: true,
+                message: 'Randevu zaten iptal edilmiş.',
+                appointment: {
+                    id: appointment.id,
+                    status: 'rejected'
+                }
+            });
+        }
+
+        // Cancel (reject) the pending appointment
+        const updated = await db.updateAppointment(appointment.id, { status: 'rejected' });
+
+        res.json({
+            success: true,
+            message: 'Randevu başarıyla iptal edildi.',
+            appointment: {
+                id: updated.id,
+                status: updated.status
+            }
+        });
+    } catch (err) {
+        log('error', 'POST /api/appointments/cancel failed', { err: err.message });
+        res.status(500).json({ error: 'Sunucu hatası.' });
+    }
+};
+
 module.exports = {
     getAvailability,
     getAppointments,
@@ -291,5 +363,6 @@ module.exports = {
     updateAppointment,
     deleteAppointment,
     getAppointment,
-    trackAppointments
+    trackAppointments,
+    cancelAppointment
 };

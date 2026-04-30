@@ -19,8 +19,15 @@ const getServices = async (req, res) => {
 const createService = async (req, res) => {
     const { name, description, price, duration, category, isActive } = req.body;
 
+    // Check for missing fields first
     if (!name || price == null || !duration)
         return res.status(400).json({ error: 'İsim, fiyat ve süre zorunludur.' });
+
+    // Type checks
+    if (typeof name !== 'string')
+        return res.status(400).json({ error: 'Geçersiz veri tipi: name' });
+    if (description && typeof description !== 'string')
+        return res.status(400).json({ error: 'Geçersiz veri tipi: description' });
 
     if (typeof price !== 'number' || price < 0)
         return res.status(400).json({ error: 'Geçersiz fiyat.' });
@@ -48,6 +55,12 @@ const createService = async (req, res) => {
 const updateService = async (req, res) => {
     const { id } = req.params;
     const { name, description, price, duration, category, isActive } = req.body;
+
+    // Type checks
+    if (name !== undefined && typeof name !== 'string')
+        return res.status(400).json({ error: 'Geçersiz veri tipi: name' });
+    if (description !== undefined && typeof description !== 'string')
+        return res.status(400).json({ error: 'Geçersiz veri tipi: description' });
 
     try {
         const existing = await db.getServiceById(id);

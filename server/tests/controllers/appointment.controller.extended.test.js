@@ -156,6 +156,66 @@ describe('Appointment Controller (Extended)', () => {
             expect(res.body.error).toBe('Geçersiz telefon. Format: 05xxxxxxxxx');
         });
 
+        it('should accept +90 international phone format', async () => {
+            const futureDate = getFutureDate();
+            dbService.findAppointmentByTimeForBarber.mockResolvedValue(null);
+
+            const res = await request(app)
+                .post('/api/appointments')
+                .send({
+                    name: 'Test User',
+                    phone: '+90 532 123 45 67',
+                    service: 'Saç Kesimi',
+                    time: futureDate.toISOString(),
+                    barberId: 'barber-123'
+                });
+
+            expect(res.status).toBe(201);
+            expect(dbService.createAppointment).toHaveBeenCalledWith(
+                expect.objectContaining({ phone: '05321234567' })
+            );
+        });
+
+        it('should accept 90 prefix phone format', async () => {
+            const futureDate = getFutureDate();
+            dbService.findAppointmentByTimeForBarber.mockResolvedValue(null);
+
+            const res = await request(app)
+                .post('/api/appointments')
+                .send({
+                    name: 'Test User',
+                    phone: '905321234567',
+                    service: 'Saç Kesimi',
+                    time: futureDate.toISOString(),
+                    barberId: 'barber-123'
+                });
+
+            expect(res.status).toBe(201);
+            expect(dbService.createAppointment).toHaveBeenCalledWith(
+                expect.objectContaining({ phone: '05321234567' })
+            );
+        });
+
+        it('should accept 0090 prefix phone format', async () => {
+            const futureDate = getFutureDate();
+            dbService.findAppointmentByTimeForBarber.mockResolvedValue(null);
+
+            const res = await request(app)
+                .post('/api/appointments')
+                .send({
+                    name: 'Test User',
+                    phone: '00905321234567',
+                    service: 'Saç Kesimi',
+                    time: futureDate.toISOString(),
+                    barberId: 'barber-123'
+                });
+
+            expect(res.status).toBe(201);
+            expect(dbService.createAppointment).toHaveBeenCalledWith(
+                expect.objectContaining({ phone: '05321234567' })
+            );
+        });
+
         it('should return 400 if barberId is missing', async () => {
             const futureDate = getFutureDate();
 

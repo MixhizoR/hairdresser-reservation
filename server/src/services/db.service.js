@@ -3,7 +3,61 @@ const prisma = new PrismaClient();
 const { log } = require('../config/logger');
 const crypto = require('crypto');
 
-// ==================== USER METHODS ====================
+// ==================== ADMIN METHODS ====================
+
+const findAdminByUsername = async (username) => {
+    const user = await prisma.user.findUnique({ where: { username } });
+    return user && user.role === 'ADMIN' ? user : null;
+};
+
+const findAdminById = async (id) => {
+    const user = await prisma.user.findUnique({ where: { id } });
+    return user && user.role === 'ADMIN' ? user : null;
+};
+
+const createAdmin = async (data) => {
+    return await prisma.user.create({ data: { ...data, role: 'ADMIN' } });
+};
+
+// ==================== BARBER METHODS ====================
+
+const findBarberByUsername = async (username) => {
+    const user = await prisma.user.findUnique({ where: { username } });
+    return user && user.role === 'BARBER' ? user : null;
+};
+
+const findBarberById = async (id) => {
+    const user = await prisma.user.findUnique({ where: { id } });
+    return user && user.role === 'BARBER' ? user : null;
+};
+
+const createBarber = async (data) => {
+    return await prisma.user.create({ data: { ...data, role: 'BARBER' } });
+};
+
+const updateBarber = async (id, data) => {
+    return await prisma.user.update({ where: { id }, data });
+};
+
+const deleteBarber = async (id) => {
+    return await prisma.user.delete({ where: { id } });
+};
+
+const getAllBarbers = async () => {
+    return await prisma.user.findMany({
+        where: { role: 'BARBER' },
+        orderBy: { name: 'asc' }
+    });
+};
+
+const getActiveBarbers = async () => {
+    return await prisma.user.findMany({
+        where: { role: 'BARBER', isActive: true },
+        orderBy: { name: 'asc' }
+    });
+};
+
+// ==================== GENERIC USER METHODS (Unified Auth) ====================
 
 const findUserByUsername = async (username) => {
     return await prisma.user.findUnique({ where: { username } });
@@ -13,33 +67,29 @@ const findUserById = async (id) => {
     return await prisma.user.findUnique({ where: { id } });
 };
 
-const createUser = async (data) => {
-    return await prisma.user.create({ data });
-};
-
-const updateUser = async (id, data) => {
-    return await prisma.user.update({ where: { id }, data });
-};
-
-const deleteUser = async (id) => {
-    return await prisma.user.delete({ where: { id } });
-};
-
-const getAllBarbers = async () => {
-    return await prisma.user.findMany({
-        where: { role: 'BARBER', isActive: true },
-        orderBy: { name: 'asc' }
-    });
-};
-
 const getAllUsers = async () => {
     return await prisma.user.findMany({
         orderBy: { createdAt: 'desc' }
     });
 };
 
+const updateUser = async (id, data) => {
+    const user = await findUserById(id);
+    if (!user) return null;
+
+    return await prisma.user.update({ where: { id }, data });
+};
+
+const deleteUser = async (id) => {
+    const user = await findUserById(id);
+    if (!user) return null;
+
+    return await prisma.user.delete({ where: { id } });
+};
+
 const usernameExists = async (username) => {
-    return !!(await prisma.user.findUnique({ where: { username } }));
+    const user = await prisma.user.findUnique({ where: { username } });
+    return !!user;
 };
 
 // ==================== APPOINTMENT METHODS ====================
@@ -110,7 +160,7 @@ const createAppointment = async (data) => {
         deviceToken: data.deviceToken || crypto.randomUUID(),
         trackingCode: data.trackingCode || generateTrackingCode()
     };
-    
+
     // Basit bir çarpışma önleme mekanizması (gerçek dünyada daha sağlam bir kontrol gerekir)
     let isUnique = false;
     let attempts = 0;
@@ -149,15 +199,22 @@ const rejectPastPending = async () => {
     });
 };
 
+const deleteRejectedAppointments = async () => {
+    const result = await prisma.appointment.deleteMany({
+        where: { status: 'rejected' }
+    });
+    return { count: result.count };
+};
+
 // ==================== DASHBOARD STATS ====================
 
 const getDashboardStats = async () => {
     const totalAppointments = await prisma.appointment.count();
     const pendingAppointments = await prisma.appointment.count({ where: { status: 'pending' } });
-    const approvedAppointments = await prisma.appointment.count({ 
-        where: { 
+    const approvedAppointments = await prisma.appointment.count({
+        where: {
             status: 'approved'
-        } 
+        }
     });
     const activeBarbers = await prisma.user.count({ where: { role: 'BARBER', isActive: true } });
 
@@ -218,6 +275,10 @@ const updateService = async (id, data) => {
     return await prisma.service.update({ where: { id }, data });
 };
 
+const deleteService = async (id) => {
+    return await prisma.service.delete({ where: { id } });
+};
+
 // ==================== SETTINGS METHODS ====================
 
 const getAllSettings = async () => {
@@ -248,15 +309,29 @@ const connect = async () => {
     }
 };
 
+// Generic create user (handles both roles)
+const createUser = async (data) => {
+    return await prisma.user.create({ data });
+};
+
 module.exports = {
     // User
     findUserByUsername,
     findUserById,
+    getAllUsers,
     createUser,
     updateUser,
     deleteUser,
+    createAdmin,
+    findAdminByUsername,
+    findAdminById,
+    createBarber,
+    updateBarber,
+    deleteBarber,
+    findBarberByUsername,
+    findBarberById,
     getAllBarbers,
-    getAllUsers,
+    getActiveBarbers,
     usernameExists,
     // Appointment
     getAppointments,
@@ -269,6 +344,7 @@ module.exports = {
     updateAppointment,
     deleteAppointment,
     rejectPastPending,
+    deleteRejectedAppointments,
     // Service
     getAllServices,
     getActiveServices,
@@ -276,6 +352,7 @@ module.exports = {
     findServiceByName,
     createService,
     updateService,
+    deleteService,
     // Settings
     getAllSettings,
     getSettingByKey,

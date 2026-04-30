@@ -281,6 +281,53 @@ describe('Service Controller', () => {
         });
     });
 
+    // ==================== TYPE SAFETY ====================
+    describe('Payload Type Safety', () => {
+        it('should return 400 when name is an array in POST', async () => {
+            const res = await request(app)
+                .post('/api/services')
+                .set('Authorization', `Bearer ${adminToken}`)
+                .send({ name: [], price: 100, duration: 30 });
+
+            expect(res.status).toBe(400);
+            expect(res.body.error).toBe('Geçersiz veri tipi: name');
+        });
+
+        it('should return 400 when description is an object in POST', async () => {
+            const res = await request(app)
+                .post('/api/services')
+                .set('Authorization', `Bearer ${adminToken}`)
+                .send({ name: 'Service', description: {}, price: 100, duration: 30 });
+
+            expect(res.status).toBe(400);
+            expect(res.body.error).toBe('Geçersiz veri tipi: description');
+        });
+
+        it('should return 400 when name is a number in PATCH', async () => {
+            dbService.getServiceById.mockResolvedValue({ id: 'svc-1', name: 'Old Name' });
+
+            const res = await request(app)
+                .patch('/api/services/svc-1')
+                .set('Authorization', `Bearer ${adminToken}`)
+                .send({ name: 12345 });
+
+            expect(res.status).toBe(400);
+            expect(res.body.error).toBe('Geçersiz veri tipi: name');
+        });
+
+        it('should return 400 when description is null in PATCH', async () => {
+            dbService.getServiceById.mockResolvedValue({ id: 'svc-1', name: 'Old Name' });
+
+            const res = await request(app)
+                .patch('/api/services/svc-1')
+                .set('Authorization', `Bearer ${adminToken}`)
+                .send({ description: null });
+
+            expect(res.status).toBe(400);
+            expect(res.body.error).toBe('Geçersiz veri tipi: description');
+        });
+    });
+
     // ==================== DELETE SERVICE ====================
     describe('DELETE /api/services/:id', () => {
         it('should return 401 without auth token', async () => {
