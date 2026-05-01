@@ -13,6 +13,7 @@ jest.mock('../../src/middlewares/rateLimit.middleware', () => {
         loginLimiter: noop,
         appointmentLimiter: noop,
         trackLimiter: noop,
+        cancelLimiter: noop,
     };
 });
 
@@ -214,7 +215,9 @@ describe('Completed Status Removal Verification', () => {
             const res = await request(app).get('/api/appointments/availability');
 
             expect(res.status).toBe(200);
-            res.body.forEach(appt => {
+            // New response format: { appointments: [...], fullyBookedDays: [...] }
+            const appointments = res.body.appointments || res.body;
+            appointments.forEach(appt => {
                 expect(appt.status).not.toBe('completed');
             });
         });

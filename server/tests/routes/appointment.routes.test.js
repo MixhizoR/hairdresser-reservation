@@ -4,6 +4,7 @@ const request = require('supertest');
 jest.mock('../../src/middlewares/rateLimit.middleware', () => ({
     appointmentLimiter: (req, res, next) => next(),
     trackLimiter: (req, res, next) => next(),
+    cancelLimiter: (req, res, next) => next(),
     loginLimiter: (req, res, next) => next(),
     generalLimiter: (req, res, next) => next()
 }));
@@ -16,7 +17,8 @@ jest.mock('../../src/services/db.service', () => ({
     findAppointmentByTimeForBarber: jest.fn(),
     findServiceByName: jest.fn().mockResolvedValue({ id: 'svc-1', name: 'Saç Kesimi', isActive: true }),
     getAppointmentByTrackingCode: jest.fn(),
-    updateAppointment: jest.fn()
+    updateAppointment: jest.fn(),
+    getAllSettings: jest.fn().mockResolvedValue([])
 }));
 const dbService = require('../../src/services/db.service');
 

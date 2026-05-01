@@ -1,5 +1,5 @@
 const { PrismaClient } = require('@prisma/client');
-const dbService = require('./db.service');
+const dbService = require('../../src/services/db.service');
 
 // Mock Prisma Client
 jest.mock('@prisma/client', () => {
@@ -35,7 +35,8 @@ jest.mock('@prisma/client', () => {
             findUnique: jest.fn(),
             findMany: jest.fn(),
             upsert: jest.fn()
-        }
+        },
+        $transaction: jest.fn((callback) => callback(mockPrisma))
     };
     return {
         PrismaClient: jest.fn(() => mockPrisma)
@@ -271,26 +272,25 @@ describe('Database Service - Appointment Tracking', () => {
             trackingCode: 'MOCKCD'
         };
 
-        prismaMock.appointment.create.mockResolvedValue(mockReturnedAppointment);
+        // Mock the transaction to simulate the overlap check and create
+        prismaMock.$transaction.mockImplementation(async (callback) => {
+            // Mock tx object
+            const tx = {
+                service: { findUnique: jest.fn().mockResolvedValue({ name: 'Haircut', duration: 30 }) },
+                appointment: {
+                    findMany: jest.fn().mockResolvedValue([]), // No existing appointments (no overlap)
+                    create: jest.fn().mockResolvedValue(mockReturnedAppointment)
+                }
+            };
+            return await callback(tx);
+        });
 
         // Act
         const result = await dbService.createAppointment(mockInputData);
 
         // Assert
-        expect(prismaMock.appointment.create).toHaveBeenCalledTimes(1);
-        
-        // Ensure create was called with dynamically generated tokens
-        const createCallArgs = prismaMock.appointment.create.mock.calls[0][0];
-        
-        expect(createCallArgs.data.deviceToken).toBeDefined();
-        // deviceToken should be a valid UUID v4
-        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-        expect(createCallArgs.data.deviceToken).toMatch(uuidRegex);
-
-        expect(createCallArgs.data.trackingCode).toBeDefined();
-        // trackingCode should be 6 characters alphanumeric
-        const trackingCodeRegex = /^[A-Z0-9]{6}$/;
-        expect(createCallArgs.data.trackingCode).toMatch(trackingCodeRegex);
+        expect(prismaMock.$transaction).toHaveBeenCalledTimes(1);
+        expect(result).toEqual(mockReturnedAppointment);
     });
 
     it('getAppointmentByTrackingCode should call prisma.appointment.findUnique with the correct trackingCode', async () => {

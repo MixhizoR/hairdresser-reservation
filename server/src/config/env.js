@@ -14,9 +14,14 @@ const isDev = process.env.NODE_ENV === 'development';
 const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN || 'http://localhost:5173';
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-in-production';
 
-// Warn in development if using defaults
-if (!isDev && JWT_SECRET === 'dev-secret-change-in-production') {
-  console.warn('⚠️  WARNING: Using default JWT_SECRET. Change this before going to production!');
+// Warn when using default JWT_SECRET (in both dev and production)
+if (JWT_SECRET === 'dev-secret-change-in-production') {
+  if (isDev) {
+    console.warn('⚠️  [DEV] Using default JWT_SECRET. Set JWT_SECRET in your .env file.');
+  } else {
+    console.error('🚨 FATAL: Using default JWT_SECRET in non-development environment!');
+    // Do not throw — this is already caught by the production required-var check above
+  }
 }
 
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '24h';

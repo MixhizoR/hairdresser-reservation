@@ -5,6 +5,7 @@ const { login, register, getMe, updateProfile, toggleUserStatus } = require('../
 const { authMiddleware } = require('../middlewares/auth.middleware');
 const { requireRole } = require('../middlewares/auth.middleware');
 const { loginLimiter } = require('../middlewares/rateLimit.middleware');
+const db = require('../services/db.service');
 
 // Auth routes
 router.post('/login', loginLimiter, login);
@@ -19,13 +20,11 @@ router.patch('/users/:id/toggle', authMiddleware, requireRole('ADMIN'), toggleUs
 
 // Dashboard stats (admin only)
 router.get('/dashboard', authMiddleware, requireRole('ADMIN'), async (req, res) => {
-    const db = require('../services/db.service');
     try {
         const stats = await db.getDashboardStats();
 
-        // Get recent appointments (last 5)
-        const appointments = await db.getAppointments();
-        const recent = appointments.slice(0, 5);
+        // Get recent appointments (last 5) - using DB-level LIMIT (Issue 19)
+        const recent = await db.getAppointments({}, { take: 5, orderBy: 'desc' });
 
         // Get all barbers
         const barbers = await db.getAllBarbers();

@@ -1,18 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import Navbar from '../components/Navbar';
 
-const SERVER_URL = import.meta.env.VITE_API_URL || '';
-
 export default function ContactPage() {
-  const [settings, setSettings] = useState(null);
-
-  useEffect(() => {
-    fetch(`${SERVER_URL}/api/settings`)
-      .then(r => r.json())
-      .then(d => setSettings(d))
-      .catch(() => { });
-  }, []);
-
   return (
     <div className="min-h-screen bg-surface font-body">
       <Navbar />
@@ -35,39 +24,42 @@ export default function ContactPage() {
             <div className="bg-surface-container-lowest rounded-[2rem] p-8 ambient-shadow">
               <h2 className="text-xl font-extrabold text-on-surface mb-6">İletişim Bilgileri</h2>
               <div className="flex flex-col gap-5">
-                {settings?.contactLocation && (
-                  <div className="flex items-start gap-4">
-                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                      <span className="material-symbols-outlined text-primary text-lg">location_on</span>
-                    </div>
-                    <div>
-                      <p className="text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-1">Adres</p>
-                      <p className="font-semibold text-on-surface">{settings.contactLocation}</p>
-                    </div>
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                    <span className="material-symbols-outlined text-primary text-lg">location_on</span>
                   </div>
-                )}
-                {settings?.contactPhone && (
-                  <div className="flex items-start gap-4">
-                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                      <span className="material-symbols-outlined text-primary text-lg">phone</span>
-                    </div>
-                    <div>
-                      <p className="text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-1">Telefon</p>
-                      <p className="font-semibold text-on-surface">{settings.contactPhone}</p>
-                    </div>
+                  <div>
+                    <p className="text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-1">Adres</p>
+                    <p className="font-semibold text-on-surface">Adres bilgisi buraya gelecek...</p>
                   </div>
-                )}
-                {settings?.contactEmail && (
-                  <div className="flex items-start gap-4">
-                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                      <span className="material-symbols-outlined text-primary text-lg">email</span>
-                    </div>
-                    <div>
-                      <p className="text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-1">E-posta</p>
-                      <p className="font-semibold text-on-surface">{settings.contactEmail}</p>
-                    </div>
+                </div>
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                    <span className="material-symbols-outlined text-primary text-lg">phone</span>
                   </div>
-                )}
+                  <div>
+                    <p className="text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-1">Telefon</p>
+                    <p className="font-semibold text-on-surface">+90 5XX XXX XX XX</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                    <span className="material-symbols-outlined text-primary text-lg">email</span>
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-1">E-posta</p>
+                    <p className="font-semibold text-on-surface">info@noirberber.com</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                    <span className="material-symbols-outlined text-primary text-lg">schedule</span>
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-1">Çalışma Saatleri</p>
+                    <p className="font-semibold text-on-surface">Pzt-Cmt: 08:00 - 21:00, Pazar: Kapalı</p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>

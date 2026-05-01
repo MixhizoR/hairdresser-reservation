@@ -1,6 +1,15 @@
 const db = require('../services/db.service');
 const { log } = require('../config/logger');
 
+const ALLOWED_SETTING_KEYS = new Set([
+    'operatingHours',
+    'shopName',
+    'shopPhone',
+    'appointmentDuration',
+    'notificationSound',
+    'maxAdvanceBookingDays',
+]);
+
 // GET /api/settings — public
 const getSettings = async (req, res) => {
     try {
@@ -26,6 +35,10 @@ const updateSettings = async (req, res) => {
 
     if (!updates || typeof updates !== 'object')
         return res.status(400).json({ error: 'Geçersiz veri.' });
+
+    const invalidKeys = Object.keys(updates).filter(k => !ALLOWED_SETTING_KEYS.has(k));
+    if (invalidKeys.length > 0)
+        return res.status(400).json({ error: `Geçersiz ayar anahtarları: ${invalidKeys.join(', ')}` });
 
     try {
         const results = {};

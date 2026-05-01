@@ -22,7 +22,7 @@ describe('Barber Routes (Integration)', () => {
     // ==================== GET /api/barbers (public) ====================
     describe('GET /api/barbers', () => {
         it('should return active barbers without authentication', async () => {
-            dbService.getAllBarbers.mockResolvedValue([
+            dbService.getActiveBarbers.mockResolvedValue([
                 { id: 'barber-1', username: 'barber1', name: 'Barber One', phone: '05321111111', isActive: true, createdAt: new Date() },
                 { id: 'barber-2', username: 'barber2', name: 'Barber Two', phone: '05322222222', isActive: true, createdAt: new Date() }
             ]);
@@ -37,7 +37,7 @@ describe('Barber Routes (Integration)', () => {
         });
 
         it('should return empty array when no barbers exist', async () => {
-            dbService.getAllBarbers.mockResolvedValue([]);
+            dbService.getActiveBarbers.mockResolvedValue([]);
 
             const res = await request(app).get('/api/barbers');
 
@@ -46,8 +46,8 @@ describe('Barber Routes (Integration)', () => {
         });
 
         it('should not expose password field', async () => {
-            dbService.getAllBarbers.mockResolvedValue([
-                { id: 'barber-1', username: 'barber1', name: 'Barber One', phone: '05321111111', isActive: true, password: 'hashed', createdAt: new Date() }
+            dbService.getActiveBarbers.mockResolvedValue([
+                { id: 'barber-1', username: 'barber1', name: 'Barber One', phone: '05321111111', password: 'hashed_password', isActive: true, createdAt: new Date() }
             ]);
 
             const res = await request(app).get('/api/barbers');

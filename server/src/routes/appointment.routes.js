@@ -4,7 +4,7 @@ const router = express.Router({ mergeParams: true });
 const appointmentController = require('../controllers/appointment.controller');
 const { authMiddleware, requireRole } = require('../middlewares/auth.middleware');
 
-const { appointmentLimiter, trackLimiter } = require('../middlewares/rateLimit.middleware');
+const { appointmentLimiter, trackLimiter, cancelLimiter } = require('../middlewares/rateLimit.middleware');
 const db = require('../services/db.service');
 const { log } = require('../config/logger');
 
@@ -28,7 +28,7 @@ router.post('/', appointmentLimiter, function (req, res, next) {
     appointmentController.createAppointment(req, res, next);
 });
 
-router.post('/cancel', appointmentLimiter, function (req, res, next) {
+router.post('/cancel', cancelLimiter, function (req, res, next) {
     appointmentController.cancelAppointment(req, res, next);
 });
 

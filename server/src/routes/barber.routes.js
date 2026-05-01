@@ -9,9 +9,7 @@ const { sanitizePhone } = require('../utils/validators');
 // Get all active barbers (public)
 router.get('/', async (req, res) => {
     try {
-        console.log('[DEBUG] GET /api/barbers called');
-        const barbers = await db.getAllBarbers();
-        console.log('[DEBUG] Barbers from DB:', barbers, 'Count:', barbers?.length);
+        const barbers = await db.getActiveBarbers();
         // Don't return password
         const safeBarbers = barbers.map(b => ({
             id: b.id,
@@ -23,10 +21,8 @@ router.get('/', async (req, res) => {
             level: b.level,
             createdAt: b.createdAt
         }));
-        console.log('[DEBUG] Sending safeBarbers:', safeBarbers);
         res.json(safeBarbers);
     } catch (err) {
-        console.error('[DEBUG] Error in GET /api/barbers:', err);
         res.status(500).json({ error: 'Sunucu hatası.' });
     }
 });
@@ -94,6 +90,10 @@ router.post('/', authMiddleware, requireRole('ADMIN'), photoUpload.single('photo
     if (cleanPhone && !cleanPhone.startsWith('05'))
         return res.status(400).json({ error: 'Telefon numarası 05 ile başlamalıdır.' });
 
+    const ALLOWED_LEVELS = ['SENIOR', 'JUNIOR', 'TRAINEE'];
+    if (level !== undefined && !ALLOWED_LEVELS.includes(level))
+        return res.status(400).json({ error: `Geçersiz seviye. İzin verilenler: ${ALLOWED_LEVELS.join(', ')}` });
+
     try {
         if (await db.usernameExists(username))
             return res.status(409).json({ error: 'Bu kullanıcı adı zaten var.' });
@@ -151,9 +151,19 @@ router.put('/:id', authMiddleware, photoUpload.single('photo'), async (req, res)
 
         const updateData = {};
         if (name !== undefined) updateData.name = name;
-        if (username !== undefined) updateData.username = username;
+        if (username !== undefined) {
+            if (username !== barber.username && await db.usernameExists(username)) {
+                return res.status(409).json({ error: 'Bu kullanıcı adı zaten kullanımda.' });
+            }
+            updateData.username = username;
+        }
         if (phone !== undefined) updateData.phone = cleanPhone;
-        if (level !== undefined) updateData.level = level;
+        if (level !== undefined) {
+            const ALLOWED_LEVELS = ['SENIOR', 'JUNIOR', 'TRAINEE'];
+            if (!ALLOWED_LEVELS.includes(level))
+                return res.status(400).json({ error: `Geçersiz seviye. İzin verilenler: ${ALLOWED_LEVELS.join(', ')}` });
+            updateData.level = level;
+        }
         if (password) updateData.password = await bcrypt.hash(password, 12);
         if (req.file) updateData.photoUrl = '/uploads/' + req.file.filename;
 

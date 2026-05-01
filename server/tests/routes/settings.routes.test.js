@@ -58,22 +58,22 @@ describe('Settings Routes (Integration)', () => {
             const res = await request(app)
                 .put('/api/settings')
                 .set('Authorization', `Bearer ${barberToken}`)
-                .send({ salonName: 'New Name' });
+                .send({ shopName: 'New Name' });
 
             expect(res.status).toBe(403);
         });
 
         it('should upsert settings for admin', async () => {
-            dbService.upsertSetting.mockResolvedValue({ key: 'salonName', value: 'Updated Salon' });
+            dbService.upsertSetting.mockResolvedValue({ key: 'shopName', value: 'Updated Salon' });
 
             const res = await request(app)
                 .put('/api/settings')
                 .set('Authorization', `Bearer ${adminToken}`)
-                .send({ salonName: 'Updated Salon' });
+                .send({ shopName: 'Updated Salon' });
 
             expect(res.status).toBe(200);
             expect(res.body.success).toBe(true);
-            expect(res.body.settings.salonName).toBe('Updated Salon');
+            expect(res.body.settings.shopName).toBe('Updated Salon');
         });
 
         it('should handle multiple settings at once', async () => {
@@ -83,9 +83,9 @@ describe('Settings Routes (Integration)', () => {
                 .put('/api/settings')
                 .set('Authorization', `Bearer ${adminToken}`)
                 .send({
-                    salonName: 'Multi Update',
-                    contactPhone: '05321234567',
-                    contactEmail: 'test@test.com'
+                    shopName: 'Multi Update',
+                    shopPhone: '05321234567',
+                    appointmentDuration: '30'
                 });
 
             expect(res.status).toBe(200);

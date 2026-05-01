@@ -108,9 +108,13 @@ export default function DashboardPage({ token, authHeaders }) {
       const aDate = new Date(a.time).toISOString().split('T')[0];
       return aDate === dayStr && a.status === 'approved';
     });
+    // Calculate revenue using actual service prices
+    const revenue = dayAppts.reduce((sum, a) => {
+      return sum + (a.serviceRef?.price || 150);
+    }, 0);
     dailyRevenue.push({
       label: d.toString(),
-      revenue: dayAppts.length * 150
+      revenue
     });
   }
 

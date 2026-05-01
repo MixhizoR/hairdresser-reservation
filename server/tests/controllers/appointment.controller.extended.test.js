@@ -12,7 +12,8 @@ jest.mock('../../src/services/db.service', () => ({
     getAppointments: jest.fn(),
     deleteAppointment: jest.fn(),
     updateAppointment: jest.fn(),
-    rejectPastPending: jest.fn().mockResolvedValue({ count: 0 })
+    rejectPastPending: jest.fn().mockResolvedValue({ count: 0 }),
+    getAllSettings: jest.fn().mockResolvedValue([])
 }));
 
 jest.mock('../../src/middlewares/rateLimit.middleware', () => {
@@ -22,6 +23,7 @@ jest.mock('../../src/middlewares/rateLimit.middleware', () => {
         loginLimiter: noop,
         appointmentLimiter: noop,
         trackLimiter: noop,
+        cancelLimiter: noop,
     };
 });
 

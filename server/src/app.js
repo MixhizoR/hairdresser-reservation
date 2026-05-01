@@ -3,6 +3,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 const path = require('path');
 const { isDev, ALLOWED_ORIGIN } = require('./config/env');
+const { log } = require('./config/logger');
 const { generalLimiter } = require('./middlewares/rateLimit.middleware');
 const { requestLogger } = require('./middlewares/requestLogger.middleware');
 const { sanitizeMiddleware } = require('./middlewares/sanitize.middleware');
@@ -11,7 +12,19 @@ const apiRoutes = require('./routes/index');
 const app = express();
 
 // ─── Security Headers ───
-app.use(helmet({ crossOriginEmbedderPolicy: false, crossOriginResourcePolicy: false, contentSecurityPolicy: false }));
+app.use(helmet({
+    crossOriginEmbedderPolicy: false,
+    crossOriginResourcePolicy: false,
+    contentSecurityPolicy: {
+        directives: {
+            defaultSrc: ["'none'"],
+            scriptSrc: ["'none'"],
+            objectSrc: ["'none'"],
+            baseUri: ["'none'"],
+            frameAncestors: ["'none'"],
+        }
+    }
+}));
 
 // ─── Request Logger ───
 app.use(requestLogger);
@@ -51,11 +64,10 @@ app.get('/health', (req, res) => {
 
 // ─── Centralized Error Handler ───
 app.use((err, req, res, next) => {
-  const { log } = require('./config/logger');
   log('error', err.message, { stack: err.stack, path: req.path, method: req.method });
-  res.status(err.status || 500).json({ 
-    error: err.message || 'Sunucu hatası.' 
-  });
+  // Don't leak internal error details in production (Issue 18)
+  const clientMessage = isDev ? (err.message || 'Sunucu hatası.') : (err.status < 500 ? err.message : 'Sunucu hatası.');
+  res.status(err.status || 500).json({ error: clientMessage });
 });
 
 module.exports = app;

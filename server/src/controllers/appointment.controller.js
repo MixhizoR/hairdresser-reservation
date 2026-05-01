@@ -3,9 +3,15 @@ const db = require('../services/db.service');
 const { log } = require('../config/logger');
 const { isValidPhone, isValidName, sanitizePhone } = require('../utils/validators');
 
+// Helper to convert to Turkey time (UTC+3, no DST)
+const toTurkeyTime = (date) => {
+    const TURKEY_OFFSET_MS = 3 * 60 * 60 * 1000;
+    return new Date(date.getTime() + TURKEY_OFFSET_MS);
+};
+
 // Get availability - supports optional barberId parameter
 const getAvailability = async (req, res) => {
-    const { barberId } = req.query;
+    const { barberId, month, year } = req.query;
 
     try {
         // Auto-reject past pending appointments
@@ -20,13 +26,81 @@ const getAvailability = async (req, res) => {
             appointments = await db.getAppointments();
         }
 
-        res.json(appointments.map(a => ({
-            id: a.id,
-            time: a.time,
-            status: a.status,
-            barberId: a.barberId,
-            barberName: a.barber?.name
-        })));
+        // Calculate fully booked days
+        const fullyBookedDays = [];
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        // Calculate max date (14 days from today as per booking limit)
+        const maxDate = new Date(today);
+        maxDate.setDate(maxDate.getDate() + 14);
+
+        // Determine date range to check (default to current month if not specified)
+        const checkMonth = month ? parseInt(month) : today.getMonth();
+        const checkYear = year ? parseInt(year) : today.getFullYear();
+        const daysInMonth = new Date(checkYear, checkMonth + 1, 0).getDate();
+
+        // Hardcoded operating hours: 08:00-21:00, Sunday closed
+        const OPEN_HOUR = 8;
+        const CLOSE_HOUR = 21;
+        const SLOTS_PER_DAY = (CLOSE_HOUR - OPEN_HOUR) * 2; // 30-min slots: 26 slots
+
+        for (let day = 1; day <= daysInMonth; day++) {
+            const checkDate = new Date(checkYear, checkMonth, day);
+            const dayOfWeek = checkDate.getDay(); // 0 = Sunday
+            const dateStr = `${checkYear}-${String(checkMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+
+            // Skip if beyond 14-day limit
+            if (checkDate > maxDate) {
+                fullyBookedDays.push(dateStr);
+                continue;
+            }
+
+            // Sunday is closed
+            if (dayOfWeek === 0) {
+                fullyBookedDays.push(dateStr);
+                continue;
+            }
+
+            // For today, check if all remaining slots are taken
+            const isToday = checkDate.getTime() === today.getTime();
+            const currentHour = new Date().getHours();
+            const currentMinute = new Date().getMinutes();
+            const currentSlot = isToday ? (currentHour - OPEN_HOUR) * 2 + (currentMinute >= 30 ? 1 : 0) : 0;
+            const availableSlotsForToday = isToday ? Math.max(0, SLOTS_PER_DAY - currentSlot) : SLOTS_PER_DAY;
+
+            // Count slots taken on this day by all barbers (non-rejected appointments)
+            const dayAppointments = appointments.filter(a => {
+                const aDate = new Date(a.time);
+                return aDate.getFullYear() === checkYear &&
+                       aDate.getMonth() === checkMonth &&
+                       aDate.getDate() === day &&
+                       a.status !== 'rejected';
+            });
+
+            // Calculate slots taken (accounting for duration)
+            let slotsTaken = 0;
+            for (const appt of dayAppointments) {
+                const serviceDuration = appt.serviceRef?.duration || 30;
+                const slotsNeeded = Math.ceil(serviceDuration / 30);
+                slotsTaken += slotsNeeded;
+            }
+
+            // Day is fully booked if all available slots are taken
+            if (slotsTaken >= availableSlotsForToday) {
+                fullyBookedDays.push(dateStr);
+            }
+        }
+
+        res.json({
+            appointments: appointments.map(a => ({
+                time: a.time,
+                status: a.status,
+                barberId: a.barberId,
+                barberName: a.barber?.name
+            })),
+            fullyBookedDays
+        });
     } catch (err) {
         log('error', 'GET /api/appointments/availability failed', { err: err.message });
         res.status(500).json({ error: 'Sunucu hatası.' });
@@ -120,59 +194,41 @@ const createAppointment = async (req, res) => {
     if (isNaN(date.getTime()))
         return res.status(400).json({ error: 'Geçersiz tarih.' });
 
-    if (date.getMinutes() % 30 !== 0 || date.getSeconds() !== 0)
+    const localDate = toTurkeyTime(date);
+    if (localDate.getUTCMinutes() % 30 !== 0 || localDate.getUTCSeconds() !== 0)
         return res.status(400).json({ error: 'Geçersiz saat dilimi (00 veya 30 dakika olmalı).' });
 
     if (date < new Date())
         return res.status(400).json({ error: 'Geçmiş bir saat seçilemez.' });
 
-    // Validate against 24-hour working hours from settings
-    try {
-        const settingsRows = await db.getAllSettings();
-        const settingsMap = {};
-        for (const s of settingsRows) {
-            try { settingsMap[s.key] = JSON.parse(s.value); } catch { settingsMap[s.key] = s.value; }
-        }
-        const operatingHours = settingsMap.operatingHours || {};
-        const DAYS_MAP = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
-        const dayOfWeek = DAYS_MAP[date.getDay()];
-        const dayConfig = operatingHours[dayOfWeek];
+    // Validate 14-day advance booking limit
+    const MAX_ADVANCE_DAYS = 14;
+    const maxDate = new Date();
+    maxDate.setDate(maxDate.getDate() + MAX_ADVANCE_DAYS);
+    if (date > maxDate)
+        return res.status(400).json({ error: 'En fazla 14 gün sonrasına randevu alabilirsiniz.' });
 
-        if (dayConfig) {
-            if (dayConfig.closed) {
-                return res.status(400).json({ error: 'Seçilen gün kapalıdır.' });
-            }
-            const hours = date.getHours();
-            const minutes = date.getMinutes();
-            const slotTime = hours * 60 + minutes;
+    // Validate against hardcoded working hours (08:00-21:00, Sunday closed)
+    const DAYS_MAP = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+    const dayOfWeek = DAYS_MAP[localDate.getUTCDay()];
 
-            const parseTimeStr = (t) => {
-                const [h, m] = (t || '08:30').split(':').map(Number);
-                return h * 60 + m;
-            };
+    // Sunday is closed
+    if (dayOfWeek === 'sunday') {
+        return res.status(400).json({ error: 'Seçilen gün kapalıdır.' });
+    }
 
-            const HARD_OPEN = 8 * 60 + 30; // 08:30
-            const HARD_CLOSE = 19 * 60;   // 19:00
-            
-            const openMinutes = Math.max(parseTimeStr(dayConfig.open || '08:30'), HARD_OPEN);
-            const closeMinutes = Math.min(parseTimeStr(dayConfig.close || '19:00'), HARD_CLOSE);
+    const slotTime = localDate.getUTCHours() * 60 + localDate.getUTCMinutes();
+    const OPEN_MINUTES = 8 * 60; // 08:00
+    const CLOSE_MINUTES = 21 * 60; // 21:00
 
-            if (slotTime < openMinutes || slotTime >= closeMinutes) {
-                return res.status(400).json({
-                    error: `Seçilen saat çalışma saatleri dışındadır (08:30 - 19:00).`
-                });
-            }
+    // Check if start time is before opening
+    if (slotTime < OPEN_MINUTES) {
+        return res.status(400).json({ error: 'Hizmet süresi mesai saatleri dışındadır.' });
+    }
 
-            // Validate service duration doesn't exceed closing time
-            if (slotTime + serviceDuration > closeMinutes) {
-                return res.status(400).json({
-                    error: 'Hizmet süresi kapanış saatini aşıyor.'
-                });
-            }
-        }
-    } catch (err) {
-        // If settings can't be read, allow booking (fallback behavior)
-        log('warn', 'Could not validate working hours', { err: err.message });
+    // Check if appointment end time exceeds closing time
+    if (slotTime + serviceDuration > CLOSE_MINUTES) {
+        return res.status(400).json({ error: 'Hizmet süresi mesai saatleri dışındadır.' });
     }
 
     try {
@@ -192,6 +248,9 @@ const createAppointment = async (req, res) => {
 
         res.status(201).json(appt);
     } catch (err) {
+        if (err.code === 'TIME_SLOT_TAKEN') {
+            return res.status(400).json({ error: 'Bu saat dilimi seçtiğiniz berber için zaten rezerve edilmiş.' });
+        }
         log('error', 'POST /api/appointments failed', { err: err.message });
         res.status(500).json({ error: 'Sunucu hatası.' });
     }
@@ -204,6 +263,9 @@ const updateAppointment = async (req, res) => {
 
     if (!['approved', 'rejected', 'pending'].includes(status))
         return res.status(400).json({ error: 'Geçersiz durum.' });
+
+    if (notes !== undefined && typeof notes !== 'string')
+        return res.status(400).json({ error: 'Geçersiz veri tipi: notes' });
 
     try {
         const appointment = await db.getAppointmentById(id);

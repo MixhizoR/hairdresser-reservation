@@ -49,7 +49,7 @@ const requireOwnerOrAdmin = (resourceUserIdField) => {
 
         // Check if user owns the resource
         const resourceUserId = req.body[resourceUserIdField] || req.params[resourceUserIdField];
-        if (resourceUserId && resourceUserId !== req.user.id) {
+        if (resourceUserId && String(resourceUserId) !== String(req.user.id)) {
             return res.status(403).json({ error: 'Bu işlem için yetkiniz yok.' });
         }
 

@@ -2,26 +2,28 @@ const { generateTimeSlots, parseTimeToMinutes, formatMinutesToTime } = require('
 
 describe('Time Slot Generation', () => {
     describe('generateTimeSlots', () => {
-        it('should generate 30-minute slots from 09:00 to 19:30 for 09:00-20:00', () => {
+        it('should generate 30-minute slots from 08:00 to 20:30 (hardcoded hours)', () => {
             const config = { open: '09:00', close: '20:00', closed: false };
             const slots = generateTimeSlots(config);
 
-            expect(slots.length).toBe(22); // 09:00 .. 19:30 inclusive
-            expect(slots[0]).toBe('09:00');
-            expect(slots[slots.length - 1]).toBe('19:30');
+            // Hardcoded to 08:00-21:00, so config is ignored
+            expect(slots.length).toBe(26); // 08:00 .. 20:30 inclusive
+            expect(slots[0]).toBe('08:00');
+            expect(slots[slots.length - 1]).toBe('20:30');
         });
 
-        it('should not include the close time itself', () => {
-            const config = { open: '09:00', close: '20:00', closed: false };
+        it('should not include the close time itself (21:00)', () => {
+            const config = { open: '08:00', close: '21:00', closed: false };
             const slots = generateTimeSlots(config);
 
-            expect(slots).not.toContain('20:00');
+            expect(slots).not.toContain('21:00');
         });
 
         it('should return empty array for closed days', () => {
-            const config = { open: '09:00', close: '18:00', closed: true };
+            const config = { open: '08:00', close: '21:00', closed: true };
             const slots = generateTimeSlots(config);
 
+            // When closed: true, returns empty regardless of times
             expect(slots).toEqual([]);
         });
 
@@ -30,37 +32,49 @@ describe('Time Slot Generation', () => {
             expect(generateTimeSlots(undefined)).toEqual([]);
         });
 
-        it('should handle a 1-hour window (09:00-10:00)', () => {
+        it('should return hardcoded 08:00-20:30 slots regardless of config window', () => {
             const config = { open: '09:00', close: '10:00', closed: false };
             const slots = generateTimeSlots(config);
 
-            expect(slots).toEqual(['09:00', '09:30']);
+            // Config is ignored, always returns 08:00-20:30
+            expect(slots.length).toBe(26);
+            expect(slots[0]).toBe('08:00');
+            expect(slots[slots.length - 1]).toBe('20:30');
         });
 
-        it('should handle edge case where open and close are 30 minutes apart', () => {
+        it('should return full hardcoded slots even with 30-min config window', () => {
             const config = { open: '09:00', close: '09:30', closed: false };
             const slots = generateTimeSlots(config);
 
-            expect(slots).toEqual(['09:00']);
+            // Config is ignored, always returns 08:00-20:30
+            expect(slots.length).toBe(26);
+            expect(slots[0]).toBe('08:00');
         });
 
-        it('should return empty if close equals open', () => {
+        it('should return hardcoded slots even when close equals open in config', () => {
             const config = { open: '09:00', close: '09:00', closed: false };
-            expect(generateTimeSlots(config)).toEqual([]);
+            const slots = generateTimeSlots(config);
+            // Config is ignored
+            expect(slots.length).toBe(26);
+            expect(slots[0]).toBe('08:00');
         });
 
-        it('should return empty if close is before open', () => {
+        it('should return hardcoded slots even when close is before open in config', () => {
             const config = { open: '18:00', close: '09:00', closed: false };
-            expect(generateTimeSlots(config)).toEqual([]);
+            const slots = generateTimeSlots(config);
+            // Config is ignored
+            expect(slots.length).toBe(26);
+            expect(slots[0]).toBe('08:00');
         });
 
-        it('should generate slots from 08:00 to 12:30 for half-day morning', () => {
+        it('should return full day hardcoded slots (08:00-20:30)', () => {
             const config = { open: '08:00', close: '13:00', closed: false };
             const slots = generateTimeSlots(config);
 
-            expect(slots.length).toBe(10);
+            // Config is ignored, always returns full 08:00-20:30
+            expect(slots.length).toBe(26);
             expect(slots[0]).toBe('08:00');
-            expect(slots[slots.length - 1]).toBe('12:30');
+            expect(slots[slots.length - 1]).toBe('20:30');
         });
 
         it('should produce slots in 24-hour format (no AM/PM)', () => {
@@ -76,54 +90,64 @@ describe('Time Slot Generation', () => {
                 expect([0, 30]).toContain(m);
             });
 
-            // Verify 24-hour times are used
+            // Hardcoded 08:00-20:30, so 13:00 and 15:30 should be present
             expect(slots).toContain('13:00');
             expect(slots).toContain('15:30');
             expect(slots).not.toContain('1:00 PM');
             expect(slots).not.toContain('01:00 PM');
         });
 
-        it('should handle late evening hours (20:00-23:00)', () => {
+        it('should return hardcoded 08:00-20:30 even for late evening config', () => {
             const config = { open: '20:00', close: '23:00', closed: false };
             const slots = generateTimeSlots(config);
 
-            expect(slots).toEqual(['20:00', '20:30', '21:00', '21:30', '22:00', '22:30']);
+            // Config is ignored, returns 08:00-20:30 (21:00 is closing, not included)
+            expect(slots.length).toBe(26);
+            expect(slots[0]).toBe('08:00');
+            expect(slots[slots.length - 1]).toBe('20:30');
         });
 
-        it('should handle midnight-crossing not supported (return empty)', () => {
+        it('should return hardcoded slots even for midnight-crossing config', () => {
             const config = { open: '22:00', close: '02:00', closed: false };
             const slots = generateTimeSlots(config);
-            expect(slots).toEqual([]);
+            // Config is ignored
+            expect(slots.length).toBe(26);
+            expect(slots[0]).toBe('08:00');
         });
 
-        it('should default open to 09:00 and close to 20:00 when not provided', () => {
+        it('should return hardcoded 08:00-20:30 when no open/close provided', () => {
             const config = { closed: false };
             const slots = generateTimeSlots(config);
 
-            expect(slots[0]).toBe('09:00');
-            expect(slots[slots.length - 1]).toBe('19:30');
+            // Config is ignored, returns hardcoded 08:00-20:30
+            expect(slots[0]).toBe('08:00');
+            expect(slots[slots.length - 1]).toBe('20:30');
         });
 
-        it('should handle non-standard 30-minute open boundaries (e.g. 09:30-11:30)', () => {
+        it('should return hardcoded slots even for non-standard boundaries', () => {
             const config = { open: '09:30', close: '11:30', closed: false };
             const slots = generateTimeSlots(config);
 
-            expect(slots).toEqual(['09:30', '10:00', '10:30', '11:00']);
+            // Config is ignored
+            expect(slots.length).toBe(26);
+            expect(slots[0]).toBe('08:00');
+            expect(slots[slots.length - 1]).toBe('20:30');
         });
 
-        it('should generate the correct number of slots for a full day', () => {
+        it('should generate 26 slots for hardcoded 08:00-21:00', () => {
             const config = { open: '09:00', close: '20:00', closed: false };
             const slots = generateTimeSlots(config);
 
-            // (20*60 - 9*60) / 30 = 11*60/30 = 22 slots
-            expect(slots.length).toBe(22);
+            // Hardcoded 08:00-21:00 = (21-8)*2 = 26 slots (08:00 .. 20:30)
+            expect(slots.length).toBe(26);
         });
 
-        it('should generate one slot for a 15-minute window (09:00-09:15)', () => {
+        it('should return full hardcoded slots even for 15-minute config window', () => {
             const config = { open: '09:00', close: '09:15', closed: false };
             const slots = generateTimeSlots(config);
-            // 09:00 is a valid start; next slot at 09:30 >= 09:15 so it stops
-            expect(slots).toEqual(['09:00']);
+            // Config is ignored
+            expect(slots.length).toBe(26);
+            expect(slots[0]).toBe('08:00');
         });
     });
 

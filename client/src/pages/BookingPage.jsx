@@ -6,9 +6,14 @@ const SERVER_URL = import.meta.env.VITE_API_URL || '';
 const CAT_LABELS_TR = { BARBERING: 'Berberlik', GROOMING: 'Bakım', TREATMENTS: 'Tedavi' };
 
 /* ── Month Calendar ── */
-function MonthCalendar({ selectedDate, onSelect }) {
+function MonthCalendar({ selectedDate, onSelect, fullyBookedDays = [] }) {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
+
+  // Calculate max date (14 days from today)
+  const maxDate = new Date(today);
+  maxDate.setDate(maxDate.getDate() + 14);
+
   const [cursor, setCursor] = useState(() => {
     const d = selectedDate ? new Date(selectedDate) : new Date();
     return { year: d.getFullYear(), month: d.getMonth() };
@@ -32,9 +37,19 @@ function MonthCalendar({ selectedDate, onSelect }) {
     if (!d) return true;
     return new Date(cursor.year, cursor.month, d) < today;
   };
+  const isBeyondLimit = (d) => {
+    if (!d) return true;
+    const checkDate = new Date(cursor.year, cursor.month, d);
+    return checkDate > maxDate;
+  };
+  const isFullyBooked = (d) => {
+    if (!d) return false;
+    const dateStr = `${cursor.year}-${String(cursor.month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+    return fullyBookedDays.includes(dateStr);
+  };
 
   const select = (d) => {
-    if (!d || isPast(d)) return;
+    if (!d || isPast(d) || isBeyondLimit(d) || isFullyBooked(d)) return;
     const y = cursor.year;
     const m = String(cursor.month + 1).padStart(2, '0');
     const dd = String(d).padStart(2, '0');
@@ -60,7 +75,7 @@ function MonthCalendar({ selectedDate, onSelect }) {
       </div>
       <div className="grid grid-cols-7 gap-y-1">
         {cells.map((d, i) => (
-          <div key={i} onClick={() => select(d)} className={`cal-day ${!d ? 'invisible' : ''} ${isSel(d) ? 'active' : ''} ${isPast(d) ? 'disabled' : ''}`}>
+          <div key={i} onClick={() => select(d)} className={`cal-day ${!d ? 'invisible' : ''} ${isSel(d) ? 'active' : ''} ${isPast(d) || isBeyondLimit(d) || isFullyBooked(d) ? 'disabled' : ''}`}>
             {d}
           </div>
         ))}
@@ -96,6 +111,7 @@ export default function BookingPage() {
   const [services, setServices] = useState([]);
   const [barbers, setBarbers] = useState([]);
   const [takenSlots, setTakenSlots] = useState([]);
+  const [fullyBookedDays, setFullyBookedDays] = useState([]);
   const [success, setSuccess] = useState(null);
   const [submitError, setSubmitError] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -127,6 +143,17 @@ export default function BookingPage() {
     fetch(`${SERVER_URL}/api/services`).then(r => r.json()).then(d => setServices(Array.isArray(d) ? d : [])).catch(() => {});
     fetch(`${SERVER_URL}/api/barbers`).then(r => r.json()).then(d => setBarbers(Array.isArray(d) ? d : [])).catch(() => {});
     fetch(`${SERVER_URL}/api/settings`).then(r => r.json()).then(d => setSettings(d)).catch(() => {});
+
+    // Fetch fully booked days for current month
+    const now = new Date();
+    fetch(`${SERVER_URL}/api/appointments/availability?month=${now.getMonth()}&year=${now.getFullYear()}`)
+      .then(r => r.json())
+      .then(d => {
+        if (d.fullyBookedDays) {
+          setFullyBookedDays(d.fullyBookedDays);
+        }
+      })
+      .catch(() => {});
   }, []);
 
   /* Fetch taken slots when barber+date changes */
@@ -135,15 +162,19 @@ export default function BookingPage() {
     fetch(`${SERVER_URL}/api/appointments/availability?barberId=${form.barberId}&date=${form.date}`)
       .then(r => r.json())
       .then(d => {
-        if (Array.isArray(d)) {
-          // Backend returns [{time, status, barberId}] — extract time strings
-          const taken = d
-            .filter(a => a.status !== 'rejected' && a.status !== 'cancelled')
-            .map(a => new Date(a.time).toTimeString().slice(0, 5));
-          setTakenSlots(taken);
+        const appointments = d.appointments || d;
+        if (Array.isArray(appointments)) {
+          const filtered = appointments.filter(a => {
+            const aDate = new Date(a.time).toISOString().split('T')[0];
+            return aDate === form.date && ['pending','approved'].includes(a.status);
+          });
+          setTakenSlots(filtered);
+        }
+        if (d.fullyBookedDays) {
+          setFullyBookedDays(d.fullyBookedDays);
         }
       })
-      .catch(() => setTakenSlots([]));
+      .catch(() => {});
   }, [form.barberId, form.date]);
 
   /* Block extra slots based on selected service duration */
@@ -482,7 +513,7 @@ export default function BookingPage() {
                   Tarih ve Saat Seçin
                 </h2>
                 <div className="bg-surface-container-low rounded-[2rem] p-6">
-                  <MonthCalendar selectedDate={form.date} onSelect={d => { update('date', d); update('time', ''); }} />
+                  <MonthCalendar selectedDate={form.date} onSelect={(d) => update('date', d)} fullyBookedDays={fullyBookedDays} />
                 </div>
 
                 {form.date && (

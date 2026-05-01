@@ -94,11 +94,13 @@ const usernameExists = async (username) => {
 
 // ==================== APPOINTMENT METHODS ====================
 
-const getAppointments = async (filters = {}) => {
+const getAppointments = async (filters = {}, options = {}) => {
     return await prisma.appointment.findMany({
         where: filters,
-        include: { barber: true },
-        orderBy: { time: 'asc' }
+        include: { barber: true, serviceRef: true },
+        orderBy: { time: options.orderBy || 'asc' },
+        ...(options.take ? { take: options.take } : {}),
+        ...(options.skip ? { skip: options.skip } : {}),
     });
 };
 
@@ -106,16 +108,6 @@ const getAppointmentById = async (id) => {
     return await prisma.appointment.findUnique({
         where: { id },
         include: { barber: true }
-    });
-};
-
-const findAppointmentByTime = async (date, barberId) => {
-    return await prisma.appointment.findFirst({
-        where: {
-            time: date,
-            barberId: barberId,
-            status: { not: 'rejected' }
-        }
     });
 };
 
@@ -145,11 +137,16 @@ const getAppointmentsByDeviceToken = async (deviceToken) => {
 };
 
 const generateTrackingCode = () => {
-    const bytes = crypto.randomBytes(4);
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     let result = '';
-    for (let i = 0; i < 6; i++) {
-        result += chars[bytes[i % bytes.length] % chars.length];
+    // Use rejection sampling to avoid modulo bias
+    while (result.length < 6) {
+        const byte = crypto.randomBytes(1)[0];
+        // Only accept values in the range that divides evenly into chars.length (36)
+        // 256 / 36 = 7 remainder 4, so reject values >= 252
+        if (byte < 252) {
+            result += chars[byte % chars.length];
+        }
     }
     return result;
 };
@@ -161,22 +158,58 @@ const createAppointment = async (data) => {
         trackingCode: data.trackingCode || generateTrackingCode()
     };
 
-    // Basit bir çarpışma önleme mekanizması (gerçek dünyada daha sağlam bir kontrol gerekir)
+    // Resolve unique tracking code (with bias fix from Issue 2)
     let isUnique = false;
     let attempts = 0;
     while (!isUnique && attempts < 5) {
         const existing = await prisma.appointment.findUnique({ where: { trackingCode: appointmentData.trackingCode } });
-        if (!existing) {
-            isUnique = true;
-        } else {
-            appointmentData.trackingCode = generateTrackingCode();
-            attempts++;
-        }
+        if (!existing) isUnique = true;
+        else { appointmentData.trackingCode = generateTrackingCode(); attempts++; }
     }
+    if (!isUnique) throw new Error('Could not generate a unique tracking code after 5 attempts.');
 
-    return await prisma.appointment.create({
-        data: appointmentData,
-        include: { barber: true }
+    return await prisma.$transaction(async (tx) => {
+        // Fetch service duration to calculate appointment end time
+        const service = await tx.service.findUnique({
+            where: { name: appointmentData.service }
+        });
+        const duration = service?.duration || 30; // default 30 minutes
+        const startTime = new Date(appointmentData.time);
+        const endTime = new Date(startTime.getTime() + duration * 60000);
+
+        // Check for overlapping appointments for this barber
+        // Overlap occurs if: (existing_start < new_end) AND (existing_end > new_start)
+        // Back-to-back appointments (existing_end === new_start) are allowed
+        const existingAppointments = await tx.appointment.findMany({
+            where: {
+                barberId: appointmentData.barberId,
+                status: { not: 'rejected' },
+                time: {
+                    gte: new Date(startTime.getFullYear(), startTime.getMonth(), startTime.getDate()),
+                    lt: new Date(startTime.getFullYear(), startTime.getMonth(), startTime.getDate() + 1)
+                }
+            },
+            include: { serviceRef: true }
+        });
+
+        for (const existing of existingAppointments) {
+            const existingStart = new Date(existing.time);
+            const existingDuration = existing.serviceRef?.duration || 30;
+            const existingEnd = new Date(existingStart.getTime() + existingDuration * 60000);
+
+            // Check for overlap (not just exact match)
+            // Overlap: (existingStart < endTime) AND (existingEnd > startTime)
+            if (existingStart < endTime && existingEnd > startTime) {
+                const err = new Error('Seçilen berber bu saat aralığında başka bir randevuya sahip.');
+                err.code = 'TIME_SLOT_TAKEN';
+                throw err;
+            }
+        }
+
+        return await tx.appointment.create({
+            data: appointmentData,
+            include: { barber: true }
+        });
     });
 };
 
@@ -338,7 +371,6 @@ module.exports = {
     getAppointmentById,
     getAppointmentByTrackingCode,
     getAppointmentsByDeviceToken,
-    findAppointmentByTime,
     findAppointmentByTimeForBarber,
     createAppointment,
     updateAppointment,

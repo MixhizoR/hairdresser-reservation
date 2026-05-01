@@ -6,7 +6,8 @@ const dbService = require('../../src/services/db.service');
 jest.mock('../../src/services/db.service', () => ({
     createAppointment: jest.fn(),
     findAppointmentByTimeForBarber: jest.fn().mockResolvedValue(null),
-    findServiceByName: jest.fn().mockResolvedValue({ id: 'svc-1', name: 'Saç & Sakal Kesimi', isActive: true })
+    findServiceByName: jest.fn().mockResolvedValue({ id: 'svc-1', name: 'Saç & Sakal Kesimi', isActive: true }),
+    getAllSettings: jest.fn().mockResolvedValue([])
 }));
 
 describe('Appointment Controller Encoding', () => {

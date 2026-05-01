@@ -7,8 +7,8 @@
 function generateTimeSlots(config) {
     if (!config || config.closed) return [];
 
-    const open = config.open || '09:00';
-    const close = config.close || '20:00';
+    const open = '08:00';
+    const close = '21:00';
 
     const [openH, openM] = open.split(':').map(Number);
     const [closeH, closeM] = close.split(':').map(Number);

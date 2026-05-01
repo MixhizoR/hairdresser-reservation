@@ -2,8 +2,23 @@ const sanitizeHtml = require('sanitize-html');
 
 function sanitizeValue(value) {
     if (typeof value === 'string') {
-        // Strip HTML tags but do NOT escape HTML entities (preserve &, <, > in plain text)
-        return value.replace(/<[^>]*>/g, '').trim();
+        // First use sanitize-html to strip tags, then decode entities
+        const withoutTags = sanitizeHtml(value, {
+            allowedTags: [],        // strip ALL HTML tags
+            allowedAttributes: {},  // strip ALL attributes
+            disallowedTagsMode: 'discard',
+            textFilter: function(text) {
+                return text; // preserve text content including special chars
+            }
+        });
+        // Decode HTML entities to preserve original characters
+        return withoutTags
+            .replace(/&amp;/g, '&')
+            .replace(/&lt;/g, '<')
+            .replace(/&gt;/g, '>')
+            .replace(/&quot;/g, '"')
+            .replace(/&#39;/g, "'")
+            .trim();
     }
     return value;
 }
@@ -29,6 +44,9 @@ const sanitizeMiddleware = (req, res, next) => {
     }
     if (req.query && typeof req.query === 'object') {
         req.query = sanitizeObject(req.query);
+    }
+    if (req.params && typeof req.params === 'object') {
+        req.params = sanitizeObject(req.params);
     }
     next();
 };

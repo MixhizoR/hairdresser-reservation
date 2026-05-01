@@ -29,9 +29,17 @@ const trackLimiter = rateLimit({
   standardHeaders: true, legacyHeaders: false,
 });
 
+const cancelLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: isDev ? 500 : 10,
+    message: { error: 'Çok fazla iptal talebi. 15 dakika bekleyin.' },
+    standardHeaders: true, legacyHeaders: false,
+});
+
 module.exports = {
     generalLimiter,
     loginLimiter,
     appointmentLimiter,
     trackLimiter,
+    cancelLimiter,
 };

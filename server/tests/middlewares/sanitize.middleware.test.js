@@ -4,7 +4,8 @@ describe('Sanitize Middleware', () => {
     // ==================== sanitizeValue ====================
     describe('sanitizeValue', () => {
         it('should strip HTML tags from strings', () => {
-            expect(sanitizeValue('<script>alert("xss")</script>')).toBe('alert("xss")');
+            // Script tags are completely removed by sanitize-html for security
+            expect(sanitizeValue('<script>alert("xss")</script>')).toBe('');
             expect(sanitizeValue('<b>bold</b>')).toBe('bold');
             expect(sanitizeValue('<div class="test">content</div>')).toBe('content');
         });
@@ -58,7 +59,8 @@ describe('Sanitize Middleware', () => {
 
             sanitizeMiddleware(req, res, next);
 
-            expect(req.body.name).toBe('alert("xss")John');
+            // Script tag content is completely removed by sanitize-html for security
+            expect(req.body.name).toBe('John');
             expect(req.body.phone).toBe('05321234567');
             expect(next).toHaveBeenCalled();
         });
@@ -140,6 +142,20 @@ describe('Sanitize Middleware', () => {
 
             sanitizeMiddleware(req, res, next);
 
+            expect(next).toHaveBeenCalled();
+        });
+
+        it('should sanitize string values in req.params (Issue 15)', () => {
+            req = {
+                body: {},
+                query: {},
+                params: { id: '<script>alert("xss")</script>123', name: '<b>Test</b>' }
+            };
+
+            sanitizeMiddleware(req, res, next);
+
+            expect(req.params.id).toBe('123');
+            expect(req.params.name).toBe('Test');
             expect(next).toHaveBeenCalled();
         });
     });

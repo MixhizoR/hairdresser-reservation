@@ -147,10 +147,11 @@ const updateProfile = async (req, res) => {
         return res.status(400).json({ error: 'Telefon numarası 05 ile başlamalıdır.' });
 
     try {
-        const user = await db.updateUser(req.user.id, {
-            name: name || undefined,
-            phone: cleanPhone
-        });
+        const updatePayload = {};
+        if (name) updatePayload.name = name;
+        if (phone !== undefined) updatePayload.phone = cleanPhone ?? null;
+
+        const user = await db.updateUser(req.user.id, updatePayload);
 
         res.json({
             success: true,
@@ -172,6 +173,9 @@ const updateProfile = async (req, res) => {
 const toggleUserStatus = async (req, res) => {
     const { id } = req.params;
     const { isActive } = req.body;
+
+    if (typeof isActive !== 'boolean')
+        return res.status(400).json({ error: 'isActive alanı boolean olmalıdır.' });
 
     try {
         const user = await db.findUserById(id);

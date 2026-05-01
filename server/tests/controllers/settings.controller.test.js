@@ -88,7 +88,7 @@ describe('Settings Controller', () => {
             const res = await request(app)
                 .put('/api/settings')
                 .set('Authorization', `Bearer ${barberToken}`)
-                .send({ salonName: 'New Name' });
+                .send({ shopName: 'New Name' });
 
             expect(res.status).toBe(403);
         });
@@ -103,39 +103,39 @@ describe('Settings Controller', () => {
         });
 
         it('should return 200 and upsert settings on success', async () => {
-            dbService.upsertSetting.mockResolvedValue({ key: 'salonName', value: 'New Salon' });
+            dbService.upsertSetting.mockResolvedValue({ key: 'shopName', value: 'New Salon' });
 
             const res = await request(app)
                 .put('/api/settings')
                 .set('Authorization', `Bearer ${adminToken}`)
-                .send({ salonName: 'New Salon', contactPhone: '05329876543' });
+                .send({ shopName: 'New Salon', shopPhone: '05329876543' });
 
             expect(res.status).toBe(200);
             expect(res.body.success).toBe(true);
-            expect(res.body.settings.salonName).toBe('New Salon');
-            expect(res.body.settings.contactPhone).toBe('05329876543');
+            expect(res.body.settings.shopName).toBe('New Salon');
+            expect(res.body.settings.shopPhone).toBe('05329876543');
         });
 
         it('should JSON-stringify object values', async () => {
-            dbService.upsertSetting.mockResolvedValue({ key: 'hours', value: '{}' });
+            dbService.upsertSetting.mockResolvedValue({ key: 'operatingHours', value: '{}' });
 
             await request(app)
                 .put('/api/settings')
                 .set('Authorization', `Bearer ${adminToken}`)
-                .send({ hours: { monday: { open: '09:00' } } });
+                .send({ operatingHours: { monday: { open: '09:00' } } });
 
-            expect(dbService.upsertSetting).toHaveBeenCalledWith('hours', '{"monday":{"open":"09:00"}}');
+            expect(dbService.upsertSetting).toHaveBeenCalledWith('operatingHours', '{"monday":{"open":"09:00"}}');
         });
 
         it('should convert non-object values to strings', async () => {
-            dbService.upsertSetting.mockResolvedValue({ key: 'maxBookings', value: '10' });
+            dbService.upsertSetting.mockResolvedValue({ key: 'maxAdvanceBookingDays', value: '10' });
 
             await request(app)
                 .put('/api/settings')
                 .set('Authorization', `Bearer ${adminToken}`)
-                .send({ maxBookings: 10 });
+                .send({ maxAdvanceBookingDays: 10 });
 
-            expect(dbService.upsertSetting).toHaveBeenCalledWith('maxBookings', '10');
+            expect(dbService.upsertSetting).toHaveBeenCalledWith('maxAdvanceBookingDays', '10');
         });
     });
 });

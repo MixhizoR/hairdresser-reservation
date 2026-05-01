@@ -328,18 +328,22 @@ export default function BarberPanel({ token, currentUser, authHeaders, onLogout 
   const navigateDay = (offset) => {
     setSlideDir(offset > 0 ? 'left' : 'right');
     setTimeout(() => {
-      const d = new Date(cursor.year, cursor.month, cursor.day);
+      // Create date at noon to avoid timezone edge cases
+      const d = new Date(cursor.year, cursor.month, cursor.day, 12, 0, 0);
       d.setDate(d.getDate() + offset);
-      setCursor({ year: d.getFullYear(), month: d.getMonth(), day: d.getDate() });
-      setSelectedDate(d.toISOString().split('T')[0]);
+      const newCursor = { year: d.getFullYear(), month: d.getMonth(), day: d.getDate() };
+      setCursor(newCursor);
+      const newDateStr = `${newCursor.year}-${String(newCursor.month + 1).padStart(2, '0')}-${String(newCursor.day).padStart(2, '0')}`;
+      setSelectedDate(newDateStr);
       setSlideDir('');
     }, 150);
   };
 
   const handleSelectDate = (ds) => {
     const [y, m, d] = ds.split('-').map(Number);
-    const oldDate = new Date(cursor.year, cursor.month, cursor.day);
-    const newDate = new Date(y, m - 1, d);
+    // Create dates at noon to avoid timezone edge cases
+    const oldDate = new Date(cursor.year, cursor.month, cursor.day, 12, 0, 0);
+    const newDate = new Date(y, m - 1, d, 12, 0, 0);
     const diff = (newDate - oldDate) / (1000 * 60 * 60 * 24);
 
     if (diff !== 0) {
