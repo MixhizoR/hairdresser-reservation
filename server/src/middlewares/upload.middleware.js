@@ -29,6 +29,10 @@ const photoUpload = multer({
     storage: photoStorage,
     limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
     fileFilter: (req, file, cb) => {
+        // Reject null byte injection attempts
+        if (file.originalname.includes('\0') || file.originalname.includes('%00')) {
+            return cb(new Error('Invalid filename'));
+        }
         const ext = path.extname(file.originalname).toLowerCase();
         if (ALLOWED_PHOTO_TYPES.includes(ext) && ALLOWED_PHOTO_MIMES.includes(file.mimetype)) {
             cb(null, true);
@@ -57,6 +61,10 @@ const soundUpload = multer({
     storage: soundStorage,
     limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
     fileFilter: (req, file, cb) => {
+        // Reject null byte injection attempts
+        if (file.originalname.includes('\0') || file.originalname.includes('%00')) {
+            return cb(new Error('Invalid filename'));
+        }
         const ext = path.extname(file.originalname).toLowerCase();
         if (ALLOWED_SOUND_TYPES.includes(ext) && ALLOWED_SOUND_MIMES.includes(file.mimetype)) {
             cb(null, true);

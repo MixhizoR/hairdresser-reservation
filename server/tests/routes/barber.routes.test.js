@@ -61,6 +61,7 @@ describe('Barber Routes (Integration)', () => {
         it('should return 401 without auth token', async () => {
             const res = await request(app).get('/api/barbers/all');
             expect(res.status).toBe(401);
+            expect(res.body.error).toBe('Yetkilendirme gerekli.');
         });
 
         it('should return 403 if non-admin tries to access', async () => {
@@ -93,6 +94,7 @@ describe('Barber Routes (Integration)', () => {
         it('should return 401 without auth token', async () => {
             const res = await request(app).get('/api/barbers/barber-1');
             expect(res.status).toBe(401);
+            expect(res.body.error).toBe('Yetkilendirme gerekli.');
         });
 
         it('should return 404 if barber not found', async () => {
@@ -172,6 +174,7 @@ describe('Barber Routes (Integration)', () => {
 
             expect(res.status).toBe(200);
             expect(res.body.id).toBe('barber-1');
+            expect(res.body.password).toBeUndefined();
         });
     });
 
@@ -183,6 +186,7 @@ describe('Barber Routes (Integration)', () => {
                 .send({ username: 'newbarber', password: 'testpass123' });
 
             expect(res.status).toBe(401);
+            expect(res.body.error).toBe('Yetkilendirme gerekli.');
         });
 
         it('should return 403 if non-admin tries to create', async () => {
@@ -192,6 +196,7 @@ describe('Barber Routes (Integration)', () => {
                 .send({ username: 'newbarber', password: 'testpass123' });
 
             expect(res.status).toBe(403);
+            expect(res.body.error).toBe('Bu işlem için yetkiniz yok.');
         });
 
         it('should return 400 if username is missing', async () => {
@@ -339,6 +344,7 @@ describe('Barber Routes (Integration)', () => {
                 .set('Authorization', `Bearer ${barberToken}`);
 
             expect(res.status).toBe(403);
+            expect(res.body.error).toBe('Bu işlem için yetkiniz yok.');
         });
 
         it('should return 404 if barber not found', async () => {
@@ -402,6 +408,7 @@ describe('Barber Routes (Integration)', () => {
                 .send({});
 
             expect(res.status).toBe(403);
+            expect(res.body.error).toBe('Bu işlem için yetkiniz yok.');
         });
 
         it('should return 404 if barber not found', async () => {
@@ -488,6 +495,7 @@ describe('Barber Routes (Integration)', () => {
                 .send({ name: 'Updated' });
 
             expect(res.status).toBe(401);
+            expect(res.body.error).toBe('Yetkilendirme gerekli.');
         });
 
         it('should return 404 if barber not found', async () => {

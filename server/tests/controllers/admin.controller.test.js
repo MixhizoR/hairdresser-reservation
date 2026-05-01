@@ -46,6 +46,7 @@ describe('Admin Controller', () => {
                 .send({});
 
             expect(res.status).toBe(400);
+            expect(res.body.error).toBe('Kullanıcı adı ve şifre gerekli.');
         });
 
         it('should return 401 if user does not exist', async () => {
@@ -247,6 +248,7 @@ describe('Admin Controller', () => {
             expect(res.body.success).toBe(true);
             expect(res.body.user.username).toBe('newuser');
             expect(res.body.user.role).toBe('BARBER');
+            expect(res.body.user.password).toBeUndefined();
         });
 
         it('should default to BARBER role if not specified', async () => {
@@ -362,6 +364,7 @@ describe('Admin Controller', () => {
             expect(res.body.name).toBe('Admin User');
             expect(res.body.phone).toBe('05321234567');
             expect(res.body.isActive).toBe(true);
+            expect(res.body.password).toBeUndefined();
         });
     });
 
@@ -373,6 +376,7 @@ describe('Admin Controller', () => {
                 .send({ name: 'New Name' });
 
             expect(res.status).toBe(401);
+            expect(res.body.error).toBe('Yetkilendirme gerekli.');
         });
 
         it('should return 200 with updated user data', async () => {
@@ -435,6 +439,7 @@ describe('Admin Controller', () => {
                 .send({ isActive: false });
 
             expect(res.status).toBe(403);
+            expect(res.body.error).toBe('Bu işlem için yetkiniz yok.');
         });
 
         it('should return 404 if user not found', async () => {

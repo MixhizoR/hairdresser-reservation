@@ -31,6 +31,7 @@ describe('Appointment Routes (Integration)', () => {
         it('should return deviceToken and trackingCode upon successful booking', async () => {
             const futureDate = new Date();
             futureDate.setDate(futureDate.getDate() + 1);
+            futureDate.setHours(10); // Set to a time within working hours (10:00)
             futureDate.setMinutes(0);
             futureDate.setSeconds(0);
             futureDate.setMilliseconds(0);
@@ -64,6 +65,13 @@ describe('Appointment Routes (Integration)', () => {
             // Check that the returned appointment contains the tokens
             expect(res.body.deviceToken).toBe('test-uuid-123');
             expect(res.body.trackingCode).toBe('TESTCD');
+            
+            expect(dbService.createAppointment).toHaveBeenCalledWith(expect.objectContaining({
+                name: 'Test User',
+                phone: '05321234567',
+                service: 'Saç Kesimi',
+                barberId: 'barber-123'
+            }));
         });
     });
 
@@ -120,7 +128,7 @@ describe('Appointment Routes (Integration)', () => {
         it('should return 400 if neither code nor deviceToken is provided', async () => {
             const res = await request(app).get('/api/appointments/track');
             expect(res.status).toBe(400);
-            expect(res.body.error).toBeDefined();
+            expect(res.body.error).toBe('Lütfen bir takip kodu veya cihaz tokeni sağlayın.');
         });
     });
 

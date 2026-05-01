@@ -2,23 +2,21 @@ const sanitizeHtml = require('sanitize-html');
 
 function sanitizeValue(value) {
     if (typeof value === 'string') {
-        // First use sanitize-html to strip tags, then decode entities
-        const withoutTags = sanitizeHtml(value, {
-            allowedTags: [],        // strip ALL HTML tags
-            allowedAttributes: {},  // strip ALL attributes
+        const clean = sanitizeHtml(value, {
+            allowedTags: [],
+            allowedAttributes: {},
             disallowedTagsMode: 'discard',
+            parser: { decodeEntities: false },
             textFilter: function(text) {
-                return text; // preserve text content including special chars
+                return text
+                    .replace(/&amp;/g, '&')
+                    .replace(/&lt;/g, '<')
+                    .replace(/&gt;/g, '>')
+                    .replace(/&quot;/g, '"')
+                    .replace(/&#39;/g, "'");
             }
         });
-        // Decode HTML entities to preserve original characters
-        return withoutTags
-            .replace(/&amp;/g, '&')
-            .replace(/&lt;/g, '<')
-            .replace(/&gt;/g, '>')
-            .replace(/&quot;/g, '"')
-            .replace(/&#39;/g, "'")
-            .trim();
+        return clean.trim();
     }
     return value;
 }

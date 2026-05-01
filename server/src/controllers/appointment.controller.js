@@ -152,7 +152,7 @@ const getAppointments = async (req, res) => {
 
 // Create new appointment
 const createAppointment = async (req, res) => {
-    const { name, phone, service, time, barberId, notes, website } = req.body;
+    const { name, phone, service, time, barberId, notes, website, customDuration } = req.body;
 
     // Type checks for string fields
     if (typeof name !== 'string')
@@ -236,15 +236,26 @@ const createAppointment = async (req, res) => {
         if (await db.findAppointmentByTimeForBarber(date, barberId))
             return res.status(400).json({ error: 'Bu saat dilimi seçtiğiniz berber için zaten rezerve edilmiş.' });
 
-        const appt = await db.createAppointment({
+        // Determine effective duration and status
+        const isAuthorized = req.user && (req.user.role === 'ADMIN' || req.user.role === 'BARBER');
+        let appointmentStatus = 'pending';
+        if (name === 'MOLA') {
+            appointmentStatus = 'approved';
+        }
+        const createData = {
             name: name.trim(),
             phone: sanitizedPhone,
             service: (service || '').trim(),
             time: date,
             barberId: barberId,
             notes: notes ? notes.trim() : null,
-            status: 'pending'
-        });
+            status: appointmentStatus
+        };
+        if (isAuthorized && customDuration) {
+            createData.customDuration = parseInt(customDuration);
+        }
+
+        const appt = await db.createAppointment(createData);
 
         res.status(201).json(appt);
     } catch (err) {

@@ -169,11 +169,11 @@ const createAppointment = async (data) => {
     if (!isUnique) throw new Error('Could not generate a unique tracking code after 5 attempts.');
 
     return await prisma.$transaction(async (tx) => {
-        // Fetch service duration to calculate appointment end time
+        // Fetch service duration to calculate appointment end time (unless using customDuration)
         const service = await tx.service.findUnique({
             where: { name: appointmentData.service }
         });
-        const duration = service?.duration || 30; // default 30 minutes
+        const duration = appointmentData.customDuration ? parseInt(appointmentData.customDuration) : (service?.duration || 30);
         const startTime = new Date(appointmentData.time);
         const endTime = new Date(startTime.getTime() + duration * 60000);
 

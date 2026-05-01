@@ -19,6 +19,7 @@ describe('Appointment Controller Encoding', () => {
         it('should NOT escape special characters in name and service', async () => {
             const futureDate = new Date();
             futureDate.setDate(futureDate.getDate() + 1);
+            futureDate.setHours(10); // Ensure within working hours
             futureDate.setMinutes(0);
             futureDate.setSeconds(0);
             futureDate.setMilliseconds(0);

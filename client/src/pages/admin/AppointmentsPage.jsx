@@ -16,6 +16,76 @@ const STATUS_LABELS = {
   rejected: 'Reddedildi',
 };
 
+function BreakModal({ onClose, onSave, currentUser }) {
+  const [form, setForm] = useState({
+    date: new Date().toISOString().split('T')[0],
+    time: '12:00',
+    customDuration: 60,
+  });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleSubmit = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const dateTimeString = new Date(`${form.date}T${form.time}:00`).toISOString();
+      // Dummy data to pass validation, customDuration does the actual blocking
+      const payload = {
+        name: 'MOLA',
+        phone: '05555555555',
+        service: 'İzin/Mola',
+        time: dateTimeString,
+        customDuration: parseInt(form.customDuration),
+        barberId: currentUser?.id
+      };
+      await onSave(payload);
+    } catch (e) { setError(e.message); }
+    finally { setLoading(false); }
+  };
+
+  return (
+    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative bg-surface-container-lowest rounded-[2rem] p-8 w-full max-w-sm ambient-shadow">
+        <h3 className="text-xl font-extrabold text-on-surface mb-6">Mola / İzin Ekle</h3>
+        {error && <div className="bg-error-container text-on-error-container rounded-xl px-4 py-3 text-sm mb-4">{error}</div>}
+
+        <div className="flex flex-col gap-4">
+          <div>
+            <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-2 block">Tarih</label>
+            <input type="date" className="input-base" value={form.date} onChange={e => setForm({...form, date: e.target.value})} />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-2 block">Başlangıç</label>
+              <input type="time" step="1800" className="input-base" value={form.time} onChange={e => setForm({...form, time: e.target.value})} />
+            </div>
+            <div>
+              <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-2 block">Süre</label>
+              <select className="input-base" value={form.customDuration} onChange={e => setForm({...form, customDuration: e.target.value})}>
+                <option value={30}>30 dk</option>
+                <option value={60}>1 Saat</option>
+                <option value={90}>1.5 Saat</option>
+                <option value={120}>2 Saat</option>
+                <option value={240}>Yarım Gün (4s)</option>
+                <option value={600}>Tam Gün (10s)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex gap-3 mt-8">
+          <button onClick={onClose} className="flex-1 btn-secondary py-3">İptal</button>
+          <button onClick={handleSubmit} disabled={loading} className="flex-1 btn-primary py-3 flex items-center justify-center">
+            {loading ? <span className="w-4 h-4 border-2 border-on-primary border-t-transparent rounded-full animate-spin" /> : 'Saatleri Kapat'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ── Polling: fetch every 15 seconds ── */
 function useAppointmentsPolling(token, authHeadersFn) {
   const [appointments, setAppointments] = useState([]);
@@ -47,10 +117,11 @@ function useAppointmentsPolling(token, authHeadersFn) {
   return { appointments, loading, refresh: fetch_ };
 }
 
-export default function AppointmentsPage({ token, authHeaders, audioEnabled, playSynth }) {
-  const { appointments, loading, refresh } = useAppointmentsPolling(token, authHeaders);
-  const [filter, setFilter] = useState('all');
-  const [actionLoading, setActionLoading] = useState(null);
+export default function AppointmentsPage({ token, authHeaders, currentUser, audioEnabled, playSynth }) {
+   const { appointments, loading, refresh } = useAppointmentsPolling(token, authHeaders);
+   const [filter, setFilter] = useState('all');
+   const [actionLoading, setActionLoading] = useState(null);
+   const [showBreakModal, setShowBreakModal] = useState(false);
 
   /* Play sound on new pending */
   useEffect(() => {
@@ -71,14 +142,28 @@ export default function AppointmentsPage({ token, authHeaders, audioEnabled, pla
     } finally { setActionLoading(null); }
   };
 
-  const deleteAppointment = async (id) => {
-    if (!confirm('Bu randevuyu silmek istiyor musunuz?')) return;
-    setActionLoading(id + 'del');
-    try {
-      await fetch(`${SERVER_URL}/api/appointments/${id}`, { method: 'DELETE', headers: authHeaders() });
-      await refresh();
-    } finally { setActionLoading(null); }
-  };
+   const deleteAppointment = async (id) => {
+     if (!confirm('Bu randevuyu silmek istiyor musunuz?')) return;
+     setActionLoading(id + 'del');
+     try {
+       await fetch(`${SERVER_URL}/api/appointments/${id}`, { method: 'DELETE', headers: authHeaders() });
+       await refresh();
+     } finally { setActionLoading(null); }
+   };
+
+   const handleSaveBreak = async (payload) => {
+     const res = await fetch(`${SERVER_URL}/api/appointments`, {
+       method: 'POST',
+       headers: authHeaders(),
+       body: JSON.stringify(payload)
+     });
+     if (!res.ok) {
+       const err = await res.json();
+       throw new Error(err.error || 'Randevu oluşturulamadı');
+     }
+     setShowBreakModal(false);
+     refresh();
+   };
 
   const filtered = filter === 'all' ? appointments : appointments.filter(a => a.status === filter);
   const pendingCount = appointments.filter(a => a.status === 'pending').length;
@@ -96,9 +181,14 @@ export default function AppointmentsPage({ token, authHeaders, audioEnabled, pla
             {appointments.length} toplam
           </p>
         </div>
-        <button onClick={refresh} className="flex items-center gap-2 text-sm font-semibold text-primary hover:underline">
-          <span className="material-symbols-outlined text-base">refresh</span> Yenile
-        </button>
+        <div className="flex items-center gap-4">
+          <button onClick={() => setShowBreakModal(true)} className="btn-secondary py-1.5 px-3 text-sm flex items-center gap-1">
+            <span className="material-symbols-outlined text-base">block</span> Mola Ekle
+          </button>
+          <button onClick={refresh} className="flex items-center gap-2 text-sm font-semibold text-primary hover:underline">
+            <span className="material-symbols-outlined text-base">refresh</span> Yenile
+          </button>
+        </div>
       </div>
 
       {/* Filter tabs */}
@@ -210,6 +300,9 @@ export default function AppointmentsPage({ token, authHeaders, audioEnabled, pla
           </div>
         )}
       </div>
+      {showBreakModal && (
+        <BreakModal onClose={() => setShowBreakModal(false)} onSave={handleSaveBreak} currentUser={currentUser} />
+      )}
     </div>
   );
 }

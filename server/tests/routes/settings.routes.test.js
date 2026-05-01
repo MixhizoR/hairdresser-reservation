@@ -50,6 +50,7 @@ describe('Settings Routes (Integration)', () => {
                 .send({ salonName: 'New Name' });
 
             expect(res.status).toBe(401);
+            expect(res.body.error).toBe('Yetkilendirme gerekli.');
         });
 
         it('should return 403 for non-admin users', async () => {
@@ -61,6 +62,7 @@ describe('Settings Routes (Integration)', () => {
                 .send({ shopName: 'New Name' });
 
             expect(res.status).toBe(403);
+            expect(res.body.error).toBe('Bu işlem için yetkiniz yok.');
         });
 
         it('should upsert settings for admin', async () => {

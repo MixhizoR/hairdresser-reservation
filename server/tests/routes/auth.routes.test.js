@@ -108,6 +108,7 @@ describe('Auth Routes (Integration)', () => {
                 role: 'ADMIN',
                 name: 'Admin User'
             });
+            expect(res.body.user.password).toBeUndefined();
         });
 
         it('should return 200 and token for valid barber credentials', async () => {
@@ -154,6 +155,7 @@ describe('Auth Routes (Integration)', () => {
         it('should return 401 without auth token', async () => {
             const res = await request(app).get('/api/auth/me');
             expect(res.status).toBe(401);
+            expect(res.body.error).toBe('Yetkilendirme gerekli.');
         });
 
         it('should return 401 with invalid token', async () => {
@@ -162,6 +164,7 @@ describe('Auth Routes (Integration)', () => {
                 .set('Authorization', 'Bearer invalid-token');
 
             expect(res.status).toBe(401);
+            expect(res.body.error).toBe('Geçersiz veya süresi dolmuş token.');
         });
 
         it('should return user info with valid token', async () => {
@@ -192,6 +195,7 @@ describe('Auth Routes (Integration)', () => {
             expect(res.body.id).toBe('user-1');
             expect(res.body.username).toBe('admin');
             expect(res.body.role).toBe('ADMIN');
+            expect(res.body.password).toBeUndefined();
         });
     });
 

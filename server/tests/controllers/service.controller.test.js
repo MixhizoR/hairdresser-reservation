@@ -170,6 +170,13 @@ describe('Service Controller', () => {
             expect(res.body.service.name).toBe('New Service');
             expect(res.body.service.price).toBe(100);
             expect(res.body.service.duration).toBe(30);
+            expect(dbService.createService).toHaveBeenCalledWith(expect.objectContaining({
+                name: 'New Service',
+                price: 100,
+                duration: 30,
+                category: 'BARBERING',
+                isActive: true
+            }));
         });
 
         it('should accept price of zero', async () => {
@@ -258,6 +265,10 @@ describe('Service Controller', () => {
             expect(res.status).toBe(200);
             expect(res.body.success).toBe(true);
             expect(res.body.service.name).toBe('Updated Name');
+            expect(dbService.updateService).toHaveBeenCalledWith('svc-1', expect.objectContaining({
+                name: 'Updated Name',
+                price: 150
+            }));
         });
 
         it('should allow partial updates', async () => {

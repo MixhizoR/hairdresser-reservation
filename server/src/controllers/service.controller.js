@@ -19,8 +19,8 @@ const getServices = async (req, res) => {
 const createService = async (req, res) => {
     const { name, description, price, duration, category, isActive } = req.body;
 
-    // Check for missing fields first
-    if (!name || price == null || !duration)
+    // Check for missing fields first (duration can be 0 but must be a number)
+    if (!name || price == null || duration == null)
         return res.status(400).json({ error: 'İsim, fiyat ve süre zorunludur.' });
 
     // Type checks
@@ -32,8 +32,15 @@ const createService = async (req, res) => {
     if (typeof price !== 'number' || price < 0)
         return res.status(400).json({ error: 'Geçersiz fiyat.' });
 
-    if (typeof duration !== 'number' || duration < 15 || duration % 15 !== 0)
+    // Ensure duration is a positive number
+    if (typeof duration !== 'number' || duration <= 0) {
+        return res.status(400).json({ error: 'Süre pozitif bir sayı olmalıdır.' });
+    }
+
+    // Ensure duration is a multiple of 15 minutes and at least 15
+    if (duration < 15 || duration % 15 !== 0) {
         return res.status(400).json({ error: 'Süre 15 dakikanın katları olmalıdır.' });
+    }
 
     try {
         const service = await db.createService({
@@ -61,6 +68,16 @@ const updateService = async (req, res) => {
         return res.status(400).json({ error: 'Geçersiz veri tipi: name' });
     if (description !== undefined && typeof description !== 'string')
         return res.status(400).json({ error: 'Geçersiz veri tipi: description' });
+
+    // Validate duration if provided
+    if (duration !== undefined) {
+        if (typeof duration !== 'number' || duration <= 0) {
+            return res.status(400).json({ error: 'Süre pozitif bir sayı olmalıdır.' });
+        }
+        if (duration < 15 || duration % 15 !== 0) {
+            return res.status(400).json({ error: 'Süre 15 dakikanın katları olmalıdır.' });
+        }
+    }
 
     try {
         const existing = await db.getServiceById(id);

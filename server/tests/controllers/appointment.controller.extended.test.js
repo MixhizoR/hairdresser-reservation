@@ -335,6 +335,12 @@ describe('Appointment Controller (Extended)', () => {
             expect(res.body.status).toBe('pending');
             expect(res.body.deviceToken).toBe('uuid-123');
             expect(res.body.trackingCode).toBe('ABC123');
+            expect(dbService.createAppointment).toHaveBeenCalledWith(expect.objectContaining({
+                name: 'Test User',
+                phone: '05321234567',
+                service: 'Saç Kesimi',
+                barberId: 'barber-123'
+            }));
         });
 
         it('should trim name and phone before saving', async () => {
@@ -383,6 +389,14 @@ describe('Appointment Controller (Extended)', () => {
                 });
 
             expect(res.status).toBe(201);
+            expect(res.body.name).toBe('Ömer Çağrı');
+            expect(res.body.status).toBe('pending');
+            expect(dbService.createAppointment).toHaveBeenCalledWith(expect.objectContaining({
+                name: 'Ömer Çağrı',
+                phone: '05321234567',
+                service: 'Saç Kesimi',
+                barberId: 'barber-123'
+            }));
         });
     });
 
@@ -391,6 +405,7 @@ describe('Appointment Controller (Extended)', () => {
         it('should return 401 without auth token', async () => {
             const res = await request(app).get('/api/appointments/appt-1');
             expect(res.status).toBe(401);
+            expect(res.body.error).toBe('Yetkilendirme gerekli.');
         });
 
         it('should return 404 if appointment not found', async () => {
@@ -456,6 +471,7 @@ describe('Appointment Controller (Extended)', () => {
         it('should return 401 without auth token', async () => {
             const res = await request(app).delete('/api/appointments/appt-1');
             expect(res.status).toBe(401);
+            expect(res.body.error).toBe('Yetkilendirme gerekli.');
         });
 
         it('should return 403 if non-admin tries to delete', async () => {
@@ -496,15 +512,18 @@ describe('Appointment Controller (Extended)', () => {
         it('should return 401 without auth token', async () => {
             const res = await request(app).get('/api/appointments');
             expect(res.status).toBe(401);
+            expect(res.body.error).toBe('Yetkilendirme gerekli.');
         });
 
         it('should filter by barberId when barber requests', async () => {
             dbService.getAppointments.mockResolvedValue([]);
 
-            await request(app)
+            const res = await request(app)
                 .get('/api/appointments')
                 .set('Authorization', `Bearer ${barberToken}`);
 
+            expect(res.status).toBe(200);
+            expect(Array.isArray(res.body)).toBe(true);
             expect(dbService.getAppointments).toHaveBeenCalledWith(
                 expect.objectContaining({ barberId: 'barber-1' })
             );
@@ -513,10 +532,12 @@ describe('Appointment Controller (Extended)', () => {
         it('should allow admin to see all appointments', async () => {
             dbService.getAppointments.mockResolvedValue([]);
 
-            await request(app)
+            const res = await request(app)
                 .get('/api/appointments')
                 .set('Authorization', `Bearer ${adminToken}`);
 
+            expect(res.status).toBe(200);
+            expect(Array.isArray(res.body)).toBe(true);
             expect(dbService.getAppointments).toHaveBeenCalledWith(
                 expect.not.objectContaining({ barberId: expect.anything() })
             );
@@ -525,10 +546,12 @@ describe('Appointment Controller (Extended)', () => {
         it('should allow admin to filter by barberId', async () => {
             dbService.getAppointments.mockResolvedValue([]);
 
-            await request(app)
+            const res = await request(app)
                 .get('/api/appointments?barberId=barber-2')
                 .set('Authorization', `Bearer ${adminToken}`);
 
+            expect(res.status).toBe(200);
+            expect(Array.isArray(res.body)).toBe(true);
             expect(dbService.getAppointments).toHaveBeenCalledWith(
                 expect.objectContaining({ barberId: 'barber-2' })
             );
@@ -537,10 +560,12 @@ describe('Appointment Controller (Extended)', () => {
         it('should filter by status', async () => {
             dbService.getAppointments.mockResolvedValue([]);
 
-            await request(app)
+            const res = await request(app)
                 .get('/api/appointments?status=pending')
                 .set('Authorization', `Bearer ${adminToken}`);
 
+            expect(res.status).toBe(200);
+            expect(Array.isArray(res.body)).toBe(true);
             expect(dbService.getAppointments).toHaveBeenCalledWith(
                 expect.objectContaining({ status: 'pending' })
             );
@@ -549,10 +574,12 @@ describe('Appointment Controller (Extended)', () => {
         it('should not filter by status when "all"', async () => {
             dbService.getAppointments.mockResolvedValue([]);
 
-            await request(app)
+            const res = await request(app)
                 .get('/api/appointments?status=all')
                 .set('Authorization', `Bearer ${adminToken}`);
 
+            expect(res.status).toBe(200);
+            expect(Array.isArray(res.body)).toBe(true);
             expect(dbService.getAppointments).toHaveBeenCalledWith(
                 expect.not.objectContaining({ status: expect.anything() })
             );
@@ -561,10 +588,12 @@ describe('Appointment Controller (Extended)', () => {
         it('should filter by date', async () => {
             dbService.getAppointments.mockResolvedValue([]);
 
-            await request(app)
+            const res = await request(app)
                 .get('/api/appointments?date=2026-03-28')
                 .set('Authorization', `Bearer ${adminToken}`);
 
+            expect(res.status).toBe(200);
+            expect(Array.isArray(res.body)).toBe(true);
             const callArgs = dbService.getAppointments.mock.calls[0][0];
             expect(callArgs.time).toBeDefined();
             expect(callArgs.time.gte).toBeInstanceOf(Date);
@@ -580,6 +609,7 @@ describe('Appointment Controller (Extended)', () => {
                 .send({ status: 'approved' });
 
             expect(res.status).toBe(401);
+            expect(res.body.error).toBe('Yetkilendirme gerekli.');
         });
 
         it('should return 404 if appointment not found', async () => {
@@ -625,6 +655,9 @@ describe('Appointment Controller (Extended)', () => {
                 .send({ status: 'approved' });
 
             expect(res.status).toBe(200);
+            expect(res.body.id).toBe('appt-1');
+            expect(res.body.status).toBe('approved');
+            expect(dbService.updateAppointment).toHaveBeenCalledWith('appt-1', { status: 'approved' });
         });
 
         it('should allow admin to update any appointment', async () => {
@@ -643,6 +676,9 @@ describe('Appointment Controller (Extended)', () => {
                 .send({ status: 'rejected' });
 
             expect(res.status).toBe(200);
+            expect(res.body.id).toBe('appt-1');
+            expect(res.body.status).toBe('rejected');
+            expect(dbService.updateAppointment).toHaveBeenCalledWith('appt-1', { status: 'rejected' });
         });
     });
 });
