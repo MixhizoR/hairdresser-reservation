@@ -178,7 +178,12 @@ const createAppointment = async (req, res) => {
 
     // Validate service against database and get duration
     let serviceDuration = 30; // default duration in minutes
-    if (name === 'MOLA' && service === 'MOLA') {
+    const isMola = name === 'MOLA' && service === 'MOLA';
+    const isAuthorized = req.user && (req.user.role === 'ADMIN' || req.user.role === 'BARBER');
+
+    if (isMola) {
+        if (!isAuthorized)
+            return res.status(403).json({ error: 'Sadece yetkili kullanıcılar mola oluşturabilir.' });
         serviceDuration = customDuration ? parseInt(customDuration) : 30;
     } else {
         try {

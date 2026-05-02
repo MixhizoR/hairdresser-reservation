@@ -198,8 +198,7 @@ const createAppointment = async (data) => {
 
         for (const existing of existingAppointments) {
             const existingStart = new Date(existing.time);
-            const existingService = serviceMap[existing.service];
-            const existingDuration = existingService?.duration || 30;
+            const existingDuration = existing.customDuration || serviceMap[existing.service]?.duration || 30;
             const existingEnd = new Date(existingStart.getTime() + existingDuration * 60000);
 
             // Check for overlap (not just exact match)
