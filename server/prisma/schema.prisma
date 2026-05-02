@@ -69,6 +69,7 @@ enum Level {
   JUNIOR
   SENIOR
   MASTER
+  DIRECTOR // Legacy level; removed from UI but preserved for database records
 }
 
 enum ServiceCategory {
