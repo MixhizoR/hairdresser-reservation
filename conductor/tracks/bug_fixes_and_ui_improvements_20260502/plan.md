@@ -6,7 +6,7 @@
   - **File:** `server/src/controllers/user.controller.js`
   - **Action:** Update validation to use Prisma `Level` enum, ensuring `MASTER` is accepted.
 
-- [ ] **Task 1.2: Ensure Service Delete is Soft Delete**
+- [x] **Task 1.2: Ensure Service Delete is Soft Delete** (Existing)
   - **File:** `server/src/controllers/service.controller.js`
   - **Action:** Confirm `DELETE` handler uses `isActive: false` and returns correct Turkish message.
 
