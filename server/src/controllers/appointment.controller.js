@@ -96,6 +96,8 @@ const getAvailability = async (req, res) => {
             appointments: appointments.map(a => ({
                 time: a.time,
                 status: a.status,
+                service: a.service,
+                customDuration: a.customDuration,
                 barberId: a.barberId,
                 barberName: a.barber?.name
             })),

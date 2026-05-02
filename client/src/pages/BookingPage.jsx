@@ -185,7 +185,8 @@ export default function BookingPage() {
   takenSlots.forEach(a => {
     const d = new Date(a.time);
     const startMinutes = d.getHours() * 60 + d.getMinutes();
-    const duration = a.customDuration || a.serviceRef?.duration || 30;
+    const serviceObj = services.find(s => s.name === a.service);
+    const duration = a.customDuration || serviceObj?.duration || 30;
     const slotsNeeded = Math.ceil(duration / 30);
     for (let i = 0; i < slotsNeeded; i++) {
       const total = startMinutes + i * 30;
