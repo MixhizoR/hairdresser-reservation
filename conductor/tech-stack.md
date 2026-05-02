@@ -4,12 +4,11 @@
 - **React (Vite)**: A modern and performant frontend framework for a smooth, single-page experience.
 - **Framer Motion**: For elegant animations and transitions, supporting the luxury feel.
 - **Lucide Icons**: High-quality, clean iconography for professional navigation.
-- **Socket.io-client**: Real-time communication for instant appointment updates and status notifications.
+- **Fetch API & Polling**: Reliable periodic polling for appointment updates and status notifications.
 - **qrcode.react**: For generating dynamic tracking QR codes on the frontend.
 
 ## Backend
-- **Node.js (Express)**: A fast and lightweight backend framework for building scalable REST APIs and handling real-time socket connections.
-- **Socket.io**: Real-time bidirectional event-based communication for the dashboard and notifications.
+- **Node.js (Express)**: A fast and lightweight backend framework for building scalable REST APIs.
 - **JWT (Bcrypt Auth)**: Secure, token-based authentication for administrative and staff access.
 - **Express-Rate-Limit**: Flexible rate-limiting for development and production security.
 
