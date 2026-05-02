@@ -10,7 +10,7 @@
   - **File:** `server/src/controllers/service.controller.js`
   - **Action:** Confirm `DELETE` handler uses `isActive: false` and returns correct Turkish message.
 
-- [ ] **Task 1.3: Fix Break Appointment Service Validation**
+- [x] **Task 1.3: Fix Break Appointment Service Validation** (6877a8a)
   - **File:** `server/src/controllers/appointment.controller.js`
   - **Action:** Add guard for `MOLA` service to bypass catalog validation; ensure overlap detection works.
 
