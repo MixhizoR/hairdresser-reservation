@@ -8,31 +8,38 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// User Roles Enum
+// User roles
 enum Role {
   ADMIN
   BARBER
 }
 
-// User Model - Tüm kullanıcılar (Admin ve Berberler)
+// User levels
+enum Level {
+  JUNIOR
+  SENIOR
+  MASTER
+  DIRECTOR
+}
+
+// User Model
 model User {
   id        String   @id @default(uuid())
   username  String   @unique
-  password  String   // bcrypt hash
+  password  String
   role      Role     @default(BARBER)
-  name      String?  // Berberin görünen adı (opsiyonel)
-  phone     String?  // Berberin telefonu (opsiyonel)
-  photoUrl  String?  // Berberin fotoğraf URL'si (opsiyonel)
+  name      String?
+  phone     String?
+  photoUrl  String?
   isActive  Boolean  @default(true)
-  level     String   @default("SENIOR")
+  level     Level    @default(SENIOR)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  // Notification sound preference (server-side persistence)
-  notificationSoundUrl  String?  // URL/path to the selected sound file
-  notificationSoundName String?  // Display name of the selected sound
+  // Notification sound preference
+  notificationSoundUrl  String?
+  notificationSoundName String?
 
-  // İlişkiler
   appointments Appointment[]
 }
 
@@ -43,20 +50,20 @@ enum ServiceCategory {
   TREATMENTS
 }
 
-// Service Model - Hizmetler
+// Service Model
 model Service {
   id          String           @id @default(uuid())
   name        String
   description String?
   price       Float
-  duration    Int              // dakika cinsinden
+  duration    Int
   category    ServiceCategory  @default(BARBERING)
   isActive    Boolean          @default(true)
   createdAt   DateTime         @default(now())
   updatedAt   DateTime         @updatedAt
 }
 
-// Settings Model - Salon Ayarları
+// Settings Model
 model Settings {
   id        String   @id @default(uuid())
   key       String   @unique
@@ -65,21 +72,21 @@ model Settings {
   updatedAt DateTime @updatedAt
 }
 
-// Appointment Model - Randevular
+// Appointment Model
 model Appointment {
-  id           String   @id @default(uuid())
-  name         String
-  phone        String
-  service      String
-  time         DateTime
-  status       String   @default("pending") // pending, approved, rejected
-  notes        String?  // Ek notlar
-  trackingCode String?  @unique
-  deviceToken  String?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id             String   @id @default(uuid())
+  name           String
+  phone          String
+  service        String
+  time           DateTime
+  status         String   @default("pending")
+  notes          String?
+  customDuration Int?
+  trackingCode   String?  @unique
+  deviceToken    String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
-  // Hangi berberden alındığı
-  barberId     String
-  barber       User     @relation(fields: [barberId], references: [id], onDelete: Cascade)
+  barberId String
+  barber   User @relation(fields: [barberId], references: [id], onDelete: Cascade)
 }

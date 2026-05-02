@@ -110,7 +110,7 @@ const deleteService = async (req, res) => {
             return res.status(404).json({ error: 'Hizmet bulunamadı.' });
 
         await db.updateService(id, { isActive: false });
-        res.json({ success: true, message: 'Hizmet pasif hale getirildi.' });
+        res.json({ success: true, message: 'Hizmet başarıyla silindi' });
     } catch (err) {
         log('error', 'DELETE /api/services/:id failed', { err: err.message });
         res.status(500).json({ error: 'Sunucu hatası.' });

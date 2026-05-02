@@ -45,6 +45,10 @@ describe('Appointment Controller (Extended)', () => {
     const getFutureDate = (minutesOffset = 0) => {
         const date = new Date();
         date.setDate(date.getDate() + 1);
+        // Skip Sunday (day 0) - move to Monday
+        if (date.getDay() === 0) {
+            date.setDate(date.getDate() + 1);
+        }
         date.setHours(10, 0, 0, 0);
         date.setMinutes(date.getMinutes() + minutesOffset);
         return date;
@@ -598,6 +602,28 @@ describe('Appointment Controller (Extended)', () => {
             expect(callArgs.time).toBeDefined();
             expect(callArgs.time.gte).toBeInstanceOf(Date);
             expect(callArgs.time.lte).toBeInstanceOf(Date);
+        });
+
+        it('should correctly apply fromDate filter in getAppointments', async () => {
+            dbService.getAppointments.mockResolvedValue([]);
+
+            const res = await request(app)
+                .get('/api/appointments?fromDate=2026-05-10')
+                .set('Authorization', `Bearer ${adminToken}`);
+
+            expect(res.status).toBe(200);
+            expect(Array.isArray(res.body)).toBe(true);
+            
+            // Verify that dbService.getAppointments was called with time.gte set to 2026-05-10
+            const callArgs = dbService.getAppointments.mock.calls[0][0];
+            expect(callArgs.time).toBeDefined();
+            expect(callArgs.time.gte).toBeInstanceOf(Date);
+            
+            // Verify the date is 2026-05-10 (compare year, month, date)
+            const fromDate = callArgs.time.gte;
+            expect(fromDate.getFullYear()).toBe(2026);
+            expect(fromDate.getMonth()).toBe(4); // May is month 4 (0-indexed)
+            expect(fromDate.getDate()).toBe(10);
         });
     });
 

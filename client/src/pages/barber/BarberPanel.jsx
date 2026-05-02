@@ -115,15 +115,15 @@ function DateBar({ cursor, onPrev, onNext, selectedDate, onSelectDate, appointme
 }
 
 /* ── Day Timeline — 30-min slots, multi-slot appointments ── */
-function DayTimeline({ appointments, selectedDate }) {
+function DayTimeline({ appointments, selectedDate, services }) {
   const dayAppts = appointments.filter(a => {
     const aDate = new Date(a.time).toISOString().split('T')[0];
     return aDate === selectedDate;
   }).sort((a, b) => new Date(a.time) - new Date(b.time));
 
-  // Generate 30-min slots from 08:00 to 19:30
+  // Generate 30-min slots from 08:00 to 20:30 (for 21:00 close)
   const slots = [];
-  for (let h = 8; h < 20; h++) {
+  for (let h = 8; h < 21; h++) {
     slots.push({ h, m: 0, label: `${String(h).padStart(2, '0')}:00` });
     slots.push({ h, m: 30, label: `${String(h).padStart(2, '0')}:30` });
   }
@@ -135,8 +135,9 @@ function DayTimeline({ appointments, selectedDate }) {
     const startM = apptTime.getMinutes();
     const startSlotIdx = slots.findIndex(s => s.h === startH && s.m === startM);
 
-    // Get duration from service or default 30 min
-    const duration = appt.duration || 30;
+    // Get duration from service or customDuration or default 30 min
+    const serviceObj = services.find(s => s.name === appt.service);
+    const duration = appt.customDuration || serviceObj?.duration || 30;
     const spanSlots = Math.ceil(duration / 30);
 
     return { startSlotIdx, spanSlots };
@@ -185,7 +186,7 @@ function DayTimeline({ appointments, selectedDate }) {
                 {info ? (
                   // Appointment — spans multiple 30-min slots
                   <div
-                    className={`rounded-lg px-3 py-2 flex items-center gap-2 ${
+                    className={`rounded-lg px-3 py-2 flex flex-col justify-center items-center text-center gap-1 ${
                       info.appt.status === 'pending'
                         ? 'bg-amber-50 border border-amber-200'
                         : info.appt.status === 'approved'
@@ -194,21 +195,21 @@ function DayTimeline({ appointments, selectedDate }) {
                     }`}
                     style={{ minHeight: `${info.spanSlots * 36 - 4}px` }}
                   >
-                    <span className={`w-2 h-2 rounded-full shrink-0 ${
-                      info.appt.status === 'pending' ? 'bg-amber-400' :
-                      info.appt.status === 'approved' ? 'bg-red-400' : 'bg-slate-400'
-                    }`} />
-                    <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className={`w-2 h-2 rounded-full shrink-0 ${
+                        info.appt.status === 'pending' ? 'bg-amber-400' :
+                        info.appt.status === 'approved' ? 'bg-red-400' : 'bg-slate-400'
+                      }`} />
                       <p className="text-sm font-bold text-on-surface truncate">{info.appt.name}</p>
-                      <p className="text-[10px] text-on-surface-variant">
-                        {info.appt.service}
-                        {info.spanSlots > 1 && ` (${info.spanSlots * 30}dk)`}
-                        {' · '}
-                        <span className={info.appt.status === 'pending' ? 'text-amber-600 font-bold' : 'text-red-600 font-bold'}>
-                          {STATUS_TR[info.appt.status]}
-                        </span>
-                      </p>
                     </div>
+                    <p className="text-[10px] text-on-surface-variant">
+                      {info.appt.service}
+                      {info.spanSlots > 1 && ` (${info.spanSlots * 30}dk)`}
+                      {' · '}
+                      <span className={info.appt.status === 'pending' ? 'text-amber-600 font-bold' : 'text-red-600 font-bold'}>
+                        {STATUS_TR[info.appt.status]}
+                      </span>
+                    </p>
                   </div>
                 ) : (
                   // Empty — green available
@@ -236,6 +237,7 @@ function DayTimeline({ appointments, selectedDate }) {
 
 export default function BarberPanel({ token, currentUser, authHeaders, onLogout }) {
   const [appointments, setAppointments] = useState([]);
+  const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [actionId, setActionId] = useState(null);
   const today = new Date();
@@ -260,6 +262,11 @@ export default function BarberPanel({ token, currentUser, authHeaders, onLogout 
     fetch(`${SERVER_URL}/api/sounds`)
       .then(r => r.json())
       .then(d => setSounds(d.files || []))
+      .catch(() => {});
+    
+    fetch(`${SERVER_URL}/api/services`)
+      .then(r => r.json())
+      .then(d => setServices(Array.isArray(d) ? d : []))
       .catch(() => {});
   }, []);
 
@@ -482,7 +489,7 @@ export default function BarberPanel({ token, currentUser, authHeaders, onLogout 
               {/* Left: Date bar + day timeline */}
               <div className="space-y-6">
                 <DateBar cursor={cursor} onPrev={() => navigateDay(-1)} onNext={() => navigateDay(1)} selectedDate={selectedDate} onSelectDate={handleSelectDate} appointments={appointments} slideDir={slideDir} />
-                <DayTimeline appointments={appointments} selectedDate={selectedDate} />
+                <DayTimeline appointments={appointments} selectedDate={selectedDate} services={services} />
               </div>
 
               {/* Right: pending + upcoming lists */}
@@ -537,7 +544,7 @@ export default function BarberPanel({ token, currentUser, authHeaders, onLogout 
                 </section>
               )}
               <DateBar cursor={cursor} onPrev={() => navigateDay(-1)} onNext={() => navigateDay(1)} selectedDate={selectedDate} onSelectDate={handleSelectDate} appointments={appointments} slideDir={slideDir} />
-              <DayTimeline appointments={appointments} selectedDate={selectedDate} />
+              <DayTimeline appointments={appointments} selectedDate={selectedDate} services={services} />
             </div>
           </>
         )}

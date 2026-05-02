@@ -105,8 +105,8 @@ describe('Booking Flow - Tracking Code & Redirect', () => {
     });
 
     const today = new Date().getDate();
-    const dayElements = screen.getAllByText(today.toString());
-    const dayButton = dayElements.find(el => el.classList.contains('cal-day'));
+    const dayButtons = screen.getAllByText(String(today));
+    const dayButton = dayButtons.find(el => el.classList.contains('cal-day'));
     fireEvent.click(dayButton);
 
     await waitFor(() => {

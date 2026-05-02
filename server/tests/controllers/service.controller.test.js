@@ -375,7 +375,7 @@ describe('Service Controller', () => {
 
             expect(res.status).toBe(200);
             expect(res.body.success).toBe(true);
-            expect(res.body.message).toBe('Hizmet pasif hale getirildi.');
+            expect(res.body.message).toBe('Hizmet başarıyla silindi');
             expect(dbService.updateService).toHaveBeenCalledWith('svc-1', { isActive: false });
         });
     });

@@ -139,7 +139,7 @@ const getMe = async (req, res) => {
 // Update user profile (for barbers to update their info)
 const updateProfile = async (req, res) => {
     const { name, phone } = req.body;
-    const cleanPhone = phone ? String(phone).replace(/\D/g, '') : undefined;
+    const cleanPhone = phone ? sanitizePhone(String(phone)) : undefined;
 
     if (cleanPhone && cleanPhone.length !== 11)
         return res.status(400).json({ error: 'Telefon numarası 11 haneli olmalıdır.' });

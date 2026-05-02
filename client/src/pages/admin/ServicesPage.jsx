@@ -11,7 +11,6 @@ function ServiceModal({ service, onClose, onSave }) {
     price: service?.price || '',
     duration: service?.duration || 30,
     category: service?.category || 'BARBERING',
-    isActive: service?.isActive ?? true,
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -64,10 +63,6 @@ function ServiceModal({ service, onClose, onSave }) {
               {CATEGORIES.map(c => <option key={c} value={c}>{CAT_LABELS[c] || c}</option>)}
             </select>
           </div>
-          <div className="flex items-center gap-3">
-            <input type="checkbox" id="isActive" checked={form.isActive} onChange={e => update('isActive', e.target.checked)} className="w-4 h-4 accent-primary" />
-            <label htmlFor="isActive" className="text-sm font-medium text-on-surface">Aktif (müşterilere görünür)</label>
-          </div>
         </div>
 
         <div className="flex gap-3 mt-8">
@@ -107,7 +102,7 @@ export default function ServicesPage({ token, authHeaders }) {
   };
 
   const handleDelete = async (id) => {
-    if (!confirm('Bu hizmeti pasifleştirmek istiyor musunuz?')) return;
+    if (!confirm('Bu hizmeti silmek istiyor musunuz?')) return;
     await fetch(`${SERVER_URL}/api/services/${id}`, { method: 'DELETE', headers: authHeaders() });
     load();
   };
@@ -128,7 +123,7 @@ export default function ServicesPage({ token, authHeaders }) {
       <div className="flex justify-between items-end">
       <div>
         <h2 className="text-3xl font-extrabold tracking-tight text-on-surface">Hizmetler</h2>
-        <p className="text-on-surface-variant mt-1">{services.filter(s => s.isActive).length} aktif hizmet</p>
+        <p className="text-on-surface-variant mt-1">{services.length} toplam hizmet</p>
       </div>
       <button onClick={() => setModal('add')} className="btn-primary flex items-center gap-2">
         <span className="material-symbols-outlined text-base">add</span>
@@ -152,12 +147,11 @@ export default function ServicesPage({ token, authHeaders }) {
           <table className="w-full" style={{ tableLayout: 'fixed' }}>
             <thead>
               <tr className="bg-surface-container-low text-xs uppercase tracking-widest text-on-surface-variant">
-                <th className="text-left px-6 py-4 font-bold whitespace-nowrap" style={{ width: '25%' }}>Hizmet</th>
-                <th className="text-left px-6 py-4 font-bold whitespace-nowrap hidden md:table-cell" style={{ width: '15%' }}>Kategori</th>
-                <th className="text-left px-6 py-4 font-bold whitespace-nowrap" style={{ width: '12%' }}>Fiyat</th>
-                <th className="text-left px-6 py-4 font-bold whitespace-nowrap hidden md:table-cell" style={{ width: '12%' }}>Süre</th>
-                <th className="text-left px-6 py-4 font-bold whitespace-nowrap" style={{ width: '12%' }}>Durum</th>
-                <th className="text-left px-6 py-4 font-bold whitespace-nowrap" style={{ width: '24%' }}>İşlemler</th>
+                <th className="text-left px-6 py-4 font-bold whitespace-nowrap" style={{ width: '30%' }}>Hizmet</th>
+                <th className="text-left px-6 py-4 font-bold whitespace-nowrap hidden md:table-cell" style={{ width: '20%' }}>Kategori</th>
+                <th className="text-left px-6 py-4 font-bold whitespace-nowrap" style={{ width: '15%' }}>Fiyat</th>
+                <th className="text-left px-6 py-4 font-bold whitespace-nowrap hidden md:table-cell" style={{ width: '15%' }}>Süre</th>
+                <th className="text-left px-6 py-4 font-bold whitespace-nowrap" style={{ width: '20%' }}>İşlemler</th>
               </tr>
             </thead>
             <tbody>
@@ -180,16 +174,11 @@ export default function ServicesPage({ token, authHeaders }) {
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap min-w-0">
-                    <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-full ${s.isActive ? 'bg-green-50 text-green-700' : 'bg-slate-100 text-slate-500'}`}>
-                      {s.isActive ? 'Aktif' : 'Pasif'}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap min-w-0">
                     <div className="flex items-center gap-1">
                       <button onClick={() => setModal(s)} className="p-1.5 rounded-lg bg-slate-50 hover:bg-blue-50 text-slate-500 hover:text-blue-700 transition-colors" title="Düzenle">
                         <span className="material-symbols-outlined text-base">edit</span>
                       </button>
-                      <button onClick={() => handleDelete(s.id)} className="p-1.5 rounded-lg bg-slate-50 hover:bg-red-50 text-slate-500 hover:text-red-600 transition-colors" title="Pasifleştir">
+                      <button onClick={() => handleDelete(s.id)} className="p-1.5 rounded-lg bg-slate-50 hover:bg-red-50 text-slate-500 hover:text-red-600 transition-colors" title="Sil">
                         <span className="material-symbols-outlined text-base">delete</span>
                       </button>
                     </div>

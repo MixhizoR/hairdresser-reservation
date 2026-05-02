@@ -179,61 +179,50 @@ export default function BookingPage() {
 
   /* Block extra slots based on selected service duration */
   const selectedService = services.find(s => String(s.id) === form.serviceId);
-  const getBlockedSlots = () => {
-    if (!form.time || !selectedService?.duration) return [];
-    const slotsNeeded = Math.ceil(selectedService.duration / 30);
-    const blocked = [];
-    const [h, m] = form.time.split(':').map(Number);
-    for (let i = 1; i < slotsNeeded; i++) {
-      const total = h * 60 + m + i * 30;
+
+  /* Extract all occupied time slots from takenSlots (accounting for duration) */
+  const occupiedSlots = new Set();
+  takenSlots.forEach(a => {
+    const d = new Date(a.time);
+    const startMinutes = d.getHours() * 60 + d.getMinutes();
+    const duration = a.customDuration || a.serviceRef?.duration || 30;
+    const slotsNeeded = Math.ceil(duration / 30);
+    for (let i = 0; i < slotsNeeded; i++) {
+      const total = startMinutes + i * 30;
       const hh = Math.floor(total / 60).toString().padStart(2, '0');
       const mm = (total % 60).toString().padStart(2, '0');
-      blocked.push(`${hh}:${mm}`);
+      occupiedSlots.add(`${hh}:${mm}`);
     }
-    return blocked;
+  });
+
+  /* Check if a slot is unavailable due to overlaps or exceeding closing time */
+  const isSlotUnavailable = (slot) => {
+    const slotsNeeded = selectedService?.duration ? Math.ceil(selectedService.duration / 30) : 1;
+    const [sh, sm] = slot.split(':').map(Number);
+    const startMinutes = sh * 60 + sm;
+
+    // Check if any of the required slots overlap with occupied slots or exceed 21:00
+    for (let i = 0; i < slotsNeeded; i++) {
+      const total = startMinutes + i * 30;
+      const hh = Math.floor(total / 60).toString().padStart(2, '0');
+      const mm = (total % 60).toString().padStart(2, '0');
+      const timeStr = `${hh}:${mm}`;
+
+      // Check if this slot is occupied
+      if (occupiedSlots.has(timeStr)) return true;
+
+      // Check if this slot exceeds 21:00 (closing time)
+      if (total >= 21 * 60) return true;
+    }
+    return false;
   };
-  const blockedSlots = getBlockedSlots();
-  const isSlotUnavailable = (slot) => takenSlots.includes(slot) || blockedSlots.includes(slot);
 
-  /* Generate time slots based on configured working hours (24h format) */
+  /* Generate time slots based on hardcoded working hours (08:00-21:00) */
   const times = [];
-  if (form.date && settings?.operatingHours) {
-    const DAYS_MAP = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
-    const dateObj = new Date(form.date + 'T12:00');
-    const dayKey = DAYS_MAP[dateObj.getDay()];
-    const dayConfig = settings.operatingHours[dayKey];
-
-    if (dayConfig && !dayConfig.closed) {
-      const parseTime = (t) => {
-        const [h, m] = (t || '08:30').split(':').map(Number);
-        return { h, m };
-      };
-      const { h: openH, m: openM } = parseTime(dayConfig.open || '08:30');
-      const { h: closeH, m: closeM } = parseTime(dayConfig.close || '19:00');
-      
-      const HARD_OPEN = 8 * 60 + 30; // 08:30
-      const HARD_CLOSE = 19 * 60;   // 19:00
-      
-      const openTotal = Math.max(openH * 60 + openM, HARD_OPEN);
-      const closeTotal = Math.min(closeH * 60 + closeM, HARD_CLOSE);
-
-      for (let t = openTotal; t < closeTotal; t += 30) {
-        const hh = String(Math.floor(t / 60)).padStart(2, '0');
-        const mm = String(t % 60).padStart(2, '0');
-        times.push(`${hh}:${mm}`);
-      }
-    }
-  }
-
-  // Fallback: if no settings loaded or no date selected, show default 08:30-19:00
-  if (times.length === 0 && form.date) {
-    for (let h = 8; h < 19; h++) {
-      if (h === 8) {
-        times.push('08:30');
-      } else {
-        times.push(`${String(h).padStart(2, '0')}:00`);
-        times.push(`${String(h).padStart(2, '0')}:30`);
-      }
+  if (form.date) {
+    for (let h = 8; h < 21; h++) {
+      times.push(`${String(h).padStart(2, '0')}:00`);
+      times.push(`${String(h).padStart(2, '0')}:30`);
     }
   }
 
@@ -417,7 +406,7 @@ export default function BookingPage() {
                       <div className="flex items-center gap-2">
                         <span className="material-symbols-outlined text-primary text-base">schedule</span>
                         <span className="font-medium text-on-surface">{form.time}</span>
-                        {selectedService && <span className="text-on-surface-variant text-xs">({selectedService.duration} min)</span>}
+                        {selectedService && <span className="text-on-surface-variant text-xs">({selectedService.duration} dk)</span>}
                       </div>
                     )}
                     {selectedService && (

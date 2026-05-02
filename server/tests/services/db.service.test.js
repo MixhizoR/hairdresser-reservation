@@ -272,11 +272,14 @@ describe('Database Service - Appointment Tracking', () => {
             trackingCode: 'MOCKCD'
         };
 
+        // Mock service.findMany for duration lookup
+        prismaMock.service.findMany.mockResolvedValue([{ name: 'Haircut', duration: 30 }]);
+
         // Mock the transaction to simulate the overlap check and create
         prismaMock.$transaction.mockImplementation(async (callback) => {
             // Mock tx object
             const tx = {
-                service: { findUnique: jest.fn().mockResolvedValue({ name: 'Haircut', duration: 30 }) },
+                service: { findFirst: jest.fn().mockResolvedValue({ name: 'Haircut', duration: 30 }) },
                 appointment: {
                     findMany: jest.fn().mockResolvedValue([]), // No existing appointments (no overlap)
                     create: jest.fn().mockResolvedValue(mockReturnedAppointment)

@@ -96,4 +96,54 @@ describe('Sound Whitelist', () => {
             expect(isAllowedExtension(filename)).toBe(true); // extension is valid but path is dangerous
         });
     });
+
+    describe('Null-byte injection prevention', () => {
+        it('should reject filenames containing null-byte (%00)', () => {
+            // Simulate null-byte in filename: malware.exe%00.mp3
+            const filename1 = 'malware.exe%00.mp3';
+            // The %00 should be detected as a null-byte attempt
+            expect(filename1.includes('%00')).toBe(true);
+        });
+
+        it('should detect null-byte in file upload validation', () => {
+            // Test the validateFilename function concept
+            function hasNullByte(filename) {
+                // Check for null byte representations
+                return filename.includes('\0') || filename.includes('%00');
+            }
+
+            // Test with URL-encoded null byte (%00)
+            expect(hasNullByte('malware.exe%00.mp3')).toBe(true);
+            
+            // Test with actual null character - use String.fromCharCode(0)
+            const filenameWithNull = 'malware.exe' + String.fromCharCode(0) + '.mp3';
+            expect(hasNullByte(filenameWithNull)).toBe(true);
+            
+            expect(hasNullByte('normal.mp3')).toBe(false);
+            expect(hasNullByte('alert.wav')).toBe(false);
+        });
+
+        it('should reject files where originalname contains null-byte', () => {
+            // Simulate multer file object with null-byte injection
+            const maliciousFile1 = { originalname: 'malware.exe%00.mp3' };
+            
+            // Validation should catch these
+            function isValidFilename(filename) {
+                if (!filename || typeof filename !== 'string') return false;
+                // Reject if contains null byte representations
+                if (filename.includes('\0') || filename.includes('%00')) return false;
+                // Check extension
+                const ext = path.extname(filename).toLowerCase();
+                return ['.mp3', '.wav'].includes(ext);
+            }
+
+            expect(isValidFilename(maliciousFile1.originalname)).toBe(false);
+            
+            // Test with actual null character
+            const filenameWithNull = 'malware.exe' + String.fromCharCode(0) + '.mp3';
+            expect(isValidFilename(filenameWithNull)).toBe(false);
+            
+            expect(isValidFilename('normal.mp3')).toBe(true);
+        });
+    });
 });

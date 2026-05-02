@@ -142,6 +142,15 @@ const getAppointments = async (req, res) => {
             };
         }
 
+        // Filter from a specific date onward (fromDate)
+        if (req.query.fromDate) {
+            const fromDate = new Date(req.query.fromDate);
+            fromDate.setHours(0, 0, 0, 0);
+            filters.time = {
+                gte: fromDate
+            };
+        }
+
         const appointments = await db.getAppointments(filters);
         res.json(appointments);
     } catch (err) {
@@ -169,21 +178,25 @@ const createAppointment = async (req, res) => {
 
     // Validate service against database and get duration
     let serviceDuration = 30; // default duration in minutes
-    try {
-        const dbService = await db.findServiceByName(service);
-        if (!dbService)
+    if (name === 'MOLA' && service === 'MOLA') {
+        serviceDuration = customDuration ? parseInt(customDuration) : 30;
+    } else {
+        try {
+            const dbService = await db.findServiceByName(service);
+            if (!dbService)
+                return res.status(400).json({ error: 'Geçersiz hizmet seçimi.' });
+            serviceDuration = dbService.duration || 30;
+        } catch {
             return res.status(400).json({ error: 'Geçersiz hizmet seçimi.' });
-        serviceDuration = dbService.duration || 30;
-    } catch {
-        return res.status(400).json({ error: 'Geçersiz hizmet seçimi.' });
+        }
     }
 
-    if (!isValidName(name))
+    if (name !== 'MOLA' && !isValidName(name))
         return res.status(400).json({ error: 'Geçersiz isim. Sadece harf kullanın (2-50 karakter).' });
 
     // Sanitize phone before validation
     const sanitizedPhone = sanitizePhone(phone);
-    if (!isValidPhone(sanitizedPhone))
+    if (name !== 'MOLA' && !isValidPhone(sanitizedPhone))
         return res.status(400).json({ error: 'Geçersiz telefon. Format: 05xxxxxxxxx' });
 
     // Validate barberId
@@ -198,14 +211,14 @@ const createAppointment = async (req, res) => {
     if (localDate.getUTCMinutes() % 30 !== 0 || localDate.getUTCSeconds() !== 0)
         return res.status(400).json({ error: 'Geçersiz saat dilimi (00 veya 30 dakika olmalı).' });
 
-    if (date < new Date())
+    if (date < new Date() && name !== 'MOLA')
         return res.status(400).json({ error: 'Geçmiş bir saat seçilemez.' });
 
     // Validate 14-day advance booking limit
     const MAX_ADVANCE_DAYS = 14;
     const maxDate = new Date();
     maxDate.setDate(maxDate.getDate() + MAX_ADVANCE_DAYS);
-    if (date > maxDate)
+    if (date > maxDate && name !== 'MOLA')
         return res.status(400).json({ error: 'En fazla 14 gün sonrasına randevu alabilirsiniz.' });
 
     // Validate against hardcoded working hours (08:00-21:00, Sunday closed)
@@ -213,7 +226,7 @@ const createAppointment = async (req, res) => {
     const dayOfWeek = DAYS_MAP[localDate.getUTCDay()];
 
     // Sunday is closed
-    if (dayOfWeek === 'sunday') {
+    if (dayOfWeek === 'sunday' && name !== 'MOLA') {
         return res.status(400).json({ error: 'Seçilen gün kapalıdır.' });
     }
 
@@ -227,7 +240,8 @@ const createAppointment = async (req, res) => {
     }
 
     // Check if appointment end time exceeds closing time
-    if (slotTime + serviceDuration > CLOSE_MINUTES) {
+    const effectiveDuration = (name === 'MOLA' && customDuration) ? parseInt(customDuration) : serviceDuration;
+    if (slotTime + effectiveDuration > CLOSE_MINUTES) {
         return res.status(400).json({ error: 'Hizmet süresi mesai saatleri dışındadır.' });
     }
 

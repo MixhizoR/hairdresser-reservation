@@ -97,7 +97,7 @@ const usernameExists = async (username) => {
 const getAppointments = async (filters = {}, options = {}) => {
     return await prisma.appointment.findMany({
         where: filters,
-        include: { barber: true, serviceRef: true },
+        include: { barber: true },
         orderBy: { time: options.orderBy || 'asc' },
         ...(options.take ? { take: options.take } : {}),
         ...(options.skip ? { skip: options.skip } : {}),
@@ -168,9 +168,14 @@ const createAppointment = async (data) => {
     }
     if (!isUnique) throw new Error('Could not generate a unique tracking code after 5 attempts.');
 
+    // Fetch services for duration lookup (done outside transaction for efficiency)
+    const services = await prisma.service.findMany({});
+    const serviceMap = {};
+    services.forEach(s => { serviceMap[s.name] = s; });
+
     return await prisma.$transaction(async (tx) => {
         // Fetch service duration to calculate appointment end time (unless using customDuration)
-        const service = await tx.service.findUnique({
+        const service = await tx.service.findFirst({
             where: { name: appointmentData.service }
         });
         const duration = appointmentData.customDuration ? parseInt(appointmentData.customDuration) : (service?.duration || 30);
@@ -188,13 +193,13 @@ const createAppointment = async (data) => {
                     gte: new Date(startTime.getFullYear(), startTime.getMonth(), startTime.getDate()),
                     lt: new Date(startTime.getFullYear(), startTime.getMonth(), startTime.getDate() + 1)
                 }
-            },
-            include: { serviceRef: true }
+            }
         });
 
         for (const existing of existingAppointments) {
             const existingStart = new Date(existing.time);
-            const existingDuration = existing.serviceRef?.duration || 30;
+            const existingService = serviceMap[existing.service];
+            const existingDuration = existingService?.duration || 30;
             const existingEnd = new Date(existingStart.getTime() + existingDuration * 60000);
 
             // Check for overlap (not just exact match)

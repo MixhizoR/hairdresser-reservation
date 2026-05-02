@@ -8,8 +8,12 @@ const sanitizePhone = (phone) => {
     // Handle international formats: +90, 90, 0090
     if (cleaned.startsWith('0090')) {
         cleaned = '0' + cleaned.slice(4);
-    } else if (cleaned.startsWith('90') && cleaned.length === 12) {
+    } else if (cleaned.startsWith('90') && cleaned.length >= 11) {
         // 905321234567 -> 05321234567
+        cleaned = '0' + cleaned.slice(2);
+    } else if (cleaned.startsWith('+90') && cleaned.length >= 12) {
+        // +905321234567 -> 05321234567 (the + is already stripped by \D removal)
+        // After removing non-digits, +90 becomes 90, so this is handled by the above case
         cleaned = '0' + cleaned.slice(2);
     }
 

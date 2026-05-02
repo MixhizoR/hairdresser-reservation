@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 
 const SERVER_URL = import.meta.env.VITE_API_URL || '';
-const LEVELS = ['JUNIOR', 'SENIOR', 'MASTER', 'DIRECTOR'];
-const LEVEL_LABELS = { JUNIOR: 'Çırak', SENIOR: 'Kıdemli', MASTER: 'Usta', DIRECTOR: 'Direktör' };
+const LEVELS = ['JUNIOR', 'SENIOR', 'MASTER'];
+const LEVEL_LABELS = { JUNIOR: 'Çırak', SENIOR: 'Kıdemli', MASTER: 'Usta' };
 const LEVEL_STYLE = {
   JUNIOR: 'bg-slate-100 text-slate-600',
   SENIOR: 'bg-blue-50 text-blue-700',
@@ -171,14 +171,6 @@ export default function StylistsPage({ token, authHeaders }) {
     load();
   };
 
-  const handleDelete = async (id) => {
-    if (!confirm('Bu stilist pasifleştirilecek. Yaklaşan randevuları varsa geri alınamaz. Devam edilsin mi?')) return;
-    const res = await fetch(`${SERVER_URL}/api/barbers/${id}`, { method: 'DELETE', headers: authHeaders() });
-    const d = await res.json();
-    if (!res.ok) { alert(d.error || 'Stilist silinemiyor'); return; }
-    load();
-  };
-
   const STATUS_DOT = { active: 'bg-green-500', break: 'bg-amber-500', off: 'bg-slate-300' };
 
   return (
@@ -250,16 +242,13 @@ export default function StylistsPage({ token, authHeaders }) {
                 </div>
               </div>
 
-              {/* Actions */}
+               {/* Actions */}
               <div className="flex gap-2">
                 <button onClick={() => setModal(s)} className="flex-1 py-2 bg-slate-100 hover:bg-slate-200 text-on-surface-variant text-xs font-bold rounded-xl transition-colors">
                   Düzenle
                 </button>
                 <button onClick={() => handleToggle(s.id)} className="flex-1 py-2 bg-blue-50 hover:bg-blue-100 text-primary text-xs font-bold rounded-xl transition-colors">
                   {s.isActive ? 'Pasifleştir' : 'Aktifleştir'}
-                </button>
-                <button onClick={() => handleDelete(s.id)} className="py-2 px-3 bg-slate-50 hover:bg-red-50 text-slate-400 hover:text-red-600 rounded-xl transition-colors">
-                  <span className="material-symbols-outlined text-base">delete</span>
                 </button>
               </div>
             </div>
