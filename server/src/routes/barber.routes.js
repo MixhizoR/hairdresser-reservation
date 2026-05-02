@@ -90,7 +90,7 @@ router.post('/', authMiddleware, requireRole('ADMIN'), photoUpload.single('photo
     if (cleanPhone && !cleanPhone.startsWith('05'))
         return res.status(400).json({ error: 'Telefon numarası 05 ile başlamalıdır.' });
 
-    const ALLOWED_LEVELS = ['JUNIOR', 'SENIOR', 'MASTER', 'DIRECTOR'];
+    const ALLOWED_LEVELS = Object.values(db.Level);
     if (level !== undefined && !ALLOWED_LEVELS.includes(level))
         return res.status(400).json({ error: `Geçersiz seviye. İzin verilenler: ${ALLOWED_LEVELS.join(', ')}` });
 
@@ -159,7 +159,7 @@ router.put('/:id', authMiddleware, photoUpload.single('photo'), async (req, res)
         }
         if (phone !== undefined) updateData.phone = cleanPhone;
         if (level !== undefined) {
-            const ALLOWED_LEVELS = ['JUNIOR', 'SENIOR', 'MASTER', 'DIRECTOR'];
+            const ALLOWED_LEVELS = Object.values(db.Level);
             if (!ALLOWED_LEVELS.includes(level))
                 return res.status(400).json({ error: `Geçersiz seviye. İzin verilenler: ${ALLOWED_LEVELS.join(', ')}` });
             updateData.level = level;

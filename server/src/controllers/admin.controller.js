@@ -82,6 +82,11 @@ const register = async (req, res) => {
     if (role && !allowedRoles.includes(role))
         return res.status(400).json({ error: 'Geçersiz rol. ADMIN veya BARBER olmalıdır.' });
 
+    // Validate level
+    const allowedLevels = Object.values(db.Level);
+    if (level && !allowedLevels.includes(level))
+        return res.status(400).json({ error: `Geçersiz seviye. İzin verilenler: ${allowedLevels.join(', ')}` });
+
     try {
         if (await db.usernameExists(username))
             return res.status(409).json({ error: 'Bu kullanıcı adı zaten kullanımda.' });

@@ -1,4 +1,4 @@
-const { PrismaClient } = require('@prisma/client');
+const { PrismaClient, Level } = require('@prisma/client');
 const prisma = new PrismaClient();
 const { log } = require('../config/logger');
 const crypto = require('crypto');
@@ -397,4 +397,5 @@ module.exports = {
     // Dashboard
     getDashboardStats,
     connect,
+    Level
 };
