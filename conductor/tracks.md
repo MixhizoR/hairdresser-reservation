@@ -12,8 +12,3 @@ This file tracks all major tracks for the project. Each track has its own detail
 - [ ] **Track: Backend Infrastructure Overhaul (MPv3)**
   *Link: [./tracks/master_plan_v3_backend_overhaul_20260324/](./tracks/master_plan_v3_backend_overhaul_20260324/)*
 
----
-
-- [x] **Track: Bug Fixes & UI Improvements**
-  *Link: [./tracks/bug_fixes_and_ui_improvements_20260502/](./tracks/bug_fixes_and_ui_improvements_20260502/)*
-
