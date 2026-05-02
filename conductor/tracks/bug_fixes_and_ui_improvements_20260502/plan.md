@@ -14,60 +14,60 @@
   - **File:** `server/src/controllers/appointment.controller.js`
   - **Action:** Add guard for `MOLA` service to bypass catalog validation; ensure overlap detection works.
 
-## Phase 2: Admin Panel - Services Management
+## Phase 2: Admin Panel - Services Management [checkpoint: 57264f8]
 
-- [ ] **Task 2.1: Remove `isActive` Column from Services Table**
-  - **File:** `client/src/pages/admin/Services.jsx`
+- [x] **Task 2.1: Remove `isActive` Column from Services Table** (Existing)
+  - **File:** `client/src/pages/admin/ServicesPage.jsx`
   - **Action:** Remove "Durum" column and associated rendering.
 
-- [ ] **Task 2.2: Remove `isActive` Toggle from Service Forms**
-  - **File:** `client/src/components/admin/ServiceForm.jsx`
+- [x] **Task 2.2: Remove `isActive` Toggle from Service Forms** (Existing)
+  - **File:** `client/src/pages/admin/ServicesPage.jsx`
   - **Action:** Remove `isActive` input and state from Add/Edit forms.
 
-- [ ] **Task 2.3: Update Delete Confirmation Text**
-  - **File:** `client/src/pages/admin/Services.jsx`
+- [x] **Task 2.3: Update Delete Confirmation Text** (Existing)
+  - **File:** `client/src/pages/admin/ServicesPage.jsx`
   - **Action:** Change text to "Bunu silmek istiyor musunuz?".
 
-## Phase 3: Admin Panel - Barber Form Level Dropdown
+## Phase 3: Admin Panel - Barber Form Level Dropdown [checkpoint: 57264f8]
 
-- [ ] **Task 3.1: Fix Level Dropdown Options**
-  - **File:** `client/src/components/admin/BarberForm.jsx`
+- [x] **Task 3.1: Fix Level Dropdown Options** (Existing)
+  - **File:** `client/src/pages/admin/StylistsPage.jsx`
   - **Action:** Remove `DIRECTOR`, add `MASTER` (Usta), ensure uppercase values.
 
-## Phase 4: Admin Panel - BreakModal Fixes
+## Phase 4: Admin Panel - BreakModal Fixes [checkpoint: 57264f8]
 
-- [ ] **Task 4.1: Implement 24-Hour Time Inputs**
-  - **File:** `client/src/components/admin/BreakModal.jsx`
+- [x] **Task 4.1: Implement 24-Hour Time Inputs** (Existing)
+  - **File:** `client/src/pages/admin/AppointmentsPage.jsx`
   - **Action:** Replace time picker with separate Hour/Minute dropdowns (00/30).
 
-- [ ] **Task 4.2: Calculate `customDuration` and Fix Payload**
-  - **File:** `client/src/components/admin/BreakModal.jsx`
+- [x] **Task 4.2: Calculate `customDuration` and Fix Payload** (Existing)
+  - **File:** `client/src/pages/admin/AppointmentsPage.jsx`
   - **Action:** Calculate duration, build payload per contract (no `serviceId`).
 
-- [ ] **Task 4.3: Add Client-Side Overlap Check**
-  - **File:** `client/src/components/admin/BreakModal.jsx`
+- [x] **Task 4.3: Add Client-Side Overlap Check** (Existing)
+  - **File:** `client/src/pages/admin/AppointmentsPage.jsx`
   - **Action:** Fetch appointments and check for overlaps before submission.
 
-## Phase 5: Booking Flow - Slot Logic & Localization
+## Phase 5: Booking Flow - Slot Logic & Localization [checkpoint: 57264f8]
 
-- [ ] **Task 5.1: Mathematical Slot Calculation**
+- [x] **Task 5.1: Mathematical Slot Calculation** (57264f8)
   - **File:** `client/src/pages/BookingPage.jsx`
   - **Action:** Calculate `requiredSlots` based on 30min slots.
 
-- [ ] **Task 5.2: Visual Multi-Slot Blocking**
-  - **File:** `client/src/components/booking/TimeSlotSelector.jsx`
+- [x] **Task 5.2: Visual Multi-Slot Blocking** (Existing)
+  - **File:** `client/src/pages/BookingPage.jsx`
   - **Action:** Render merged blocks for multi-slot appointments.
 
-- [ ] **Task 5.3: Client-Side Overlap Validation**
-  - **File:** `client/src/components/booking/TimeSlotSelector.jsx`
+- [x] **Task 5.3: Client-Side Overlap Validation** (57264f8)
+  - **File:** `client/src/pages/BookingPage.jsx`
   - **Action:** Validate availability for ALL required slots before selection.
 
-- [ ] **Task 5.4: Localize Duration Label**
+- [x] **Task 5.4: Localize Duration Label** (Existing)
   - **File:** `client/src/pages/BookingPage.jsx`
   - **Action:** Change `min` to `dk`.
 
-## Phase 6: Barber Panel Calendar - Merged Slot Rendering
+## Phase 6: Barber Panel Calendar - Merged Slot Rendering [checkpoint: 57264f8]
 
-- [ ] **Task 6.1: Render Multi-Slot Appointments as Merged Blocks**
-  - **File:** `client/src/components/barber/BarberCalendar.jsx`
+- [x] **Task 6.1: Render Multi-Slot Appointments as Merged Blocks** (Existing)
+  - **File:** `client/src/pages/barber/BarberPanel.jsx`
   - **Action:** Compute `slotSpan` and render unified blocks covering multiple slots.
