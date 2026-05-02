@@ -66,8 +66,5 @@
   - **File:** `client/src/pages/BookingPage.jsx`
   - **Action:** Change `min` to `dk`.
 
-## Phase 6: Barber Panel Calendar - Merged Slot Rendering [checkpoint: 57264f8]
-
-- [x] **Task 6.1: Render Multi-Slot Appointments as Merged Blocks** (Existing)
-  - **File:** `client/src/pages/barber/BarberPanel.jsx`
-  - **Action:** Compute `slotSpan` and render unified blocks covering multiple slots.
+## Phase: Review Fixes
+- [x] Task: Apply review suggestions (ab84c74)
