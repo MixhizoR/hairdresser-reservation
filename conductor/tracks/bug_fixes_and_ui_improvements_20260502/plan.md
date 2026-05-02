@@ -1,6 +1,6 @@
 # Implementation Plan: Bug Fixes & UI Improvements
 
-## Phase 1: Backend Alignment & API Fixes
+## Phase 1: Backend Alignment & API Fixes [checkpoint: b939c60]
 
 - [x] **Task 1.1: Align User Level Validation with Prisma Enum** (2492714)
   - **File:** `server/src/controllers/user.controller.js`
